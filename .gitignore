@@ -1,0 +1,67 @@
+# ==========================================================
+# SIGILO — nada disto entra no repositório (premissa do projeto)
+# ==========================================================
+# Documentos oficiais da prefeitura, templates com brasão/símbolo,
+# mapas reais preenchidos e qualquer dado pessoal.
+*.doc
+*.docx
+*.odt
+*.xls
+*.xlsx
+# Pasta local para material sensível (nunca versionada)
+_privado/
+confidencial/
+
+# Exceção consciente: se algum dia um .docx PRECISAR ser versionado,
+# usar `git add -f` de propósito e justificar no PR.
+
+# ==========================================================
+# Credenciais e configuração local
+# ==========================================================
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+credentials*.json
+service-account*.json
+
+# ==========================================================
+# Node / React (web)
+# ==========================================================
+node_modules/
+dist/
+build/
+.vite/
+coverage/
+*.log
+npm-debug.log*
+yarn-error.log*
+
+# ==========================================================
+# Flutter / Android (mobile)
+# ==========================================================
+.dart_tool/
+.flutter-plugins
+.flutter-plugins-dependencies
+**/android/.gradle/
+**/android/local.properties
+**/android/key.properties
+*.jks
+*.keystore
+**/build/
+
+# ==========================================================
+# Supabase (CLI local)
+# ==========================================================
+supabase/.temp/
+supabase/.branches/
+
+# ==========================================================
+# Sistema / editor
+# ==========================================================
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
