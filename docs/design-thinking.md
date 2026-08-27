@@ -112,4 +112,51 @@ Os achados da entrevista foram agrupados por afinidade em seis temas:
 
 ## Fase 3 — Ideação
 
-*(em andamento — funcionalidades candidatas e nome do aplicativo)*
+A ideação partiu das seis perguntas "Como poderíamos..." da fase de Definição. Cada funcionalidade candidata responde a pelo menos uma delas (indicada entre colchetes). Em seguida, as ideias foram priorizadas em três faixas — MVP, pós-MVP e fora de escopo — como insumo para o backlog de histórias de usuário (etapa E2).
+
+### Funcionalidades candidatas
+
+**Registro diário guiado** [HMW 1, 5] — o preenchimento do dia parte do cardápio oficial da semana já carregado no app: a merendeira confirma o que foi servido em cada refeição (lanche da manhã, almoço, lanche da tarde) e só edita o que mudou. O caminho feliz vira poucos toques.
+
+**Alteração de cardápio com justificativa** [HMW 5] — ao trocar um item, o app registra o item original, o substituto e o motivo, no mesmo formato que hoje elas escrevem à mão no mapa.
+
+**Quantidades por seleção, não por digitação** [HMW 1] — cada gênero alimentício tem unidade padrão cadastrada (kg de arroz, pote de manteiga, saco de leite em pó) e as quantidades são sempre inteiras, escolhidas por stepper (+/−). Elimina digitação livre e erro de formato — decisão derivada diretamente do achado de que elas nunca usam frações.
+
+**Grau de aceitação em um toque** [HMW 1] — três botões (ótimo/bom/ruim) por refeição.
+
+**Número de refeições único por dia** [HMW 1] — um campo por dia, como no processo real (escola integral, presença informada pela direção).
+
+**Dia não letivo** [HMW 1] — registro simplificado: marca o dia como não letivo e escreve apenas a observação (ex.: conselho de classe).
+
+**Funcionamento 100% offline com salvamento automático** [HMW 2] — todo o preenchimento acontece e persiste no aparelho, salvo automaticamente a cada alteração; nada depende de rede. A sincronização com o servidor ocorre quando houver conexão. Responde à dor mais visceral da entrevista (o app que fecha e perde o trabalho) e à realidade da escola (sem sinal de operadora, Wi-Fi instável).
+
+**Geração do documento oficial** [HMW 3] — o servidor gera o mapa pronto a partir do template oficial da prefeitura, com os dados do período, idêntico ao padrão exigido. A merendeira não formata nada.
+
+**Envio em lote** [HMW 4] — seleção de período (dias avulsos, semana ou mês inteiro) e geração/envio de todos os mapas de uma vez. Pedido espontâneo das entrevistadas.
+
+**Compartilhamento pelo WhatsApp** [HMW 6] — o documento gerado é compartilhado pela folha de compartilhamento do Android direto no WhatsApp, encaixando-se no fluxo institucional existente (secretaria → impressão → assinaturas) em vez de tentar substituí-lo.
+
+**Histórico digital consultável** [HMW 6] — todos os mapas ficam registrados e podem ser reemitidos a qualquer momento, eliminando o risco de retrabalho quando um documento em papel é extraviado (situação já ocorrida).
+
+**Perfil administrador** [HMW 6] — gerencia o template oficial, o cadastro de merendeiras e o cardápio semanal, mantendo o documento final sempre aderente ao padrão vigente da prefeitura.
+
+### Priorização
+
+
+| Faixa              | Funcionalidades                                                                                                                                                                                                                                                                                               | Critério                                                                         |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **MVP**            | Registro diário guiado · alteração com justificativa · quantidades por seleção · aceitação em um toque · nº de refeições · dia não letivo · offline com salvamento automático · geração do documento oficial · envio em lote · compartilhamento via WhatsApp · perfil admin (template, merendeiras, cardápio) | Sem isso o app não substitui o improviso atual                                   |
+| **Pós-MVP**        | Histórico consultável com reemissão · notificação de cardápio novo da semana · relatórios simples (ex.: aceitação ao longo do mês)                                                                                                                                                                            | Agrega valor, mas o fluxo fecha sem eles                                         |
+| **Fora de escopo** | Controle de estoque · envio de fotos ao setor de nutrição · assinatura digital (o fluxo de assinaturas permanece em papel, por exigência institucional)                                                                                                                                                       | Processos vizinhos identificados na entrevista, registrados para não se perderem |
+
+
+A estratégia de aceitação institucional (HMW 6) atravessa o escopo inteiro: o app **não altera nenhuma etapa do processo da prefeitura** — o documento final é o mesmo, no mesmo padrão, entregue pelo mesmo caminho. Muda apenas *como* ele é produzido. Essa premissa reduz o risco de rejeição apontado pelas próprias merendeiras ("e se proibirem o uso do app?") e entra na análise de riscos do projeto.
+
+### Nome do aplicativo
+
+Candidatos considerados: **Merendas**, **Merenda em Dia**, **Mapa da Merenda**, **MerenDia e MAE**.
+
+**Escolhido: MAE** — sigla de *Mapa da Alimentação Escolar*, o próprio documento que o aplicativo produz. O nome alinha o app ao artefato institucional (profissionalmente direto: o sistema chama-se como o mapa que gera) e carrega uma segunda leitura, "mãe", que remete ao cuidado com a alimentação das crianças — essência do trabalho das merendeiras. Verificação em 26/08/2026 não encontrou sistema com esse nome no domínio de alimentação escolar. 
+
+---
+
