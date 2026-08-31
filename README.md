@@ -6,7 +6,7 @@
 
 ## Sobre o projeto
 
-Sistema para digitalizar o preenchimento do **mapa de alimentação escolar** de uma escola de turno integral. Hoje o processo é manual: um documento editado no computador, enviado por WhatsApp, impresso, assinado e entregue em papel à prefeitura.
+**MAE** (sigla de *Mapa da Alimentação Escolar*, o próprio documento que o sistema produz) é um sistema para digitalizar o preenchimento do mapa de alimentação escolar de uma escola de turno integral. Hoje o processo é manual: um documento editado no computador, enviado por WhatsApp, impresso, assinado e entregue em papel à prefeitura.
 
 O sistema permite que as merendeiras registrem diariamente as refeições servidas (lanche da manhã, almoço e lanche da tarde), o grau de aceitação de cada refeição, o número de refeições do dia e eventuais alterações de cardápio com justificativa — tendo como referência o cardápio oficial elaborado pela nutricionista. Ao final do período, o sistema gera o documento oficial pronto para assinatura.
 
@@ -24,11 +24,13 @@ Estrutura em **monorepo**.
 
 A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como fonte de verdade:
 
-- [Plano de projeto](docs/plano-de-projeto.md) — etapas E0–E8, entregáveis, cronograma e riscos.
+- [Plano de projeto](docs/planodeprojeto.md) — etapas E0–E8, entregáveis, cronograma e riscos.
+- [Design Thinking](docs/01-design-thinking/design-thinking.md) — empatia, definição e ideação (com o [roteiro de empatia](docs/01-design-thinking/roteiro-de-empatia.md)).
+- [Histórias de usuário](docs/02-requisitos/historias-de-usuario.md) e [backlog priorizado](docs/02-requisitos/backlog.md) — requisitos da etapa E2.
 
 ## Status
 
-🚧 Em desenvolvimento — etapa atual: **E0 (fundação do repositório)**.
+🚧 Em desenvolvimento — etapa atual: **E2 (requisitos e backlog)**. Concluídas: E0 (fundação) e E1 (Design Thinking).
 
 ## Direitos
 
