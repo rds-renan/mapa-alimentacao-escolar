@@ -101,3 +101,11 @@
 **Decorrência sobre a geração offline**: gerar exige internet e é o próprio aviso da tela que diz isso. Não vale enfileirar a geração para "quando houver rede" no MVP — o passo seguinte, compartilhar pelo WhatsApp, também precisa de rede, então a fila não compraria nada e custaria estado a mais. Reemissão fora da janela dos 7 dias continua sendo a US018 (pós-MVP).
 
 **Histórias**: US012, US014; requisito de design da E3.
+
+## 11. As mensagens de erro são parte do produto, não sobra
+
+**Decisão**: existe um catálogo único de avisos e mensagens — [avisos-e-mensagens.md](avisos-e-mensagens.md) —, com o texto exato de cada uma e a regra de quando aparece, sob três regras de linguagem: nenhuma mensagem culpa a merendeira; toda mensagem de erro diz primeiro o que **não** se perdeu; nada de jargão. Uma única notificação no MVP (documento pronto) e uma única confirmação no fluxo da merendeira (antes de gerar, porque o bloqueio é irreversível para ela).
+
+**Por quê**: o contrato do MAE com quem usa é "nada foi perdido" — a decisão 3 inteira existe para isso. Esse contrato não se cumpre no caminho feliz, onde nada dá errado; cumpre-se exatamente nas mensagens de falha. Deixá-las para a hora da implementação faria cada tela inventar o seu próprio tom, e o tom é o produto aqui.
+
+**Histórias**: transversal; US010, US011 (falhas de envio), US012 (geração), US016 (login).
