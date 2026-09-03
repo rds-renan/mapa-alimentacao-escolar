@@ -1,0 +1,329 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1180px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
+
+  <div style="background: #ffffff; border-bottom: 1px solid #e4e4e7; padding: 8px; display: flex; align-items: center; gap: 4px;">
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;">
+      <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Terça, 1 de setembro</div>
+      <div style="font-size: 12px; color: #71717a;">Setembro de 2026</div>
+    </div>
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 8px; padding: 9px 16px; background: #f4f4f5; color: #52525b; border-bottom: 1px solid #e4e4e7;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M17.5 19a4.5 4.5 0 0 0 1.9-8.6A7 7 0 0 0 7.4 7.6"></path><path d="M5 12a4.5 4.5 0 0 0 1.5 8.7h8"></path><path d="M2 2l20 20"></path></svg>
+    <span style="font-size: 12.5px; line-height: 1.35;">Salvo no aparelho. Envia sozinho quando houver internet.</span>
+  </div>
+
+  <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 12px 14px; display: flex; align-items: center; gap: 12px; min-height: 66px;">
+      <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+        <span style="font-size: 14.5px; font-weight: 500;">Dia não letivo</span>
+        <span style="font-size: 12px; color: #71717a;">Registra apenas uma observação</span>
+      </div>
+      <button onClick="{{alternarNaoLetivo}}" style="{{switchTrack}}"><span style="{{switchKnob}}"></span></button>
+    </div>
+
+    <sc-if value="{{naoLetivo}}" hint-placeholder-val="{{ true }}">
+      <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Observação</span>
+        <div style="min-height: 104px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 12px; font-size: 14.5px; line-height: 1.4; color: #a1a1aa;">Ex.: conselho de classe, sem atendimento aos alunos</div>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{letivo}}" hint-placeholder-val="{{ true }}">
+      <div style="display: flex; flex-direction: column; gap: 12px;">
+
+        <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden;">
+          <button onClick="{{manha.alternar}}" style="width: 100%; min-height: 58px; display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: none; background: transparent; text-align: left;">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+              <span style="font-size: 15px; font-weight: 600; color: #09090b;">Lanche da manhã</span>
+              <sc-if value="{{manha.fechada}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 12px; color: #71717a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Pão com manteiga e leite com achocolatado</span>
+              </sc-if>
+            </div>
+            <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7;">Preenchida</span>
+            <span style="{{manha.setaStyle}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </button>
+          <sc-if value="{{manha.aberta}}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
+                <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #09090b;">Pão com manteiga e leite com achocolatado</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Aceitação</span>
+                <div style="display: flex; gap: 8px;">
+                  <button onClick="{{manha.otimo.escolher}}" style="{{manha.otimo.style}}">Ótimo</button>
+                  <button onClick="{{manha.bom.escolher}}" style="{{manha.bom.style}}">Bom</button>
+                  <button onClick="{{manha.ruim.escolher}}" style="{{manha.ruim.style}}">Ruim</button>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
+                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                    <span style="font-size: 14px; font-weight: 500;">Leite em pó</span>
+                    <span style="font-size: 11.5px; color: #71717a;">saco</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                    <button onClick="{{manha.leite.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{manha.leite.qtd}}</span>
+                    <button onClick="{{manha.leite.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                    <span style="font-size: 14px; font-weight: 500;">Pão francês</span>
+                    <span style="font-size: 11.5px; color: #71717a;">quilo</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                    <button onClick="{{manha.pao.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{manha.pao.qtd}}</span>
+                    <button onClick="{{manha.pao.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
+              </div>
+              <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Alteração do cardápio</button>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden;">
+          <button onClick="{{almoco.alternar}}" style="width: 100%; min-height: 58px; display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: none; background: transparent; text-align: left;">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+              <span style="font-size: 15px; font-weight: 600; color: #09090b;">Almoço</span>
+              <sc-if value="{{almoco.fechada}}" hint-placeholder-val="{{ true }}">
+                <span style="font-size: 12px; color: #71717a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Arroz, feijão, ovo cozido e salada</span>
+              </sc-if>
+            </div>
+            <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">Pendente</span>
+            <span style="{{almoco.setaStyle}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </button>
+          <sc-if value="{{almoco.aberta}}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
+                <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #09090b;">Arroz, feijão, ovo cozido e salada de alface</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Aceitação</span>
+                <div style="display: flex; gap: 8px;">
+                  <button onClick="{{almoco.otimo.escolher}}" style="{{almoco.otimo.style}}">Ótimo</button>
+                  <button onClick="{{almoco.bom.escolher}}" style="{{almoco.bom.style}}">Bom</button>
+                  <button onClick="{{almoco.ruim.escolher}}" style="{{almoco.ruim.style}}">Ruim</button>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
+                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
+                </div>
+                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                    <span style="font-size: 14px; font-weight: 500;">Arroz</span>
+                    <span style="font-size: 11.5px; color: #71717a;">quilo</span>
+                  </div>
+                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                    <button onClick="{{almoco.arroz.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{almoco.arroz.qtd}}</span>
+                    <button onClick="{{almoco.arroz.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+                  </div>
+                </div>
+                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Alteração do cardápio</span>
+                <button style="min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #d3e3ee; border-radius: 10px; background: #eaf2f8; text-align: left;">
+                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                    <span style="font-size: 13.5px; font-weight: 500; color: #09090b;">Frango desfiado → Ovo cozido</span>
+                    <span style="font-size: 11.5px; color: #52525b;">Falta de entrega do fornecedor</span>
+                  </div>
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 18l6-6-6-6"></path></svg>
+                </button>
+                <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Outra alteração</button>
+              </div>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; overflow: hidden;">
+          <button onClick="{{tarde.alternar}}" style="width: 100%; min-height: 58px; display: flex; align-items: center; gap: 10px; padding: 11px 14px; border: none; background: transparent; text-align: left;">
+            <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+              <span style="font-size: 15px; font-weight: 600; color: #09090b;">Lanche da tarde</span>
+            </div>
+            <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">Vazia</span>
+            <span style="{{tarde.setaStyle}}">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+            </span>
+          </button>
+          <sc-if value="{{tarde.aberta}}" hint-placeholder-val="{{ true }}">
+            <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
+                <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #a1a1aa;">Toque para escrever o que foi servido</div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 7px;">
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Aceitação</span>
+                <div style="display: flex; gap: 8px;">
+                  <button onClick="{{tarde.otimo.escolher}}" style="{{tarde.otimo.style}}">Ótimo</button>
+                  <button onClick="{{tarde.bom.escolher}}" style="{{tarde.bom.style}}">Bom</button>
+                  <button onClick="{{tarde.ruim.escolher}}" style="{{tarde.ruim.style}}">Ruim</button>
+                </div>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 7px;">
+                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
+                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
+                </div>
+                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
+              </div>
+              <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Alteração do cardápio</button>
+            </div>
+          </sc-if>
+        </div>
+
+        <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span style="font-size: 14.5px; font-weight: 600;">Refeições servidas no dia</span>
+            <span style="font-size: 12px; color: #71717a;">Número único do dia, informado pela direção</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <button onClick="{{refeicoesMenos}}" style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border: 1px solid #e4e4e7; border-radius: 12px; background: #ffffff; color: #3f3f46;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+            <div style="flex-grow: 1; text-align: center; font-size: 32px; font-weight: 600; letter-spacing: -0.02em; font-variant-numeric: tabular-nums;">{{refeicoesDia}}</div>
+            <button onClick="{{refeicoesMais}}" style="width: 54px; height: 54px; display: flex; align-items: center; justify-content: center; border: 1px solid #e4e4e7; border-radius: 12px; background: #ffffff; color: #3f3f46;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+          </div>
+        </div>
+
+      </div>
+    </sc-if>
+
+  </div>
+
+  <div style="margin-top: auto; background: #ffffff; border-top: 1px solid #e4e4e7; padding: 13px 16px 15px; display: flex; flex-direction: column; gap: 8px;">
+    <span style="font-size: 12px; color: #52525b;">Salva sozinho, sem botão de salvar.</span>
+    <div style="height: 5px; border-radius: 999px; background: #e4e4e7; overflow: hidden;"><div style="{{progressoBarra}}"></div></div>
+  </div>
+
+</div>
+</x-dc>
+<script data-dc-script data-props='{"accent":{"editor":"color","default":"#397ba1","options":["#397ba1","#55803c","#8a4f22","#09090b"],"section":"Marca"}}'>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.state = {
+      naoLetivo: false,
+      aberta: 'manha',
+      refeicoesDia: 312,
+      aceitacao: { manha: 'otimo', almoco: 'bom', tarde: null },
+      qtd: { leite: 1, pao: 4, arroz: 3 }
+    };
+  }
+
+  ajustar(chave, delta) {
+    const qtd = { ...this.state.qtd };
+    qtd[chave] = Math.max(0, qtd[chave] + delta);
+    this.setState({ qtd: qtd });
+  }
+
+  marcar(refeicao, valor) {
+    const aceitacao = { ...this.state.aceitacao };
+    aceitacao[refeicao] = valor;
+    this.setState({ aceitacao: aceitacao });
+  }
+
+  botao(refeicao, valor, accent) {
+    const sel = this.state.aceitacao[refeicao] === valor;
+    return {
+      style: sel
+        ? 'flex-grow: 1; flex-basis: 0; min-height: 50px; border-radius: 10px; border: 1px solid ' + accent + '; background: ' + accent + '; color: #ffffff; font-size: 15px; font-weight: 600;'
+        : 'flex-grow: 1; flex-basis: 0; min-height: 50px; border-radius: 10px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 15px; font-weight: 500;',
+      escolher: () => this.marcar(refeicao, valor)
+    };
+  }
+
+  cartao(refeicao, accent) {
+    const aberta = this.state.aberta === refeicao;
+    return {
+      aberta: aberta,
+      fechada: !aberta,
+      alternar: () => this.setState({ aberta: aberta ? null : refeicao }),
+      setaStyle: 'display: flex; align-items: center; justify-content: center; color: #a1a1aa; flex-shrink: 0; transform: rotate(' + (aberta ? '180deg' : '0deg') + ');',
+      otimo: this.botao(refeicao, 'otimo', accent),
+      bom: this.botao(refeicao, 'bom', accent),
+      ruim: this.botao(refeicao, 'ruim', accent)
+    };
+  }
+
+  contador(chave) {
+    return {
+      qtd: this.state.qtd[chave],
+      menos: () => this.ajustar(chave, -1),
+      mais: () => this.ajustar(chave, 1)
+    };
+  }
+
+  renderVals() {
+    const accent = this.props.accent ?? '#397ba1';
+    const st = this.state;
+
+    const manha = this.cartao('manha', accent);
+    manha.leite = this.contador('leite');
+    manha.pao = this.contador('pao');
+
+    const almoco = this.cartao('almoco', accent);
+    almoco.arroz = this.contador('arroz');
+
+    const tarde = this.cartao('tarde', accent);
+
+    const prontas = ['manha', 'almoco'].filter((r) => st.aceitacao[r]).length;
+
+    return {
+      naoLetivo: st.naoLetivo,
+      letivo: !st.naoLetivo,
+      alternarNaoLetivo: () => this.setState({ naoLetivo: !st.naoLetivo }),
+      switchTrack: 'width: 50px; height: 30px; border-radius: 999px; border: none; padding: 3px; display: flex; align-items: center; flex-shrink: 0; background: ' + (st.naoLetivo ? accent : '#d4d4d8') + '; justify-content: ' + (st.naoLetivo ? 'flex-end' : 'flex-start') + ';',
+      switchKnob: 'display: block; width: 24px; height: 24px; border-radius: 999px; background: #ffffff; box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);',
+      manha: manha,
+      almoco: almoco,
+      tarde: tarde,
+      refeicoesDia: st.refeicoesDia,
+      refeicoesMenos: () => this.setState({ refeicoesDia: Math.max(0, st.refeicoesDia - 1) }),
+      refeicoesMais: () => this.setState({ refeicoesDia: st.refeicoesDia + 1 }),
+      progressoBarra: 'height: 100%; border-radius: 999px; background: ' + accent + '; width: ' + (st.naoLetivo ? 100 : Math.round((prontas / 3) * 100)) + '%;'
+    };
+  }
+}
+</script>
+</body>
+</html>

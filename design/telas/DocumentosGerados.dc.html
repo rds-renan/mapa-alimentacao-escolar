@@ -1,0 +1,81 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 844px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
+
+  <div style="background: #ffffff; border-bottom: 1px solid #e4e4e7; padding: 10px 8px; display: flex; align-items: center; gap: 4px;">
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Documentos gerados</div>
+      <div style="font-size: 12px; color: #71717a;">O arquivo fica disponível por 7 dias</div>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 12px;">
+
+    <div style="display: flex; gap: 9px; padding: 12px 13px; border: 1px solid #d3e3ee; border-radius: 12px; background: #eaf2f8;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+      <span style="font-size: 12.5px; line-height: 1.4; color: #09090b;">Gerar um documento precisa de internet, e os mapas ainda não enviados sobem primeiro. Quando ficar pronto, ele aparece aqui — não é preciso esperar na tela.</span>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 11px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+          <span style="font-size: 15px; font-weight: 600;">1 a 12 de setembro</span>
+          <span style="font-size: 12.5px; color: #71717a;">10 mapas · gerado hoje, 14h32</span>
+        </div>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7;">Disponível</span>
+      </div>
+      <span style="font-size: 12px; color: #71717a;">Sai do ar em 9 de setembro</span>
+      <button style="min-height: 48px; border: 1px solid #397ba1; border-radius: 10px; background: #ffffff; color: #397ba1; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>Compartilhar
+      </button>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 11px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+          <span style="font-size: 15px; font-weight: 600;">Agosto · mês inteiro</span>
+          <span style="font-size: 12.5px; color: #71717a;">22 mapas · gerado em 1 de setembro</span>
+        </div>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">Sai amanhã</span>
+      </div>
+      <button style="min-height: 48px; border: 1px solid #397ba1; border-radius: 10px; background: #ffffff; color: #397ba1; font-size: 14.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path><path d="M16 6l-4-4-4 4"></path><path d="M12 2v14"></path></svg>Compartilhar
+      </button>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 9px;">
+      <div style="display: flex; align-items: flex-start; gap: 10px;">
+        <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+          <span style="font-size: 15px; font-weight: 600; color: #52525b;">18 a 22 de agosto</span>
+          <span style="font-size: 12.5px; color: #a1a1aa;">5 mapas · gerado em 22 de agosto</span>
+        </div>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">Fora do ar</span>
+      </div>
+      <span style="font-size: 12px; color: #71717a; line-height: 1.4;">Os mapas desse período continuam guardados no app.</span>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

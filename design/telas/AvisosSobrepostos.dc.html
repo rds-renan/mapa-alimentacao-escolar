@@ -1,0 +1,69 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 430px; min-height: 1000px; background: #fafafa; color: #09090b; display: flex; flex-direction: column; gap: 22px; padding: 24px 20px 28px;">
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em;">Mensagens por cima da tela</span>
+    <span style="font-size: 13px; color: #71717a; line-height: 1.4;">Interrompem: ou avisam de passagem, ou pedem uma decisão antes de seguir.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Aviso de passagem</span>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #18181b; color: #fafafa;">
+        <span style="flex-grow: 1; font-size: 14px; line-height: 1.35;">Feijão preto entrou no lanche da tarde.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 12px; background: #18181b; color: #fafafa;">
+        <span style="flex-grow: 1; font-size: 14px; line-height: 1.35;">Ainda não deu para enviar. Nada foi perdido.</span>
+        <span style="font-size: 14px; font-weight: 600; color: #7fb3d0; white-space: nowrap;">Tentar</span>
+      </div>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">Some sozinho em poucos segundos e nunca carrega informação que ela precise reler. Só ganha ação quando existe uma resposta de um toque.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Confirmação antes de gerar</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(9, 9, 11, 0.08);">
+      <span style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em;">Gerar o documento de setembro?</span>
+      <span style="font-size: 13.5px; color: #52525b; line-height: 1.45;">Os 22 mapas incluídos ficam bloqueados para edição depois de gerar. Se ainda falta corrigir algum, é agora.</span>
+      <div style="display: flex; gap: 10px; padding-top: 2px;">
+        <button style="flex-grow: 1; flex-basis: 0; min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #3f3f46; font-size: 14.5px; font-weight: 500;">Voltar</button>
+        <button style="flex-grow: 1; flex-basis: 0; min-height: 48px; border: none; border-radius: 10px; background: #397ba1; color: #ffffff; font-size: 14.5px; font-weight: 600;">Gerar</button>
+      </div>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">É a única confirmação do fluxo da merendeira. Existe porque o bloqueio é irreversível para ela — desfazer passaria a ser assunto da direção.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Falha ao gerar</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 16px; padding: 20px; display: flex; flex-direction: column; gap: 12px; box-shadow: 0 8px 24px rgba(9, 9, 11, 0.08);">
+      <span style="font-size: 16.5px; font-weight: 600; letter-spacing: -0.01em;">Não deu para gerar o documento</span>
+      <span style="font-size: 13.5px; color: #52525b; line-height: 1.45;">A internet caiu no meio do caminho. Os mapas continuam salvos e nenhum foi bloqueado — dá para tentar de novo quando quiser.</span>
+      <div style="display: flex; gap: 10px; padding-top: 2px;">
+        <button style="flex-grow: 1; flex-basis: 0; min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #3f3f46; font-size: 14.5px; font-weight: 500;">Fechar</button>
+        <button style="flex-grow: 1; flex-basis: 0; min-height: 48px; border: none; border-radius: 10px; background: #397ba1; color: #ffffff; font-size: 14.5px; font-weight: 600;">Tentar de novo</button>
+      </div>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">Toda mensagem de erro diz o que NÃO aconteceu de ruim antes de oferecer a saída. Nenhuma culpa a merendeira, nem mostra código de erro.</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

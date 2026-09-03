@@ -1,0 +1,128 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 1080px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
+
+  <div style="background: #ffffff; border-bottom: 1px solid #e4e4e7; padding: 8px; display: flex; align-items: center; gap: 2px;">
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #3f3f46;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M4 12h16"></path><path d="M4 18h16"></path></svg>
+    </button>
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; gap: 1px;">
+      <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Setembro de 2026</div>
+      <div style="font-size: 12px; color: #71717a;">22 dias letivos</div>
+    </div>
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+    </button>
+  </div>
+
+  <div style="display: flex; align-items: center; gap: 8px; padding: 9px 16px; background: #f4f4f5; color: #52525b; border-bottom: 1px solid #e4e4e7;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M17.5 19a4.5 4.5 0 0 0 1.9-8.6A7 7 0 0 0 7.4 7.6"></path><path d="M5 12a4.5 4.5 0 0 0 1.5 8.7h8"></path><path d="M2 2l20 20"></path></svg>
+    <span style="font-size: 12.5px; line-height: 1.35;">Salvo no aparelho. Envia sozinho quando houver internet.</span>
+  </div>
+
+  <div style="padding: 14px 16px 90px; display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 8px;">
+        <span style="font-size: 14.5px; font-weight: 600;">Andamento do mês</span>
+        <span style="font-size: 12px; color: #71717a;">7 de 22 dias</span>
+      </div>
+      <div style="height: 6px; border-radius: 999px; background: #e4e4e7; overflow: hidden;"><div style="height: 100%; width: 32%; border-radius: 999px; background: #397ba1;"></div></div>
+      <span style="font-size: 12px; color: #71717a;">6 preenchidos · 1 pendente · 1 não letivo · 5 no documento</span>
+    </div>
+
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b; padding-top: 2px;">Semana 1 · 1 a 5 de setembro</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; display: flex; flex-direction: column;">
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center; gap: 0;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">seg</span><span style="font-size: 17px; font-weight: 600;">1</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 310 servidas</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">No documento</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">ter</span><span style="font-size: 17px; font-weight: 600;">2</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 315 servidas</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">No documento</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">qua</span><span style="font-size: 17px; font-weight: 600;">3</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 308 servidas</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">No documento</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">qui</span><span style="font-size: 17px; font-weight: 600;">4</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 312 servidas</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">No documento</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">sex</span><span style="font-size: 17px; font-weight: 600;">5</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 305 servidas</span>
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">No documento</span>
+      </button>
+    </div>
+
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b; padding-top: 2px;">Semana 2 · 8 a 12 de setembro</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; display: flex; flex-direction: column;">
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">seg</span><span style="font-size: 17px; font-weight: 600;">8</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">3 refeições · 312 servidas</span>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7;">Preenchido</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: #f3f8fb; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #397ba1; text-transform: uppercase;">ter</span><span style="font-size: 17px; font-weight: 600; color: #397ba1;">9</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">Hoje · falta o lanche da tarde</span>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">Pendente</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">qua</span><span style="font-size: 17px; font-weight: 600;">10</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #71717a;">Conselho de classe</span>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #eff6ff; color: #1d4ed8; border: 1px solid #dbeafe;">Não letivo</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">qui</span><span style="font-size: 17px; font-weight: 600;">11</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #a1a1aa;">Sem registro</span>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">Vazio</span>
+      </button>
+      <button style="min-height: 58px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; background: transparent; text-align: left;">
+        <div style="width: 42px; display: flex; flex-direction: column; align-items: center;"><span style="font-size: 10.5px; font-weight: 500; color: #a1a1aa; text-transform: uppercase;">sex</span><span style="font-size: 17px; font-weight: 600;">12</span></div>
+        <span style="flex-grow: 1; font-size: 13px; color: #a1a1aa;">Sem registro</span>
+        <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f4f4f5; color: #71717a; border: 1px solid #e4e4e7;">Vazio</span>
+      </button>
+    </div>
+
+  </div>
+
+  <div style="margin-top: auto; background: #ffffff; border-top: 1px solid #e4e4e7; padding: 12px 16px 16px;">
+    <button style="width: 100%; min-height: 50px; border: none; border-radius: 10px; background: #397ba1; color: #ffffff; font-size: 15.5px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 8px;">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><path d="M14 2v6h6"></path></svg>
+      Gerar documento
+    </button>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
