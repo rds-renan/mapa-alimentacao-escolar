@@ -1,0 +1,157 @@
+{
+  "artboards": [
+    {
+      "file": "Login.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "1 · Login",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "VisaoDoMes.dc.html",
+      "x": 470,
+      "y": 0,
+      "w": 390,
+      "h": 1080,
+      "title": "2 · Visão do mês",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "Menu.dc.html",
+      "x": 940,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "2a · Menu",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "Main.dc.html",
+      "x": 1410,
+      "y": 0,
+      "w": 390,
+      "h": 1180,
+      "title": "3 · Registro do dia",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "AlteracaoCardapio.dc.html",
+      "x": 1880,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3a · Alteração do cardápio",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "EscolherGenero.dc.html",
+      "x": 2350,
+      "y": 0,
+      "w": 390,
+      "h": 844,
+      "title": "3b · Escolher gênero",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "DocumentosGerados.dc.html",
+      "x": 0,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "2b · Documentos gerados",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "CatalogoGeneros.dc.html",
+      "x": 470,
+      "y": 1300,
+      "w": 390,
+      "h": 980,
+      "title": "4 · Catálogo de gêneros",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "SelecaoMapas.dc.html",
+      "x": 940,
+      "y": 1300,
+      "w": 390,
+      "h": 1080,
+      "title": "5 · Seleção de mapas",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "GeracaoDocumento.dc.html",
+      "x": 1410,
+      "y": 1300,
+      "w": 390,
+      "h": 844,
+      "title": "6 · Documento gerado",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "AdminPainel.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 1440,
+      "h": 920,
+      "title": "Admin · Painel",
+      "page": "page-admin"
+    },
+    {
+      "file": "AdminGestao.dc.html",
+      "x": 0,
+      "y": 1040,
+      "w": 1440,
+      "h": 980,
+      "title": "Admin · Gestão",
+      "page": "page-admin"
+    },
+    {
+      "file": "AvisosNaTela.dc.html",
+      "x": 0,
+      "y": 0,
+      "w": 430,
+      "h": 1010,
+      "title": "Avisos · Na tela",
+      "page": "page-avisos"
+    },
+    {
+      "file": "AvisosSobrepostos.dc.html",
+      "x": 510,
+      "y": 0,
+      "w": 430,
+      "h": 1010,
+      "title": "Avisos · Por cima",
+      "page": "page-avisos"
+    },
+    {
+      "file": "AvisosPush.dc.html",
+      "x": 1020,
+      "y": 0,
+      "w": 430,
+      "h": 630,
+      "title": "Avisos · Fora do app",
+      "page": "page-avisos"
+    }
+  ],
+  "launch": {
+    "view": "canvas",
+    "page": "page-avisos"
+  },
+  "pages": [
+    {
+      "id": "page-merendeira",
+      "name": "Fluxo da merendeira"
+    },
+    {
+      "id": "page-admin",
+      "name": "Admin"
+    },
+    {
+      "id": "page-avisos",
+      "name": "Avisos e mensagens"
+    }
+  ]
+}

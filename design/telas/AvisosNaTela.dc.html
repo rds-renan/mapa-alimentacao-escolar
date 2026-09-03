@@ -1,0 +1,76 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 430px; min-height: 1000px; background: #fafafa; color: #09090b; display: flex; flex-direction: column; gap: 22px; padding: 24px 20px 28px;">
+
+  <div style="display: flex; flex-direction: column; gap: 4px;">
+    <span style="font-size: 19px; font-weight: 600; letter-spacing: -0.01em;">Mensagens dentro da tela</span>
+    <span style="font-size: 13px; color: #71717a; line-height: 1.4;">Aparecem no lugar onde a coisa acontece e ficam até deixarem de valer.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Erro de login</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 13px;">
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">E-mail</span>
+        <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #ffffff;">merendeira1@dominio.com.br</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Senha</span>
+        <div style="min-height: 48px; border: 1px solid #dc2626; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #ffffff; color: #52525b;">••••••••</div>
+      </div>
+      <div style="display: flex; align-items: flex-start; gap: 8px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#dc2626" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8v5"></path><path d="M12 16h.01"></path></svg>
+        <span style="font-size: 13px; color: #b91c1c; line-height: 1.4;">E-mail ou senha não conferem. Confira e tente de novo.</span>
+      </div>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">Não diz qual dos dois está errado. Só a direção cria acesso, e apontar o campo certo ajudaria justamente quem não deveria entrar.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Faixa de salvamento</span>
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M17.5 19a4.5 4.5 0 0 0 1.9-8.6A7 7 0 0 0 7.4 7.6"></path><path d="M5 12a4.5 4.5 0 0 0 1.5 8.7h8"></path><path d="M2 2l20 20"></path></svg>
+        <span style="font-size: 12.5px; line-height: 1.35;">Salvo no aparelho. Envia sozinho quando houver internet.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M20 6L9 17l-5-5"></path></svg>
+        <span style="font-size: 12.5px; line-height: 1.35;">Enviado. Este mapa já está disponível para gerar o documento.</span>
+      </div>
+      <div style="display: flex; align-items: center; gap: 8px; padding: 10px 14px; border-radius: 10px; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"></path></svg>
+        <span style="font-size: 12.5px; line-height: 1.35;">Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo.</span>
+      </div>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">Os três estados da decisão 3. A mensagem de falha afirma que nada se perdeu porque essa é a ansiedade real — a dor mais forte relatada na E1.</span>
+  </div>
+
+  <div style="display: flex; flex-direction: column; gap: 9px;">
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b;">Geração sem internet</span>
+    <div style="display: flex; gap: 9px; padding: 13px; border: 1px solid #d3e3ee; border-radius: 12px; background: #eaf2f8;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 1px;"><circle cx="12" cy="12" r="9"></circle><path d="M12 8h.01"></path><path d="M11 12h1v4h1"></path></svg>
+      <span style="font-size: 12.5px; line-height: 1.4;">Gerar o documento precisa de internet. Assim que houver, os mapas sobem e o documento fica pronto em Documentos gerados.</span>
+    </div>
+    <span style="font-size: 11.5px; color: #71717a; line-height: 1.45;">Fica na seleção de mapas, com o botão de gerar desabilitado. Explica a espera em vez de deixar o toque falhar em silêncio.</span>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

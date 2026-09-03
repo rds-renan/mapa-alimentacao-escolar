@@ -88,4 +88,6 @@ Merendeiras e acessos, modelo oficial do mapa e dados da escola. **US015, US016.
 
 ## Sobre estes arquivos
 
-As telas são desenhadas num canvas de design e exportadas daqui em PNG, cada uma no tamanho do seu artboard e a 2× para não perder nitidez ao entrar no documento da faculdade. As imagens não são editadas à mão: quando uma tela muda, o arquivo é exportado de novo.
+As telas são desenhadas num canvas de design e exportadas em PNG, cada uma no tamanho do seu artboard e a 2× para não perder nitidez ao entrar no documento da faculdade. As imagens não são editadas à mão: quando uma tela muda, o arquivo é exportado de novo.
+
+A fonte das telas está em [`design/telas/`](../../design/telas/) e `python3 design/exportar-telas.py` regera todas as imagens deste diretório — ver [design/README.md](../../design/README.md).

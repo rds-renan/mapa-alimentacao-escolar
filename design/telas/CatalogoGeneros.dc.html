@@ -1,0 +1,107 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 980px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
+
+  <div style="background: #ffffff; border-bottom: 1px solid #e4e4e7; padding: 10px 8px; display: flex; align-items: center; gap: 4px;">
+    <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"></path></svg>
+    </button>
+    <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px;">
+      <div style="font-size: 16px; font-weight: 600; letter-spacing: -0.01em;">Catálogo de gêneros</div>
+      <div style="font-size: 12px; color: #71717a;">Cada item tem a sua unidade padrão</div>
+    </div>
+  </div>
+
+  <div style="padding: 14px 16px; display: flex; flex-direction: column; gap: 14px;">
+
+    <div style="display: flex; align-items: center; gap: 9px; min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 0 14px; background: #ffffff; color: #a1a1aa;">
+      <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"></circle><path d="M21 21l-4.3-4.3"></path></svg>
+      <span style="font-size: 14.5px;">Buscar gênero</span>
+    </div>
+
+    <div style="background: #ffffff; border: 1px solid #d3e3ee; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 13px;">
+      <span style="font-size: 14.5px; font-weight: 600;">Novo gênero</span>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Nome</span>
+        <div style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 12px 14px; font-size: 15px; background: #ffffff;">Feijão preto</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Unidade padrão</span>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #397ba1; background: #397ba1; color: #ffffff; font-size: 13.5px; font-weight: 600;">quilo</button>
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 13.5px; font-weight: 500;">saco</button>
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 13.5px; font-weight: 500;">pote</button>
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 13.5px; font-weight: 500;">litro</button>
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 13.5px; font-weight: 500;">lata</button>
+          <button style="min-height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid #e4e4e7; background: #ffffff; color: #3f3f46; font-size: 13.5px; font-weight: 500;">unidade</button>
+        </div>
+      </div>
+      <button style="min-height: 48px; border: none; border-radius: 10px; background: #397ba1; color: #ffffff; font-size: 15px; font-weight: 600;">Adicionar ao catálogo</button>
+    </div>
+
+    <span style="font-size: 12.5px; font-weight: 600; color: #52525b; padding-top: 2px;">No catálogo</span>
+    <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; display: flex; flex-direction: column;">
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Achocolatado</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">pote</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Arroz</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">quilo</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Feijão carioca</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">quilo</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Frango</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">quilo</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Leite em pó</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">saco</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Manteiga</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">pote</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; border-bottom: 1px solid #f4f4f5; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Óleo de soja</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">lata</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+      <button style="min-height: 54px; display: flex; align-items: center; gap: 12px; padding: 8px 14px; border: none; background: transparent; text-align: left;">
+        <span style="flex-grow: 1; font-size: 14.5px; font-weight: 500;">Pão francês</span>
+        <span style="font-size: 11.5px; font-weight: 500; padding: 3px 10px; border-radius: 999px; background: #f4f4f5; color: #52525b; border: 1px solid #e4e4e7;">quilo</span>
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#a1a1aa" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+      </button>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>
