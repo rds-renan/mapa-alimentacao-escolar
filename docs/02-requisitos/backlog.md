@@ -23,7 +23,7 @@
 | US008 | Como merendeira, quero ver os dias do mês com a indicação de quais já foram registrados, para saber o que falta antes de gerar o mapa.                                       | 3                    | B          |
 | US009 | Como merendeira, quero manter o catálogo de gêneros alimentícios com a unidade padrão de cada um, para que as quantidades registradas sejam sempre consistentes.             | 3                    | A          |
 | US020 | Como merendeira, quero um menu com o que não faz parte do registro do dia — documentos gerados, catálogo de gêneros e preferências — para alcançar essas telas sem que atrapalhem o registro. | 2                    | A          |
-| US024 | Como merendeira, quero usar o aplicativo em tema escuro, para preencher o mapa à noite em casa sem a tela clara incomodando.                                   | 3                    | A          |
+| US024 | Como merendeira, quero usar o aplicativo em tema escuro, para preencher o mapa à noite em casa sem a tela clara incomodando.                                   | 3                    | B          |
 
 
 
@@ -82,8 +82,8 @@
 
 | Prioridade | Histórias | Pontos |
 | ---------- | --------- | ------ |
-| A          | 19        | 86      |
-| B          | 2         | 8       |
+| A          | 18        | 83      |
+| B          | 3         | 11      |
 | C          | 2         | 8       |
 | D          | 1         | 8       |
 | **Total**  | **24**    | **110** |

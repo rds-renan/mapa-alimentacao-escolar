@@ -180,7 +180,7 @@
   - RN#1 A escolha é de cada usuária, no aparelho dela — não é configuração da escola.
 - **Requisitos não funcionais:**
   - RNF#1 A paleta escura é definida no mesmo conjunto de tokens compartilhado entre a web e o aplicativo.
-- **Prioridade:** A — **Pontos de história:** 3
+- **Prioridade:** B — **Pontos de história:** 3
 
 ## Confiabilidade offline
 
@@ -403,4 +403,4 @@ O administrador é a figura de direção/responsável superior. Ele não partici
 
 ---
 
-**Resumo:** 24 histórias — 19 de prioridade A e 2 B (MVP), 2 C e 1 D (pós-MVP). As cinco últimas (US020–US024) entraram na revisão feita ao fim da E3, quando o desenho das telas revelou requisitos que o levantamento não tinha visto. O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).
+**Resumo:** 24 histórias — 18 de prioridade A e 3 B (MVP), 2 C e 1 D (pós-MVP). As cinco últimas (US020–US024) entraram na revisão feita ao fim da E3, quando o desenho das telas revelou requisitos que o levantamento não tinha visto. O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).
