@@ -5,6 +5,7 @@
 > **Requerentes:**
 > - *Merendeira* — usuária principal. Todo o fluxo do mapa é dela: registro diário, catálogo de gêneros, geração e compartilhamento do documento.
 > - *Administrador* — figura de direção/responsável superior. Não participa do fluxo diário do mapa: cuida apenas do que é gerencial (acessos, template oficial e dados da escola). Pode consultar os registros, mas nunca os cria.
+> - *Equipe de projeto* — usado quando a história não veio do levantamento e sim do próprio desenho do sistema, sem que ninguém a tenha pedido. Nesses casos os comentários dizem de onde ela surgiu e a quem serve, para que o documento não ponha na boca das usuárias um pedido que elas não fizeram.
 >
 > **Sobre o cardápio oficial:** o cardápio semanal enviado pelo setor de nutrição é a referência que o mapa deve seguir, mas no MVP permanece um documento externo — não é um objeto do sistema. A merendeira o transcreve diretamente para o mapa, no ritmo que preferir; não existe restrição de cadastrar cardápio para registrar o mapa. A ingestão do cardápio pelo app, pré-preenchendo os mapas, é evolução planejada para o pós-MVP (US019) — e mesmo lá o mapa nunca dependerá dela.
 >
@@ -151,6 +152,36 @@
   - RNF#1 Busca por nome no catálogo durante o registro.
 - **Prioridade:** A — **Pontos de história:** 3
 
+### US020 — Menu do aplicativo
+
+- **Requerente:** Equipe de projeto
+- **Ação:** Como merendeira, quero um menu com o que não faz parte do registro do dia — documentos gerados, catálogo de gêneros e as preferências do aplicativo — para alcançar essas telas sem que elas ocupem espaço no caminho que percorro todos os dias.
+- **Comentários:** Requisito de design surgido na E3, sem origem no levantamento. Ao tirar o catálogo de gêneros do caminho do registro — o gênero passou a ser buscado e cadastrado numa folha sobre a tela do dia, sem sair dela —, o catálogo ficou sem porta de entrada. O menu resolve isso e passa a ser o lugar das telas ocasionais, que não têm por que disputar espaço com o registro.
+- **Critérios de aceitação:**
+  - CA#1 O menu é alcançado a partir da visão do mês e não interrompe registro em andamento.
+  - CA#2 Reúne documentos gerados, catálogo de gêneros, preferências do aplicativo e sair.
+  - CA#3 O menu abre offline; cada tela alcançada por ele trata a falta de rede por conta própria.
+- **Regras de negócio:**
+  - RN#1 O menu não dá acesso a nada da área do administrador.
+- **Requisitos não funcionais:**
+  - RNF#1 O menu é alcançável em um toque a partir da tela inicial do aplicativo.
+- **Prioridade:** A — **Pontos de história:** 2
+
+### US024 — Tema escuro
+
+- **Requerente:** Equipe de projeto
+- **Ação:** Como merendeira, quero usar o aplicativo em tema escuro, para preencher o mapa à noite em casa sem a tela clara incomodando.
+- **Comentários:** Pedido do autor do projeto, com justificativa de uso: o preenchimento acontece em casa e com frequência à noite (E1). Entra no MVP também por economia de trabalho — a paleta escura definida junto com os tokens de design custa pouco agora, enquanto acrescentá-la depois obrigaria a revisar cada tela já implementada nas duas plataformas.
+- **Critérios de aceitação:**
+  - CA#1 O tema é escolhido nas preferências, dentro do menu (US020), e a escolha permanece entre sessões.
+  - CA#2 Todas as telas do fluxo da merendeira existem nos dois temas.
+  - CA#3 O contraste de texto e dos estados atende AA nos dois temas.
+- **Regras de negócio:**
+  - RN#1 A escolha é de cada usuária, no aparelho dela — não é configuração da escola.
+- **Requisitos não funcionais:**
+  - RNF#1 A paleta escura é definida no mesmo conjunto de tokens compartilhado entre a web e o aplicativo.
+- **Prioridade:** B — **Pontos de história:** 3
+
 ## Confiabilidade offline
 
 ### US010 — Funcionamento 100% offline com salvamento automático
@@ -236,6 +267,22 @@
   - RNF#1 Usa a folha de compartilhamento nativa do Android (sem integração direta com API do WhatsApp).
 - **Prioridade:** A — **Pontos de história:** 2
 
+### US021 — Documentos gerados acessíveis à merendeira
+
+- **Requerente:** Equipe de projeto
+- **Ação:** Como merendeira, quero voltar aos documentos que já gerei enquanto eles ainda existem, para compartilhar de novo sem depender de ter acertado o envio na primeira tentativa.
+- **Comentários:** Requisito de design surgido na E3, a serviço da merendeira. A tela do documento gerado era um beco: ao sair dela, o arquivo ficava inalcançável até expirar. Três situações banais caem nisso — o aplicativo fechar durante a folha de compartilhamento do Android, o envio falhar, ou a geração terminar depois da sincronização, quando ela já não está na tela. Não se confunde com a US018: aqui o arquivo ainda existe; lá ele expirou e precisa ser gerado de novo.
+- **Critérios de aceitação:**
+  - CA#1 A lista mostra os documentos ainda dentro da janela de validade, com o período, quantos mapas contém, quando foi gerado e quando sai do ar.
+  - CA#2 Um documento disponível pode ser compartilhado de novo pela folha de compartilhamento do Android (US014).
+  - CA#3 Documentos fora da janela aparecem como indisponíveis, informando que os registros do período continuam guardados.
+- **Regras de negócio:**
+  - RN#1 A janela de validade é a da geração (US012): o arquivo expira em até 7 dias e não é guardado além disso.
+  - RN#2 A lista não permite editar mapa nenhum — os registros incluídos continuam bloqueados (US007).
+- **Requisitos não funcionais:**
+  - RNF#1 A lista abre offline com o que já foi sincronizado; abrir ou compartilhar o arquivo exige rede.
+- **Prioridade:** A — **Pontos de história:** 5
+
 ## Administração
 
 O administrador é a figura de direção/responsável superior. Ele não participa do fluxo do mapa — nunca registra, e apenas consulta quando necessário. Seu papel é o gerencial que não faz sentido ficar na carga das merendeiras.
@@ -289,6 +336,23 @@ O administrador é a figura de direção/responsável superior. Ele não partici
   - RNF#1 Gráficos simples e legíveis em celular; o painel carrega em menos de 5 segundos para um mês de dados.
 - **Prioridade:** B — **Pontos de história:** 5
 
+### US023 — Desbloqueio de mapa para correção
+
+- **Requerente:** Equipe de projeto
+- **Ação:** Como administrador, quero desbloquear um mapa já incluído em documento gerado, registrando a justificativa, para que a merendeira corrija um erro descoberto depois e o documento seja gerado de novo.
+- **Comentários:** Fecha o beco criado pela RN#1 da US007: descoberto um erro após a geração, hoje o sistema não oferece caminho nenhum. É prioridade A por um motivo específico — no preenchimento manual elas simplesmente refazem a folha, então um aplicativo que trave a correção seria pior que o improviso que veio substituir, e trava insolúvel não pode existir. As merendeiras confirmaram que alterar mapa pronto é raro, o que define a frequência da função e não a necessidade dela. O administrador não edita o mapa: ele reabre, e quem corrige é a merendeira — a regra de que o mapa é delas continua de pé.
+- **Critérios de aceitação:**
+  - CA#1 O administrador localiza um mapa bloqueado e o reabre informando uma justificativa, obrigatória.
+  - CA#2 O mapa reaberto volta a ser editável pela merendeira, sinalizado como reaberto para correção.
+  - CA#3 O sistema guarda quem desbloqueou, quando e a justificativa informada.
+  - CA#4 Corrigido o mapa, o documento do período pode ser gerado de novo.
+- **Regras de negócio:**
+  - RN#1 O administrador nunca edita o mapa — apenas desbloqueia.
+  - RN#2 O desbloqueio não apaga o documento já gerado nem o registro de que ele foi gerado.
+- **Requisitos não funcionais:**
+  - RNF#1 O histórico de desbloqueios é permanente, como os registros do mapa.
+- **Prioridade:** A — **Pontos de história:** 5
+
 ## Pós-MVP
 
 ### US018 — Histórico consultável com reemissão
@@ -321,6 +385,22 @@ O administrador é a figura de direção/responsável superior. Ele não partici
   - RNF#1 A ingestão manual de uma semana completa leva menos de 10 minutos.
 - **Prioridade:** D — **Pontos de história:** 8
 
+### US022 — Documentos gerados acessíveis ao administrador
+
+- **Requerente:** Equipe de projeto
+- **Ação:** Como administrador, quero ver e baixar os documentos que já foram gerados, para acompanhar as entregas e ter como recuperar um arquivo quando o envio feito pela merendeira não chegar ao destino.
+- **Comentários:** Revisão de escopo da E3, motivada por uma lacuna admitida do levantamento: a E1 ouviu as merendeiras, e a direção e a secretaria entraram no projeto como personagens, não como fontes. A direção trabalha em computador, e o acesso pelo painel é a alternativa quando o envio pelo aplicativo de mensagens falha. Não amplia o papel do administrador — ele continua sem ver mapas e sem gerar documentos: vê apenas os arquivos que já existem.
+- **Critérios de aceitação:**
+  - CA#1 A lista mostra os documentos existentes, com período, quantos mapas contém, quem gerou e quando sai do ar.
+  - CA#2 Um documento disponível pode ser baixado.
+  - CA#3 A tela não dá acesso aos mapas nem à geração de documentos.
+- **Regras de negócio:**
+  - RN#1 O administrador não gera nem regera documento: gerar é sempre ação da merendeira (US012).
+  - RN#2 Vale a mesma janela de validade da US012 — expirado o arquivo, não há o que baixar.
+- **Requisitos não funcionais:**
+  - RNF#1 A tela é de leitura, em layout de desktop, dentro da área do administrador.
+- **Prioridade:** C — **Pontos de história:** 3
+
 ---
 
-**Resumo:** 19 histórias — 15 de prioridade A e 2 B (MVP), 1 C e 1 D (pós-MVP). O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).
+**Resumo:** 24 histórias — 18 de prioridade A e 3 B (MVP), 2 C e 1 D (pós-MVP). As cinco últimas (US020–US024) entraram na revisão feita ao fim da E3, quando o desenho das telas revelou requisitos que o levantamento não tinha visto. O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).
