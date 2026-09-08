@@ -35,16 +35,18 @@
 ### US002 — Alteração de cardápio com justificativa
 
 - **Requerente:** Merendeira
-- **Ação:** Como merendeira, quero registrar as trocas em relação ao cardápio oficial — item previsto, item servido no lugar e o motivo — para que o mapa documente a alteração no mesmo formato exigido hoje.
-- **Comentários:** Trocas acontecem por falha de fornecedor, falta de gênero etc. Como o cardápio é documento externo, é a merendeira quem aponta a alteração; o formato replica o que elas já escrevem à mão no mapa: item previsto, substituto e justificativa.
+- **Ação:** Como merendeira, quero registrar os gêneros e as quantidades que usei quando precisei mudar o cardápio, junto com o motivo, para que o mapa documente a alteração no mesmo formato exigido hoje.
+- **Comentários:** Trocas acontecem por falha de fornecedor, falta de gênero etc. A refeição continua descrevendo o cardápio previsto, inclusive quando houve troca — é essa permanência que dá sentido à justificativa: se a linha já fosse reescrita com o que foi servido, não haveria divergência aparente e não haveria o que justificar. O que a merendeira registra à parte são os gêneros e quantidades que entraram no lugar, e o motivo. **O item que saiu não é registrado**: o formulário oficial não o pede, e exigi-lo seria trabalho que o documento não usa. *(Redação corrigida na E4, quando a modelagem conferiu o formulário oficial — ver [decisões de modelagem](../04-banco-de-dados/decisoes-de-modelagem.md).)*
 - **Critérios de aceitação:**
-  - CA#1 O registro de alteração tem três campos: item previsto no cardápio, item servido e justificativa.
+  - CA#1 O registro de alteração tem os gêneros usados na troca, cada um com a sua quantidade (US003), e uma justificativa.
   - CA#2 Não é possível concluir uma alteração sem justificativa.
-  - CA#3 A alteração aparece destacada na revisão do dia e no documento gerado.
+  - CA#3 A descrição e a aceitação da refeição não mudam ao se registrar uma alteração.
+  - CA#4 A alteração aparece no cartão da refeição e no documento gerado, na coluna reservada a ela.
 - **Regras de negócio:**
   - RN#1 Toda divergência em relação ao cardápio oficial exige justificativa.
+  - RN#2 Há no máximo uma alteração por refeição: a justificativa cobre a modificação inteira e os gêneros são uma lista, então duas trocas na mesma refeição são um registro só.
 - **Requisitos não funcionais:**
-  - RNF#1 A justificativa aceita texto livre curto, com sugestões de motivos frequentes para reduzir digitação.
+  - RNF#1 A justificativa aceita texto livre, com sugestões de motivos frequentes para reduzir digitação.
 - **Prioridade:** A — **Pontos de história:** 3
 
 ### US003 — Quantidades em unidades inteiras padronizadas
