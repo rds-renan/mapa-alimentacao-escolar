@@ -40,13 +40,13 @@ As três refeições em cartões expansíveis, com aceitação em três botões,
 
 ![Registro do dia com a alteração registrada no cartão](../assets/e3-3-registro-do-dia-alteracao.png)
 
-Segundo estado da mesma tela: registrada a troca, ela aparece dentro do cartão da refeição — item previsto, item servido e motivo —, porque é isso que sai no documento oficial. **US002, US007.**
+Segundo estado da mesma tela: registrada a alteração, ela aparece dentro do cartão da refeição — os gêneros usados na troca, com as suas quantidades, e o motivo —, porque é isso que sai no documento oficial. A linha da refeição continua sendo o cardápio previsto. **US002, US003, US007.**
 
 ### 3a · Alteração do cardápio
 
 ![Alteração do cardápio](../assets/e3-3a-alteracao-do-cardapio.png)
 
-Item previsto, item servido e o motivo da troca. **US002.**
+Os gêneros usados na troca, com as suas quantidades, e o motivo em texto livre. O item que saiu não é registrado — o formulário oficial não o pede (ver [decisão 8](decisoes-de-design.md)). **US002, US003.**
 
 ### 3b · Escolher gênero
 

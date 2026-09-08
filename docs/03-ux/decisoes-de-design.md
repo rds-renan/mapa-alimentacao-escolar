@@ -76,13 +76,17 @@
 
 **Histórias**: US009, US003.
 
-## 8. Alteração do cardápio aparece no cartão da refeição
+## 8. A alteração registra o que entrou, e aparece no cartão da refeição
 
-**Decisão**: depois de confirmada, a troca fica visível dentro do cartão da refeição — "item previsto → item servido" com o motivo abaixo, tocável para editar —, e o botão ao lado passa a ser "Outra alteração". Antes da primeira troca, o cartão mostra só o botão "Alteração do cardápio".
+**Decisão**: a linha da refeição **não muda** quando houve troca — ela continua sendo o cardápio previsto, com a sua aceitação. A alteração é um registro à parte, no máximo um por refeição, com os **gêneros e quantidades que foram usados na troca** e uma **justificativa em texto livre**. Depois de confirmada, ela fica visível dentro do cartão da refeição — os gêneros com as suas quantidades e o motivo abaixo, tocável para editar. Antes disso, o cartão mostra só o botão "Alteração do cardápio".
 
-**Por quê**: a troca e a justificativa são o que sai impresso no documento oficial (US002); se elas não aparecem no cartão, a merendeira não tem como conferir nem corrigir o que vai ser entregue — teria de abrir a tela de alteração no escuro para lembrar o que registrou.
+**Por quê**: é o que o formulário oficial pede. Ele tem uma coluna chamada *"em caso de alterações no cardápio, descreva os gêneros utilizados e as quantidades abaixo"* e, sob as três refeições, uma linha *"Mudança no cardápio, justificativa:"*. Em nenhum lugar ele pergunta qual item foi substituído. Manter a refeição fiel ao previsto é o que dá sentido ao registro: a divergência aparece na comparação entre a linha do cardápio e os gêneros da troca, e é isso que a justificativa explica.
 
-**Histórias**: US002, US007.
+A alteração precisa aparecer no cartão porque é o que sai impresso (US002); se não aparecesse, a merendeira teria de abrir a tela de alteração no escuro para lembrar o que registrou.
+
+**O que esta decisão desfez**: a primeira versão desta decisão mostrava "item previsto → item servido" no cartão e oferecia um botão "Outra alteração" para trocas sucessivas. As duas coisas vinham de uma leitura errada do formulário, herdada da US002 — corrigida na E4, quando a modelagem de dados foi conferir o documento que o sistema precisa produzir. Como a justificativa cobre a modificação inteira e os gêneros são uma lista, duas trocas na mesma refeição são um registro só, e o segundo botão deixou de ter função.
+
+**Histórias**: US002, US003, US007.
 
 ## 9. Menu: a porta do que não é fluxo diário
 

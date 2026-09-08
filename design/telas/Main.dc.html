@@ -72,7 +72,7 @@
           <sc-if value="{{manha.aberta}}" hint-placeholder-val="{{ true }}">
             <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; flex-direction: column; gap: 7px;">
-                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Cardápio realizado</span>
                 <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #09090b;">Pão com manteiga e leite com achocolatado</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 7px;">
@@ -122,7 +122,7 @@
             <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
               <span style="font-size: 15px; font-weight: 600; color: #09090b;">Almoço</span>
               <sc-if value="{{almoco.fechada}}" hint-placeholder-val="{{ true }}">
-                <span style="font-size: 12px; color: #71717a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Arroz, feijão, ovo cozido e salada</span>
+                <span style="font-size: 12px; color: #71717a; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">Arroz, feijão, frango desfiado e salada</span>
               </sc-if>
             </div>
             <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #fefce8; color: #a16207; border: 1px solid #fef08a;">Pendente</span>
@@ -133,8 +133,8 @@
           <sc-if value="{{almoco.aberta}}" hint-placeholder-val="{{ true }}">
             <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; flex-direction: column; gap: 7px;">
-                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
-                <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #09090b;">Arroz, feijão, ovo cozido e salada de alface</div>
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Cardápio realizado</span>
+                <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #09090b;">Arroz, feijão, frango desfiado e salada de alface</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 7px;">
                 <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Aceitação</span>
@@ -164,14 +164,13 @@
               </div>
               <div style="display: flex; flex-direction: column; gap: 8px;">
                 <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Alteração do cardápio</span>
-                <button style="min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 9px 12px; border: 1px solid #d3e3ee; border-radius: 10px; background: #eaf2f8; text-align: left;">
+                <button style="min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #d3e3ee; border-radius: 10px; background: #eaf2f8; text-align: left;">
                   <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-                    <span style="font-size: 13.5px; font-weight: 500; color: #09090b;">Frango desfiado → Ovo cozido</span>
-                    <span style="font-size: 11.5px; color: #52525b;">Falta de entrega do fornecedor</span>
+                    <span style="font-size: 13.5px; font-weight: 500; color: #09090b;">3 bandejas de ovo · 1 lata de óleo de soja</span>
+                    <span style="font-size: 11.5px; color: #52525b;">Não veio o frango na entrega da semana.</span>
                   </div>
                   <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 18l6-6-6-6"></path></svg>
                 </button>
-                <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Outra alteração</button>
               </div>
             </div>
           </sc-if>
@@ -190,7 +189,7 @@
           <sc-if value="{{tarde.aberta}}" hint-placeholder-val="{{ true }}">
             <div style="padding: 2px 14px 16px; display: flex; flex-direction: column; gap: 15px;">
               <div style="display: flex; flex-direction: column; gap: 7px;">
-                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">O que foi servido</span>
+                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Cardápio realizado</span>
                 <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 8px; padding: 13px 12px; font-size: 14.5px; line-height: 1.35; background: #ffffff; color: #a1a1aa;">Toque para escrever o que foi servido</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 7px;">
