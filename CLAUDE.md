@@ -40,7 +40,7 @@ E0 fundação ✅ → E1 Design Thinking ✅ → **E2 requisitos/backlog (atual)
 
 - Markdown em `docs/` é a **fonte da verdade**; os `.docx` da faculdade são gerados ao final como export.
 - Estrutura por etapa: `docs/01-design-thinking/`, `docs/02-requisitos/`, `docs/03-ux/`, `docs/04-banco-de-dados/`, `docs/05-testes/` (+ `docs/assets/` para imagens).
-- As telas do produto têm fonte em `design/telas/` e imagens em `docs/assets/`, geradas por `python3 design/exportar-telas.py`. O desenho é editado num canvas fora do repositório: **mexeu no canvas, atualizar `design/telas/` antes de exportar** — senão a exportação traz de volta o desenho antigo.
+- As telas do produto têm fonte em `design/telas/` e imagens em `docs/assets/`, geradas por `python3 design/exportar-telas.py`. O desenho é editado num canvas fora do repositório, e a sincronia vale **nos dois sentidos**: mexeu no canvas, atualizar `design/telas/` antes de exportar — senão a exportação traz de volta o desenho antigo; mexeu em `design/telas/`, republicar o canvas — senão a próxima edição feita lá sobrescreve a correção.
 
 
 

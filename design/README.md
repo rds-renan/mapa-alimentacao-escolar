@@ -30,6 +30,13 @@ Três coisas que o script resolve e valem saber:
 
 ## Onde as telas são editadas
 
-Num canvas de design fora do repositório, que é a superfície de edição de verdade — arrastar, ajustar, escrever no lugar. **Os arquivos daqui são uma cópia daquele canvas num momento**: se as telas mudarem lá e a cópia não for atualizada, regerar as imagens a partir daqui traz de volta o desenho antigo.
+Num canvas de design fora do repositório, que é a superfície de edição de verdade — arrastar, ajustar, escrever no lugar. **Os arquivos daqui são uma cópia daquele canvas num momento**, e a cópia pode ficar velha dos dois lados.
 
-Regra prática: mexeu no canvas, atualize `design/telas/` antes de exportar.
+Regra prática, nos dois sentidos:
+
+| Mexeu onde | Faça antes de qualquer outra coisa |
+|---|---|
+| No canvas | Atualize `design/telas/` — senão a exportação traz de volta o desenho antigo. |
+| Em `design/telas/` | Republique o canvas — senão a próxima edição feita lá sobrescreve a correção daqui. |
+
+O segundo caso não é hipotético: em setembro de 2026 as telas 3 e 3a foram corrigidas direto nos arquivos, porque o formulário oficial desmentiu um requisito, e o canvas ficou dias com o desenho errado. Uma edição qualquer feita lá teria desfeito a correção sem ninguém notar.
