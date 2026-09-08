@@ -22,15 +22,30 @@ Estrutura em **monorepo**.
 
 ## Documentação
 
-A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como fonte de verdade:
+A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como fonte de verdade. Os `.docx` da faculdade são gerados ao final, como exportação.
 
-- [Plano de projeto](docs/planodeprojeto.md) — etapas E0–E8, entregáveis, cronograma e riscos.
-- [Design Thinking](docs/01-design-thinking/design-thinking.md) — empatia, definição e ideação (com o [roteiro de empatia](docs/01-design-thinking/roteiro-de-empatia.md)).
-- [Histórias de usuário](docs/02-requisitos/historias-de-usuario.md) e [backlog priorizado](docs/02-requisitos/backlog.md) — requisitos da etapa E2.
+**Plano** — [plano de projeto](docs/planodeprojeto.md): etapas E0–E8, entregáveis, cronograma e riscos.
+
+**E1 · Design Thinking** — [síntese](docs/01-design-thinking/design-thinking.md) (empatia, mapa de afinidade, ideação e priorização) e o [roteiro de empatia](docs/01-design-thinking/roteiro-de-empatia.md) usado nas entrevistas.
+
+**E2 · Requisitos** — [histórias de usuário](docs/02-requisitos/historias-de-usuario.md) e [backlog priorizado](docs/02-requisitos/backlog.md).
+
+**E3 · UX** — [telas do MVP](docs/03-ux/telas.md), [fluxo de navegação](docs/03-ux/fluxo-de-telas.md), [decisões de design](docs/03-ux/decisoes-de-design.md), [catálogo de avisos e mensagens](docs/03-ux/avisos-e-mensagens.md) e a [validação com as merendeiras](docs/03-ux/validacao-com-as-merendeiras.md).
+
+**E4 · Banco de dados** — [diagrama de classes](docs/04-banco-de-dados/diagrama-de-classes.md) → [modelo conceitual](docs/04-banco-de-dados/modelo-conceitual.md) → [modelo ER](docs/04-banco-de-dados/modelo-er.md) → [projeto físico](docs/04-banco-de-dados/projeto-fisico.md), com as [decisões de modelagem](docs/04-banco-de-dados/decisoes-de-modelagem.md) explicando o porquê de cada escolha. O SQL está em [`supabase/`](supabase/).
+
+### Diagramas e telas
+
+Os diagramas são escritos em Mermaid dentro dos próprios Markdown — o GitHub os renderiza, e assim eles continuam sendo texto versionado, com histórico e diff. As imagens de `docs/assets/` são apenas exportações, para o documento da faculdade, e se regeram por comando:
+
+```bash
+python3 design/exportar-telas.py       # as telas do produto
+python3 design/exportar-diagramas.py   # os diagramas da modelagem
+```
 
 ## Status
 
-🚧 Em desenvolvimento — etapa atual: **E2 (requisitos e backlog)**. Concluídas: E0 (fundação) e E1 (Design Thinking).
+🚧 Em desenvolvimento — etapa atual: **E4 (modelagem de dados)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog) e E3 (UX).
 
 ## Direitos
 

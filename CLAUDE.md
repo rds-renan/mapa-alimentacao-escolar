@@ -21,7 +21,7 @@ Tudo em **português brasileiro**: documentação, commits, issues, PRs e coment
 
 O projeto avança em etapas sequenciais, cada uma com milestone e issues próprias:
 
-E0 fundação ✅ → E1 Design Thinking ✅ → **E2 requisitos/backlog (atual)** → E3 UX → E4 modelagem de dados → E5 web MVP → E6 Flutter → E7 testes/laudo → E8 entrega.
+E0 fundação ✅ → E1 Design Thinking ✅ → E2 requisitos/backlog ✅ → E3 UX ✅ → **E4 modelagem de dados (atual)** → E5 web MVP → E6 Flutter → E7 testes/laudo → E8 entrega.
 
 **Trabalhar apenas na etapa atual** — não antecipar entregáveis de etapas futuras, mesmo que pareça eficiente.
 
