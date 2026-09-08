@@ -6,6 +6,8 @@ Sistema **MAE (Mapa da Alimentação Escolar)**: app para merendeiras de uma esc
 
 Tudo em **português brasileiro**: documentação, commits, issues, PRs e comentários de código.
 
+**Exceção — identificadores de código são em inglês.** Tabelas, colunas, tipos do banco, variáveis, funções e componentes seguem o inglês, no singular, porque convivem com uma stack que é inglês por construção. O que fica em português é o conteúdo: textos de interface, dados cadastrados e comentários. A fronteira e o glossário domínio → banco estão na [decisão 13 da E4](docs/04-banco-de-dados/decisoes-de-modelagem.md).
+
 ## Regra de sigilo (CRÍTICA)
 
 - **Nunca** versionar documentos oficiais da prefeitura, templates com brasão/símbolo, mapas reais preenchidos, dados pessoais ou credenciais. O `.gitignore` bloqueia `*.docx` e afins de propósito — não contornar com `git add -f` sem decisão explícita do autor.
