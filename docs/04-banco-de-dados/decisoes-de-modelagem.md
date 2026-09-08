@@ -42,21 +42,29 @@
 
 **Histórias**: US007, US012, US013, US023.
 
-## 6. A refeição descreve o que foi servido em texto livre
+## 6. A refeição é uma linha de texto livre, transcrita do cardápio
 
-**Decisão**: `Refeicao.descricao` é texto livre — a linha que a merendeira transcreve do cardápio ("Arroz, feijão, ovo cozido e salada"). Não há entidade "item do cardápio" nem "prato".
+**Decisão**: `Refeicao.descricao` é texto livre — a linha que a merendeira transcreve do cardápio previsto ("Arroz, feijão, frango desfiado e salada"). Não há entidade "item do cardápio" nem "prato", e a linha não é reescrita quando houve troca (ver [decisão 7](#7-a-alteração-registra-o-que-entrou-não-o-que-saiu)).
 
 **Por quê**: o cardápio oficial é documento externo no MVP e o mapa é uma transcrição dele (US001, US019); o documento oficial imprime exatamente essa linha por refeição. Estruturar itens obrigaria a merendeira a decompor cada refeição em partes, o oposto do registro em menos de 2 minutos (RNF#1 da US001). O custo cai sobre o painel: "as merendas mais bem aceitas" (CA#3 da US017) agrupam pela descrição normalizada (minúsculas, sem espaços repetidos), então "Arroz com frango" e "arroz c/ frango" contam separado. É limitação aceita para o MVP; a ingestão do cardápio (US019) é o lugar natural para estruturar isso depois.
 
 **Histórias**: US001, US002, US017, US019.
 
-## 7. Alteração do cardápio é entidade própria, zero ou mais por refeição
+## 7. A alteração registra o que entrou, não o que saiu
 
-**Decisão**: `AlteracaoCardapio` pertence a uma refeição e guarda item previsto, item servido e justificativa obrigatória. Uma refeição pode ter várias. Os motivos frequentes oferecidos na tela (falta de entrega do fornecedor, item impróprio, quantidade insuficiente) são sugestões da interface; o que se grava é o texto.
+**Decisão**: a refeição guarda o **cardápio previsto** e permanece fiel a ele mesmo quando algo foi trocado — a descrição e a aceitação não mudam. Quando houve troca, nasce uma `AlteracaoCardapio`, no máximo uma por refeição, com dois conteúdos: os **gêneros e quantidades usados na troca** e uma **justificativa em texto livre**. Não existe campo para o item substituído.
 
-**Por quê**: a decisão 8 da E3 mostra a troca dentro do cartão da refeição e oferece "Outra alteração", então a cardinalidade é um-para-muitos por refeição, não um campo do mapa. A justificativa como `not null` é a RN#1 da US002 no banco. Manter os motivos como texto, e não como tabela, evita cadastro para uma lista que só existe para reduzir digitação (RNF#1 da US002) — e o documento oficial quer o texto, não um código.
+**Por quê**: porque é o que o formulário oficial pede, e a US002 dizia o contrário. Ela afirmava que a alteração tem três campos — item previsto, item servido e justificativa — e que esse formato "replica o que elas já escrevem à mão no mapa". A conferência do documento durante a modelagem mostrou que não replica: o formulário tem uma coluna chamada *"em caso de alterações no cardápio, descreva os gêneros utilizados e as quantidades abaixo"* e, sob as três refeições, uma linha *"Mudança no cardápio, justificativa:"*. Em nenhum lugar ele pergunta o que saiu.
 
-No documento oficial, o espaço reservado às alterações recebe a troca e a justificativa; os gêneros e quantidades usados são os da própria refeição (decisão 8), sem um segundo registro de gêneros só para a alteração.
+A permanência da descrição não é detalhe de implementação, é o que dá sentido ao registro: se a refeição já fosse reescrita com o que foi servido, não haveria divergência aparente e a justificativa não teria o que justificar. O documento mostra o previsto de um lado e os gêneros da troca do outro; a diferença entre os dois é a alteração.
+
+Registrar o item substituído seria defensável em auditoria, mas seria trabalho que o documento não usa e que ninguém pediu — e a missão do MAE é simplificar o que elas já fazem, não acrescentar campos. A correção da US002 e das telas está na issue #47.
+
+**Por que duas listas de gênero e não uma**: `GeneroUtilizado` e `GeneroDaAlteracao` têm a mesma forma, mas alimentam **colunas diferentes** do documento oficial — os gêneros da refeição e os gêneros da troca. Unificá-las numa tabela só, com uma marca dizendo a qual coluna a linha pertence, tornaria anulável justamente a coluna que carrega a distinção e complicaria a unicidade sem ganhar nada. Separadas, o modelo se parece com o documento que produz.
+
+**Uma alteração por refeição, e não várias**: como a justificativa é texto livre e cobre a modificação inteira, e os gêneros são uma lista, duas trocas na mesma refeição são um registro só — mais itens na lista, e o texto cobre as duas. Isso encerra o botão "Outra alteração" da decisão 8 da E3.
+
+**Granularidade**: os gêneros são capturados **por refeição**, embora o formulário os peça por dia numa célula única. As merendeiras sabem de cabeça o que foi de cada refeição, e um modelo mais fino sempre produz um documento mais grosso — a geração junta as três refeições numa célula, e as justificativas do dia numa linha. O contrário seria impossível.
 
 **Histórias**: US002, US003.
 
@@ -78,7 +86,7 @@ No documento oficial, o espaço reservado às alterações recebe a troca e a ju
 
 ## 10. Documento gerado: registro permanente, arquivo temporário
 
-**Decisão**: `DocumentoGerado` é gravado quando a merendeira pede a geração e nunca é apagado. Guarda quem pediu, quando, o modelo usado, a situação (`em_processamento`, `disponivel`, `falhou`), o caminho do arquivo e a data em que ele sai do ar. Os mapas incluídos ficam numa associação muitos-para-muitos; período e quantidade de mapas derivam dela. O arquivo vive num *bucket* privado e é removido ao expirar; o registro passa a mostrar "fora do ar". Só o servidor escreve nessa tabela.
+**Decisão**: `DocumentoGerado` é gravado quando a merendeira pede a geração e nunca é apagado. Guarda quem pediu, quando, o modelo usado, a situação (em processamento, disponível ou falhou), o caminho do arquivo e a data em que ele sai do ar. Os mapas incluídos ficam numa associação muitos-para-muitos; período e quantidade de mapas derivam dela. O arquivo vive num *bucket* privado e é removido ao expirar; o registro passa a mostrar "fora do ar". Só o servidor escreve nessa tabela.
 
 **Por quê**: a lista de documentos gerados (US021, US022) precisa existir mesmo quando o arquivo já se foi — é ela que diz "os mapas desse período continuam guardados" —, e o desbloqueio não pode apagar o rastro da geração (RN#2 da US023). O arquivo expira porque o sistema não mantém cópia permanente (RN#2 da US012). A situação em três valores vem da decisão 10 da E3: a geração acontece no servidor e pode terminar depois, com a merendeira fora da tela. Derivar período e contagem evita gravar o que a associação já diz, e a seleção pode ser de dias avulsos — o "período" é só o primeiro e o último dia incluídos.
 
@@ -100,8 +108,14 @@ No documento oficial, o espaço reservado às alterações recebe a troca e a ju
 - **Tokens de notificação** — a única notificação do MVP ("documento pronto") exige guardar o identificador do aparelho; isso entra com o app Android, na E6, como migration própria, porque só lá existe aparelho para registrar.
 - **Cópia permanente dos documentos** — o arquivo expira; o que fica é o registro (decisão 10).
 
-## 13. Nomes em português, no singular
+## 13. O domínio fala português; o schema fala inglês
 
-**Decisão**: classes, tabelas e colunas em português, no singular, sem acento nem cedilha nos identificadores (`refeicao`, `genero_utilizado`, `alteracao_cardapio`). A tabela de usuários chama-se `usuario`, e não `profiles`, apesar da convenção comum no Supabase.
+**Decisão**: o vocabulário do domínio — histórias, telas, [diagrama de classes](diagrama-de-classes.md) e [modelo conceitual](modelo-conceitual.md) — é o português das entrevistas: mapa, refeição, gênero, alteração do cardápio. A partir do [modelo ER](modelo-er.md), os identificadores de tabela, coluna e tipo são em inglês, no singular (`meal_map`, `meal`, `food_item`, `menu_change`). O **conteúdo** continua em português: nomes de gêneros, descrições das refeições, observações, justificativas e toda a interface. Valor de enumeração é estrutura, não conteúdo — vai para o inglês (`morning_snack`, `lunch`, `afternoon_snack`), e a interface o traduz na exibição. O [glossário](modelo-er.md#glossário-domínio--banco) no fim do modelo ER liga os dois vocabulários.
 
-**Por quê**: toda a documentação, as histórias e as telas usam esse vocabulário; o modelo é a continuação delas, e o documento da faculdade é lido em português. Um vocabulário só, da entrevista ao SQL, é o que mantém o rastreio história → classe → tabela legível.
+**Por quê**: o schema não é lido apenas por quem lê a documentação — ele entra no código. O Supabase gera os tipos TypeScript a partir das tabelas, então cada nome escolhido aqui aparece nos componentes da web (E5) e do aplicativo (E6), ao lado de palavras que são inglês por construção. Um modelo em português produziria linhas como `supabase.from('refeicao').select()` dentro de um `onChange`, alternando idioma a cada expressão. Há ainda um detalhe que o português esconde: identificadores não levam acento nem cedilha, então `refeicao`, `alteracao_cardapio` e `genero` não são a palavra correta em idioma nenhum — enquanto `meal` e `menu_change` são.
+
+O que se perde é o rastreio num vocabulário só, e é uma perda real: a força desta documentação é que "mapa" significa a mesma coisa da entrevista à tabela. O preço se paga com o glossário — uma tabela que já existia como rastreio classe → tabela e que agora também traduz. A fronteira fica num lugar só, e num lugar que a própria faculdade pede: modelo conceitual é artefato de domínio, modelo lógico é artefato de implementação.
+
+Três nomes mereceram cuidado. **`meal_map`** guarda a identidade do artefato institucional: o mapa é o documento que dá nome ao MAE, e um `daily_record` qualquer apagaria isso. **`profile`** segue a convenção do próprio Supabase, e `user` é palavra reservada no PostgreSQL. **`food_item`** traduz "gênero alimentício" sem sugerir receita, como `ingredient` sugeriria.
+
+**Consequência para a E5 e a E6**: a mesma fronteira vale no código — identificadores em inglês, textos de interface em português, sem exceção no meio.

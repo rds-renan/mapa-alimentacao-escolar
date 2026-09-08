@@ -6,7 +6,7 @@
 
 ## O domínio em uma frase
 
-Uma **escola** tem **usuários** (administrador e merendeiras) e um **catálogo de gêneros**. Cada dia do calendário pode ter um **mapa**: letivo, com exatamente três **refeições** (cada uma com o que foi servido, a aceitação, os **gêneros utilizados** e as eventuais **alterações do cardápio**) e o número de refeições do dia; ou não letivo, só com observação. A merendeira escolhe mapas e o sistema gera um **documento** a partir do **modelo oficial** vigente; os mapas incluídos ficam bloqueados até que o administrador registre um **desbloqueio**.
+Uma **escola** tem **usuários** (administrador e merendeiras) e um **catálogo de gêneros**. Cada dia do calendário pode ter um **mapa**: letivo, com exatamente três **refeições** (cada uma com o cardápio previsto, a aceitação, os **gêneros utilizados** e, quando algo saiu diferente, uma **alteração do cardápio** com os gêneros da troca e o motivo) e o número de refeições do dia; ou não letivo, só com observação. A merendeira escolhe mapas e o sistema gera um **documento** a partir do **modelo oficial** vigente; os mapas incluídos ficam bloqueados até que o administrador registre um **desbloqueio**.
 
 ## Diagrama
 
@@ -54,9 +54,11 @@ classDiagram
     }
 
     class AlteracaoCardapio {
-        +String itemPrevisto
-        +String itemServido
         +String justificativa
+    }
+
+    class GeneroDaAlteracao {
+        +Integer quantidade
     }
 
     class GeneroUtilizado {
@@ -93,9 +95,11 @@ classDiagram
     Escola "1" *-- "0..*" DocumentoGerado : emite
 
     Mapa "1" *-- "0..3" Refeicao : compõe-se de
-    Refeicao "1" *-- "0..*" AlteracaoCardapio : registra
+    Refeicao "1" *-- "0..1" AlteracaoCardapio : registra
     Refeicao "1" *-- "0..*" GeneroUtilizado : consome
+    AlteracaoCardapio "1" *-- "1..*" GeneroDaAlteracao : consome
     GeneroUtilizado "0..*" --> "1" Genero : refere-se a
+    GeneroDaAlteracao "0..*" --> "1" Genero : refere-se a
 
     Usuario "1" --> "0..*" Mapa : última edição por
     Usuario "1" --> "0..*" DocumentoGerado : gerado por
@@ -180,15 +184,19 @@ Os três métodos são derivações, não dados armazenados:
 
 ### Refeicao
 
-Uma das três refeições de um dia letivo: lanche da manhã, almoço ou lanche da tarde (RN#1 da US001) — o tipo é fixo e não se repete no mesmo mapa. Guarda a descrição do que foi servido, em texto livre, do jeito que sai na linha da refeição no documento oficial, e a aceitação em três graus (US004). `preenchida()` é verdadeira quando descrição e aceitação existem. **US001, US004.**
+Uma das três refeições de um dia letivo: lanche da manhã, almoço ou lanche da tarde (RN#1 da US001) — o tipo é fixo e não se repete no mesmo mapa. Guarda a descrição do cardápio previsto para aquele período, em texto livre, do jeito que sai na linha da refeição no documento oficial, e a aceitação em três graus (US004). A descrição **permanece fiel ao cardápio previsto mesmo quando houve troca** — é o que dá sentido à justificativa da alteração (ver [decisão 7](decisoes-de-modelagem.md)). `preenchida()` é verdadeira quando descrição e aceitação existem. **US001, US004.**
 
 ### AlteracaoCardapio
 
-Uma troca em relação ao cardápio oficial dentro de uma refeição: item previsto, item servido no lugar e a justificativa, obrigatória (RN#1 da US002). Uma refeição pode ter mais de uma — é o botão "Outra alteração" da decisão 8 da E3. **US002.**
+O registro de que a refeição saiu diferente do previsto: a justificativa, em texto livre e obrigatória (RN#1 da US002), e os gêneros que foram usados na troca. **Não guarda o item substituído** — o formulário oficial não o pede, e exigi-lo seria trabalho que ninguém precisa fazer. No máximo uma por refeição: como a justificativa cobre a modificação inteira e os gêneros são uma lista, duas trocas na mesma refeição são um registro só. **US002.**
 
 ### GeneroUtilizado
 
 A ligação entre uma refeição e um gênero do catálogo, com a quantidade em número inteiro na unidade padrão do gênero (RN#1 da US003). Cada gênero aparece no máximo uma vez por refeição. **US003, US009.**
+
+### GeneroDaAlteracao
+
+O mesmo par gênero + quantidade, agora ligado a uma alteração: é o que a coluna "em caso de alterações, descreva os gêneros utilizados e as quantidades" do formulário recebe. Separado do `GeneroUtilizado` porque no documento oficial são duas colunas distintas — o que foi usado na refeição e o que foi usado na troca. **US002, US003.**
 
 ### ModeloDocumento
 
@@ -222,3 +230,4 @@ Um mapa reaberto (`reaberto()`) aparece como `pendente` ou `completo`, com a sin
 - **Tema escuro e demais preferências** — escolha de cada usuária, no aparelho (RN#1 da US024); não vai ao banco.
 - **O arquivo do documento gerado** — vive no armazenamento, temporário; o banco guarda só o registro da geração e o caminho.
 - **Motivos sugeridos da alteração** e **unidades sugeridas do gênero** — listas da interface para reduzir digitação (RNF#1 da US002); o dado gravado é texto.
+- **O item que foi substituído** — o formulário oficial não o pede, e registrá-lo seria pedir à merendeira um trabalho que o documento não usa.
