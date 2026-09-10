@@ -43,6 +43,8 @@ python3 design/exportar-telas.py       # as telas do produto
 python3 design/exportar-diagramas.py   # os diagramas da modelagem
 ```
 
+A exportação dos diagramas usa o ELK para posicionar as caixas, e não o layout padrão do Mermaid: o padrão espalha as caixas e liga tudo com curvas que atravessam o desenho, o que se lê mal numa imagem em tamanho real. No GitHub, o Markdown continua sendo desenhado pelo layout padrão — o conteúdo é o mesmo, só o traçado das ligações muda.
+
 ## Status
 
 🚧 Em desenvolvimento — etapa atual: **E4 (modelagem de dados)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog) e E3 (UX).
