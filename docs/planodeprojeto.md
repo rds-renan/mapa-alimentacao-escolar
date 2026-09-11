@@ -54,7 +54,7 @@ Estrutura para aprender e usar o GitHub além do commit/push/pull:
 - **Projects (v2)** — um board Kanban do repositório com colunas `Backlog → A fazer → Em andamento → Concluído`, alimentado pelas issues. É a visão de gestão do projeto (e evidência de gestão para a faculdade).
 - **Branches e PRs** — `main` protegida como linha oficial; trabalho em branches `feat/...`, `docs/...`, `fix/...`; merge via Pull Request (self-review com descrição do que foi feito).
 - **Conventional Commits** — `feat:`, `fix:`, `docs:`, `chore:` etc., mantendo o histórico legível.
-- **Actions (CI/CD)** — lint/build automático dos apps e deploy contínuo do front (Vercel ou similar) a partir da `main`.
+- **Actions (CI/CD)** — lint, checagem de tipos, build e testes automáticos a cada Pull Request; o front é publicado no Cloudflare Pages a partir da `main`, com prévia por branch.
 - **README + Releases** — README como vitrine do projeto; ao final de cada etapa relevante, uma tag/release (ex.: `v0.1-docs`, `v0.2-mvp-web`).
 
 ## 5. Estrutura do repositório
@@ -68,7 +68,9 @@ mapa-alimentacao-escolar/
 │   ├── 02-requisitos/           # histórias de usuário, backlog priorizado
 │   ├── 03-ux/                   # wireframes e mockups
 │   ├── 04-banco-de-dados/       # diagrama de classes, conceitual, ER, projeto físico
-│   ├── 05-testes/               # testes com colegas, laudo de qualidade
+│   ├── 05-web/                  # decisões técnicas do desenvolvimento web
+│   ├── 06-app/                  # decisões técnicas do aplicativo Flutter
+│   ├── 07-testes/               # testes com usuárias, laudo de qualidade
 │   └── assets/                  # imagens/diagramas exportados
 ├── supabase/                    # migrations, policies (RLS), seed, edge functions
 ├── web/                         # aplicação React
@@ -119,7 +121,8 @@ Cada etapa vira uma **milestone** no GitHub, com suas issues, e é commitada/mer
 
 ### E5 — Desenvolvimento web MVP (semanas 6–9)
 
-**Entregáveis (`web/` + `supabase/`):**
+**Entregáveis (`docs/05-web/` + `web/` + `supabase/`):**
+- Decisões técnicas da etapa registradas antes do código (stack, estratégia offline, hospedagem e testes).
 - Autenticação (admin e merendeira) e gestão de usuárias pelo admin.
 - CRUD do registro diário (refeições, aceitação, nº de refeições, mudança de cardápio, dia não letivo).
 - Seleção de dias + geração do documento oficial no servidor (Edge Function) a partir do template armazenado no Supabase Storage, link temporário com expiração ≤ 7 dias e limpeza automática.
@@ -130,12 +133,12 @@ Cada etapa vira uma **milestone** no GitHub, com suas issues, e é commitada/mer
 
 ### E6 — App mobile Flutter (semanas 9–11)
 
-**Entregáveis (`app/`):** app Android com login, registro do dia e geração/compartilhamento do documento (mesmo backend). APK de distribuição.
+**Entregáveis (`docs/06-app/` + `app/`):** decisões técnicas da etapa registradas antes do código (biblioteca de interface, persistência local e fila de sincronização, distribuição); app Android com login, registro do dia e geração/compartilhamento do documento (mesmo backend). APK de distribuição.
 **Concluída quando:** merendeira consegue fazer o fluxo completo pelo celular.
 
 ### E7 — Validação: testes e qualidade (semana 11)
 
-**Entregáveis (`docs/05-testes/`):**
+**Entregáveis (`docs/07-testes/`):**
 - Testes com 5 colegas no template da faculdade (nome, data, o que funcionou, o que corrigir, o que faltou).
 - Correções derivadas dos feedbacks (issues `bug`/`melhoria`).
 - Laudo de qualidade com evidências (prints antes/depois, erros e correções).
