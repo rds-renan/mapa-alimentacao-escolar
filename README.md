@@ -15,10 +15,11 @@ O sistema permite que as merendeiras registrem diariamente as refeições servid
 | Camada | Tecnologia |
 |---|---|
 | Backend (BaaS) | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
-| Web | React |
+| Web | React + TypeScript, com Vite, Tailwind e shadcn/ui |
 | Mobile (Android) | Flutter |
+| Hospedagem da web | Cloudflare Pages, com CI no GitHub Actions |
 
-Estrutura em **monorepo**.
+Estrutura em **monorepo**. As escolhas da web e o porquê de cada uma estão nas [decisões técnicas da E5](docs/05-web/decisoes-tecnicas.md).
 
 ## Documentação
 
@@ -34,6 +35,8 @@ A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como font
 
 **E4 · Banco de dados** — [diagrama de classes](docs/04-banco-de-dados/diagrama-de-classes.md) → [modelo conceitual](docs/04-banco-de-dados/modelo-conceitual.md) → [modelo ER](docs/04-banco-de-dados/modelo-er.md) → [projeto físico](docs/04-banco-de-dados/projeto-fisico.md), com as [decisões de modelagem](docs/04-banco-de-dados/decisoes-de-modelagem.md) explicando o porquê de cada escolha. O SQL está em [`supabase/`](supabase/).
 
+**E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código.
+
 ### Diagramas e telas
 
 Os diagramas são escritos em Mermaid dentro dos próprios Markdown — o GitHub os renderiza, e assim eles continuam sendo texto versionado, com histórico e diff. As imagens de `docs/assets/` são apenas exportações, para o documento da faculdade, e se regeram por comando:
@@ -47,7 +50,7 @@ A exportação dos diagramas usa o ELK para posicionar as caixas, e não o layou
 
 ## Status
 
-🚧 Em desenvolvimento — etapa atual: **E4 (modelagem de dados)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog) e E3 (UX).
+🚧 Em desenvolvimento — etapa atual: **E5 (desenvolvimento web)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog), E3 (UX) e E4 (modelagem de dados).
 
 ## Direitos
 
