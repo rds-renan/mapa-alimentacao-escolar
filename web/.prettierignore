@@ -1,0 +1,4 @@
+dist
+node_modules
+# Gerado por `npm run types:db` — não formatar à mão.
+src/lib/database.types.ts

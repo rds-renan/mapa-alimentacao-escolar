@@ -1,0 +1,236 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
+
+/* ==========================================================================
+   Tema do MAE — tokens da decisão 6 da E3 (docs/03-ux/decisoes-de-design.md).
+   O que atravessa web e Flutter são estes valores, não os componentes:
+   paleta, escala tipográfica, espaçamento, raios e alvo de toque de 44 px.
+   A variante escura é o mesmo conjunto de tokens com outra paleta (US024);
+   quem liga a classe .dark é a issue do tema escuro, não esta fundação.
+   ========================================================================== */
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans:
+    'Geist Variable', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-heading: var(--font-sans);
+
+  /* Escala tipográfica das telas da E3. O corpo é 14 px; a entrada de texto
+       usa 16 px no celular (text-lg) porque abaixo disso o navegador do
+       aparelho dá zoom ao focar o campo. */
+  --text-2xs: 0.6875rem; /* 11 px — metadado, legenda */
+  --text-2xs--line-height: 1.45;
+  --text-xs: 0.75rem; /* 12 px — rótulo auxiliar */
+  --text-xs--line-height: 1.45;
+  --text-sm: 0.8125rem; /* 13 px — apoio */
+  --text-sm--line-height: 1.45;
+  --text-base: 0.875rem; /* 14 px — corpo */
+  --text-base--line-height: 1.5;
+  --text-lg: 1rem; /* 16 px — título de cartão, entrada de texto */
+  --text-lg--line-height: 1.5;
+  --text-xl: 1.0625rem; /* 17 px — título de tela no celular */
+  --text-xl--line-height: 1.4;
+  --text-2xl: 1.375rem; /* 22 px — título de seção na administração */
+  --text-2xl--line-height: 1.3;
+  --text-3xl: 1.875rem; /* 30 px — número em destaque no painel */
+  --text-3xl--line-height: 1.2;
+
+  /* Espaçamento: grade de 4 px, como as telas foram desenhadas.
+       `touch` é o alvo de toque mínimo — usar em h-touch / min-h-touch /
+       size-touch em tudo que se toca. */
+  --spacing: 0.25rem;
+  --spacing-touch: 2.75rem; /* 44 px */
+
+  /* Raios: 10 px é o raio dominante das telas; os demais derivam dele. */
+  --radius-sm: calc(var(--radius) * 0.6); /* 6 px */
+  --radius-md: calc(var(--radius) * 0.8); /* 8 px — botão, campo */
+  --radius-lg: var(--radius); /* 10 px */
+  --radius-xl: calc(var(--radius) * 1.2); /* 12 px — cartão */
+  --radius-2xl: calc(var(--radius) * 1.6); /* 16 px */
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Larguras do desenho da E3: o fluxo da merendeira é de celular, com
+       container central na web (decisão 1 da E3). */
+  --container-screen: 24.375rem; /* 390 px */
+
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary-hover: var(--primary-hover);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent-border: var(--accent-border);
+  --color-destructive: var(--destructive);
+  --color-destructive-subtle: var(--destructive-subtle);
+  --color-destructive-border: var(--destructive-border);
+  --color-success: var(--success);
+  --color-success-subtle: var(--success-subtle);
+  --color-success-border: var(--success-border);
+  --color-warning: var(--warning);
+  --color-warning-subtle: var(--warning-subtle);
+  --color-warning-border: var(--warning-border);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Paleta clara — acento azul #397ba1 do logo do MAE sobre neutros zinc. */
+:root {
+  --radius: 0.625rem; /* 10 px */
+
+  --background: #fafafa;
+  --foreground: #09090b;
+  --card: #ffffff;
+  --card-foreground: #09090b;
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
+  --primary: #397ba1;
+  --primary-foreground: #ffffff;
+  --primary-hover: #2c5f7e;
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #18181b;
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
+  --accent: #eaf2f8;
+  --accent-foreground: #2c5f7e;
+  --accent-border: #d3e3ee;
+
+  --destructive: #dc2626;
+  --destructive-subtle: #fef2f2;
+  --destructive-border: #fecaca;
+  --success: #15803d;
+  --success-subtle: #f0fdf4;
+  --success-border: #dcfce7;
+  --warning: #a16207;
+  --warning-subtle: #fefce8;
+  --warning-border: #fef08a;
+
+  --border: #e4e4e7;
+  --input: #e4e4e7;
+  --ring: #397ba1;
+
+  /* Paleta de dados do painel (US017): separada do acento da marca.
+       Aceitação em azul → cinza → vermelho, validada para daltonismo;
+       o ranking usa o azul de dados sozinho. Os dois últimos são neutros,
+       para séries que não sejam a escala de aceitação. */
+  --chart-1: #2a78d6; /* ótimo, e barra do ranking */
+  --chart-2: #f0efec; /* bom */
+  --chart-3: #e34948; /* ruim */
+  --chart-4: #a1a1aa;
+  --chart-5: #52525b;
+
+  --sidebar: #ffffff;
+  --sidebar-foreground: #3f3f46;
+  --sidebar-primary: #397ba1;
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #eaf2f8;
+  --sidebar-accent-foreground: #397ba1;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #397ba1;
+}
+
+/* Paleta escura (US024) — o azul do logo clareia para manter contraste AA
+   sobre fundo escuro, e passa a levar texto escuro em cima. */
+.dark {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #18181b;
+  --card-foreground: #fafafa;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
+
+  --primary: #7fb3d0;
+  --primary-foreground: #09090b;
+  --primary-hover: #9fc9e2;
+
+  --secondary: #27272a;
+  --secondary-foreground: #fafafa;
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #1d3a4d;
+  --accent-foreground: #9fc9e2;
+  --accent-border: #2c5f7e;
+
+  --destructive: #f87171;
+  --destructive-subtle: #2a1516;
+  --destructive-border: #7f1d1d;
+  --success: #4ade80;
+  --success-subtle: #10241a;
+  --success-border: #166534;
+  --warning: #fde047;
+  --warning-subtle: #262012;
+  --warning-border: #854d0e;
+
+  --border: #27272a;
+  --input: #3f3f46;
+  --ring: #7fb3d0;
+
+  --chart-1: #5ba3e8;
+  --chart-2: #52525b;
+  --chart-3: #e86a69;
+  --chart-4: #a1a1aa;
+  --chart-5: #d4d4d8;
+
+  --sidebar: #18181b;
+  --sidebar-foreground: #d4d4d8;
+  --sidebar-primary: #7fb3d0;
+  --sidebar-primary-foreground: #09090b;
+  --sidebar-accent: #1d3a4d;
+  --sidebar-accent-foreground: #9fc9e2;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #7fb3d0;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+
+  html {
+    @apply font-sans;
+    /* O aparelho ajusta o tamanho do texto; a página não reescala sozinha. */
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    @apply bg-background text-foreground antialiased;
+  }
+
+  /* Nada de destaque de toque cinza do navegador: o estado de toque é do
+       componente, e o fantasma do navegador atravessa o desenho. */
+  button,
+  [role='button'],
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
+}
