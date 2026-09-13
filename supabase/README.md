@@ -8,7 +8,8 @@ o porquê de cada escolha está nas [decisões de modelagem](../docs/04-banco-de
 supabase/
 ├── config.toml     # configuração da CLI
 ├── migrations/     # o schema, em ordem
-└── seed.sql        # dados fictícios de desenvolvimento
+├── seed.sql        # dados fictícios de desenvolvimento
+└── tests/          # cenários em pgTAP
 ```
 
 ## Subir o banco na sua máquina
@@ -23,6 +24,21 @@ supabase db reset   # recria o banco: migrations em ordem + seed
 `supabase start` imprime as URLs e chaves locais. O Studio fica em
 <http://127.0.0.1:54323>. Para derrubar tudo, `supabase stop`.
 
+## Rodar os testes
+
+```bash
+supabase test db
+```
+
+Os testes vivem em `tests/`, escritos em [pgTAP](https://pgtap.org/), e correm
+contra o banco local com o seed aplicado. Cada arquivo é uma transação que
+termina em `rollback`, então rodar os testes não suja o banco — mas eles contam
+com o seed intacto, então o hábito é `supabase db reset` antes.
+
+| Arquivo | O que exercita |
+|---|---|
+| `gravacao-do-dia.test.sql` | `save_meal_map()`: caminho feliz, reenvio, conflito entre aparelhos, catálogo, recorte por escola, cargas malformadas e o carimbo de última edição |
+
 ## As migrations
 
 | Arquivo | O que faz |
@@ -31,6 +47,7 @@ supabase db reset   # recria o banco: migrations em ordem + seed
 | `20260907120100_regras_e_auditoria.sql` | Gatilhos do bloqueio, proteção da coluna `locked`, carimbo de última edição e a função de reabertura |
 | `20260907120200_rls.sql` | Políticas de acesso por perfil, em todas as tabelas |
 | `20260907120300_storage.sql` | Baldes privados do modelo oficial e dos documentos gerados |
+| `20260911120000_gravacao_atomica_do_dia.sql` | A gravação do dia inteiro numa operação só, e o carimbo de última edição que ela exige |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.
@@ -73,6 +90,11 @@ Vale a pena saber antes de escrever a aplicação, para não reimplementar:
 - **A direção não registra mapa**, e a merendeira não cria documento gerado:
   quem escreve `generated_document` é o servidor.
 - **Cada escola só enxerga o que é seu**, em todas as tabelas.
+- **O dia grava inteiro ou não grava**, por `save_meal_map()`: um mapa por data,
+  filhos substituídos pelos enviados, gênero novo criado e gênero já existente
+  adotado, e o conflito entre aparelhos decidido pela última edição. É por ela
+  que a aplicação escreve o mapa — o contrato está em
+  [a gravação do dia](../docs/05-web/gravacao-do-dia.md).
 
 O que fica para a aplicação — dia completo, prevalência da edição mais recente,
 consolidação dos gêneros por dia na geração — está listado no
