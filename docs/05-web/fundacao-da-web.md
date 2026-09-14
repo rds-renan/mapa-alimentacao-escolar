@@ -126,10 +126,14 @@ que ela alcança continua sendo a RLS. O par antigo (`anon` e `service_role`)
 ocupa exatamente o mesmo lugar e continua funcionando, então adotar o novo não
 custa nada e evita trocar isto depois.
 
-Os nomes sem prefixo do [`.env.example`](../../.env.example) da raiz seguem
-como estão de propósito: `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` são
-os nomes que o ambiente das Edge Functions injeta sozinho, e renomeá-los ali
-só criaria uma variável que a plataforma não conhece.
+O [`.env.example`](../../.env.example) da raiz acompanha: passou a falar em
+`SUPABASE_PUBLISHABLE_KEY` e `SUPABASE_SECRET_KEY`, para que o projeto inteiro
+chame as chaves pelo mesmo nome. Dentro de uma edge function nenhum dos dois
+precisa ser configurado — o runtime injeta `SUPABASE_PUBLISHABLE_KEYS` e
+`SUPABASE_SECRET_KEYS`, no plural porque são dicionários JSON e a chave em uso é
+a `default`, ao lado dos nomes antigos, que continuam existindo. Vale lembrar
+disso na issue da geração do documento, para não procurar ali uma variável que
+já está no ambiente.
 
 O modelo da web está em [`web/.env.example`](../../web/.env.example); o `.env` é
 bloqueado pelo `.gitignore`.
