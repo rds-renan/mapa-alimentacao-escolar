@@ -112,12 +112,26 @@ gerado não se corrige à mão, se regera.
 ## As chaves
 
 O cliente em [`src/lib/supabase.ts`](../../web/src/lib/supabase.ts) lê a URL do
-projeto e a chave anônima de variáveis de ambiente, e falha alto se faltarem.
-Só variáveis com o prefixo `VITE_` chegam ao navegador — e é justamente por isso
-que nada sensível usa esse prefixo. A chave de serviço, que ignora as políticas
-de acesso, não existe na web: ela vive apenas no ambiente das Edge Functions.
+projeto e a chave publicável de variáveis de ambiente, e falha alto se
+faltarem. Só variáveis com o prefixo `VITE_` chegam ao navegador — e é
+justamente por isso que nada sensível usa esse prefixo. A chave secreta, que
+ignora as políticas de acesso, não existe na web: ela vive apenas no ambiente
+das Edge Functions.
 
-O modelo está em [`web/.env.example`](../../web/.env.example); o `.env` é
+**Qual par de chaves a web usa**, que a issue da gravação do dia deixou em
+aberto: o formato novo, `sb_publishable_…`, na variável
+`VITE_SUPABASE_PUBLISHABLE_KEY`. É o que a CLI imprime hoje e o que o painel
+oferece, e não é JWT — não expira nem carrega papel dentro de si; quem decide o
+que ela alcança continua sendo a RLS. O par antigo (`anon` e `service_role`)
+ocupa exatamente o mesmo lugar e continua funcionando, então adotar o novo não
+custa nada e evita trocar isto depois.
+
+Os nomes sem prefixo do [`.env.example`](../../.env.example) da raiz seguem
+como estão de propósito: `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` são
+os nomes que o ambiente das Edge Functions injeta sozinho, e renomeá-los ali
+só criaria uma variável que a plataforma não conhece.
+
+O modelo da web está em [`web/.env.example`](../../web/.env.example); o `.env` é
 bloqueado pelo `.gitignore`.
 
 ## Duas escolhas pequenas, registradas para não virarem dúvida
