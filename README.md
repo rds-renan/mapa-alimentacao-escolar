@@ -35,7 +35,7 @@ A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como font
 
 **E4 · Banco de dados** — [diagrama de classes](docs/04-banco-de-dados/diagrama-de-classes.md) → [modelo conceitual](docs/04-banco-de-dados/modelo-conceitual.md) → [modelo ER](docs/04-banco-de-dados/modelo-er.md) → [projeto físico](docs/04-banco-de-dados/projeto-fisico.md), com as [decisões de modelagem](docs/04-banco-de-dados/decisoes-de-modelagem.md) explicando o porquê de cada escolha. O SQL está em [`supabase/`](supabase/).
 
-**E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código.
+**E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código. A [gravação do dia](docs/05-web/gravacao-do-dia.md) é o contrato da operação que sobe o dia inteiro de uma vez, e a [fundação da web](docs/05-web/fundacao-da-web.md) descreve o projeto em [`web/`](web/) — como rodar, os tokens no tema e os tipos gerados do banco.
 
 ### Diagramas e telas
 
