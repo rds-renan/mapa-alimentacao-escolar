@@ -13,6 +13,14 @@
   // mude esta linha de propósito.
   "compatibility_date": "2026-09-14",
 
+  // As duas linhas abaixo são o padrão da plataforma, declaradas de propósito:
+  // sem elas o Wrangler avisa em todo deploy que está decidindo sozinho. O
+  // endereço `workers.dev` é o que serve a produção enquanto não há domínio
+  // próprio, e as URLs de prévia são o que permite mandar uma tela para as
+  // merendeiras antes de ela entrar na `main`.
+  "workers_dev": true,
+  "preview_urls": true,
+
   "assets": {
     // O que o `npm run build` produz. Não há código de servidor: a web é
     // estática e conversa direto com o Supabase.
