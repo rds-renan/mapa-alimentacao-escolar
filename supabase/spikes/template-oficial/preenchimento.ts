@@ -313,18 +313,19 @@ function extractDayTemplate(table: XmlElement): DayTemplate {
     throw new Error(`o modelo não tem linha de cabeçalho ("${HEADER_LABEL}")`);
   }
 
-  const blockStart = rows.findIndex((row, index) =>
-    index > headerIndex && startsDayBlock(row)
-  );
-  if (blockStart < 0) {
+  const blocks = collectDayBlocks(rows, headerIndex);
+  if (blocks.length === 0) {
     throw new Error("o modelo não tem bloco de dia (célula do dia mesclada)");
   }
 
-  const block: XmlElement[] = [rows[blockStart]];
-  for (let i = blockStart + 1; i < rows.length; i++) {
-    if (startsDayBlock(rows[i]) || firstCellText(rows[i]) === HEADER_LABEL) break;
-    block.push(rows[i]);
-  }
+  // Não é o primeiro bloco que serve de gabarito, e sim o primeiro **íntegro**.
+  // O modelo é um arquivo só, que circula sendo reeditado a cada semana, e a
+  // cada edição alguém desloca uma linha sem reparar. Se esse deslize cair
+  // justamente no primeiro dia — uma linha duplicada, por exemplo —, tomar
+  // aquele bloco como gabarito propagaria o defeito para todos os dias do
+  // documento. Os outros dias do modelo servem de segunda opinião: basta um
+  // deles estar inteiro.
+  const block = blocks.find(isIntactBlock) ?? blocks[0];
 
   const header = rows[headerIndex].cloneNode(true) as XmlElement;
   const clones = block.map((row) => row.cloneNode(true) as XmlElement);
@@ -357,6 +358,46 @@ function extractDayTemplate(table: XmlElement): DayTemplate {
   clones.forEach((row, index) => prepareBodyRow(row, index < clones.length - 1));
 
   return { header, mealRows, changeRow, order: clones };
+}
+
+/** Todos os blocos de dia do modelo, cada um da linha que abre a mescla até a próxima. */
+function collectDayBlocks(rows: XmlElement[], headerIndex: number): XmlElement[][] {
+  const blocks: XmlElement[][] = [];
+  let current: XmlElement[] | null = null;
+
+  for (const row of rows.slice(headerIndex + 1)) {
+    if (startsDayBlock(row)) {
+      current = [row];
+      blocks.push(current);
+    } else if (firstCellText(row) === HEADER_LABEL) {
+      current = null; // cabeçalho repetido no meio: o bloco anterior acabou
+    } else {
+      current?.push(row);
+    }
+  }
+  return blocks;
+}
+
+/**
+ * Um bloco está íntegro quando traz **exatamente uma** linha de cada refeição e
+ * uma de justificativa. Linha a mais de uma refeição que já apareceu é o sinal
+ * do deslize de edição; linha que não corresponde a rótulo nenhum é tolerada,
+ * porque pode ser algo que a prefeitura acrescentou de propósito.
+ */
+function isIntactBlock(block: XmlElement[]): boolean {
+  const roles = block.map(rowRole);
+  const expected = [...Object.keys(MEAL_LABELS), "change"];
+  return expected.every((role) => roles.filter((found) => found === role).length === 1);
+}
+
+/** Qual papel a linha tem no bloco, pelo rótulo que ela imprime. */
+function rowRole(row: XmlElement): string {
+  const label = menuCellText(row);
+  const kind = (Object.keys(MEAL_LABELS) as MealKind[]).find((k) =>
+    label.startsWith(MEAL_LABELS[k])
+  );
+  if (kind) return kind;
+  return label.startsWith(CHANGE_LABEL) ? "change" : "unknown";
 }
 
 function firstCellText(row: XmlElement): string {

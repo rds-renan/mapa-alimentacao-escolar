@@ -16,6 +16,7 @@ import {
   openPackage,
   readXml,
   textOf,
+  writeXml,
   type XmlElement,
 } from "./docx.ts";
 import { fillOfficialTemplate } from "./preenchimento.ts";
@@ -345,6 +346,17 @@ Deno.test("duas refeições alteradas no mesmo dia aparecem separadas", () => {
   assertStringIncludes(reasons, "Almoço: o frango não chegou");
 });
 
+Deno.test("um dia deslocado no modelo não contamina o documento inteiro", () => {
+  // O modelo circula sendo reeditado, e a cada edição alguém desloca uma linha.
+  // Caindo no primeiro dia, ele não pode virar o gabarito de todos os outros.
+  const dented = dentFirstBlock(TEMPLATE);
+  const rows = rowsOf(fill(documentWith([schoolDay("2026-09-01")]), dented));
+
+  assertEquals(rows.length, 1 + 4, "o bloco íntegro de outro dia é que vale");
+  assertStringIncludes(cellText(rows[2], 1), "Almoço: Arroz, Feijão, Carne moída");
+  assertStringIncludes(cellText(rows[4], 1), "Mudança no cardápio, justificativa:");
+});
+
 Deno.test("modelo sem os rótulos esperados falha dizendo o que faltou", () => {
   const broken = withoutLabel(TEMPLATE, "Almoço:");
   const error = assertThrows(() => fillOfficialTemplate(broken, documentWith([])));
@@ -370,10 +382,27 @@ function splitAcceptanceLine(template: Uint8Array): Uint8Array {
   return closePackage(pkg);
 }
 
-/** Descaracteriza o modelo trocando um rótulo, para testar o reconhecimento. */
+/**
+ * Descaracteriza o modelo trocando um rótulo em **todos** os blocos — é o
+ * formulário que mudou, não um deslize de edição num dia só.
+ */
 function withoutLabel(template: Uint8Array, label: string): Uint8Array {
   const pkg = openPackage(template);
   const xml = new TextDecoder().decode(pkg["word/document.xml"]);
-  pkg["word/document.xml"] = new TextEncoder().encode(xml.replace(label, "Refeição:"));
+  pkg["word/document.xml"] = new TextEncoder().encode(
+    xml.replaceAll(label, "Refeição:"),
+  );
+  return closePackage(pkg);
+}
+
+/** Duplica uma linha dentro do primeiro bloco: o deslize de quem reedita o arquivo. */
+function dentFirstBlock(template: Uint8Array): Uint8Array {
+  const pkg = openPackage(template);
+  const xml = readXml(pkg, "word/document.xml");
+  const body = firstChild(xml.documentElement as XmlElement, "body")!;
+  const rows = children(firstChild(body, "tbl")!, "tr");
+  const lunch = rows[2];
+  lunch.parentNode!.insertBefore(lunch.cloneNode(true), lunch);
+  writeXml(pkg, "word/document.xml", xml);
   return closePackage(pkg);
 }

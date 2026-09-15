@@ -26,6 +26,12 @@ circula sendo sobrescrito. Lido por dentro, o `.docx` mostra:
 | Um arquivo do Word atual | Modo de compatibilidade **Word 2003**, herdado dos editores por onde passou |
 | Um arquivo anônimo | O nome de **duas pessoas** nas propriedades do pacote |
 
+E não é um arquivo estático: **é sempre o mesmo arquivo**, que circula sendo
+reeditado a cada semana, por pessoas que não têm motivo nenhum para se importar
+com o layout. A cada volta, alguma linha ou algum texto se desloca. Isso é o
+que o formulário é na vida real, e o gerador tem de contar com isso — não
+lamentar.
+
 A estrutura, essa sim, é regular e serve de gabarito: página A4 deitada, uma
 tabela de cinco colunas — dia, cardápio realizado, gêneros utilizados,
 alterações, número de refeições — e, por dia, um **bloco de quatro linhas**: as
@@ -89,6 +95,26 @@ alguém reeditar o modelo para ela se partir; se a procura fosse trecho a
 trecho, o `(X)` simplesmente deixaria de ser marcado, **sem erro nenhum** — o
 documento sairia bonito e sem o grau de aceitação. É o tipo de falha que só
 aparece quando o documento já está na prefeitura.
+
+### O gabarito é o primeiro bloco íntegro, não o primeiro bloco
+
+Como o modelo é reeditado toda semana, o deslize de edição é questão de tempo —
+e se cair no **primeiro** dia, tomar aquele bloco como gabarito propagaria o
+defeito para todos os dias do documento. Foi o que a verificação mostrou: uma
+única linha duplicada no primeiro bloco fazia o mês inteiro sair com cinco
+linhas por dia em vez de quatro.
+
+Por isso o gabarito é o primeiro bloco **íntegro** — o que traz exatamente uma
+linha de cada refeição e uma de justificativa. Os outros dias do modelo servem
+de segunda opinião, e basta um deles estar inteiro: com dois dias deslocados no
+arquivo oficial, o documento continua saindo certo. Uma linha que não
+corresponde a rótulo nenhum é tolerada, porque pode ser algo que a prefeitura
+acrescentou de propósito; o que desqualifica um bloco é a repetição de uma
+refeição que já apareceu, que é a assinatura do deslize.
+
+Vale notar o que **não** precisa dessa proteção, porque o preenchimento já
+absorve: parágrafo a mais dentro de uma célula (o ENTER sobrando) e texto
+empurrado por espaços. Nos dois casos o conteúdo é reescrito de qualquer jeito.
 
 ### O que entra em cada coluna
 
@@ -274,9 +300,16 @@ resolver, na issue dela:
   só (RN#4 da US012, US007);
 - apontar os dias pendentes do período **antes** de gerar (CA#3 da US012).
 
-E uma pergunta que o spike levanta para a direção da escola, não para o código:
-o modelo guardado no sistema deve ser o arquivo da prefeitura **como ele vem** —
-com a semana de agosto preenchida — ou uma versão limpa dele? O gerador funciona
-nos dois casos, porque só usa o primeiro bloco como gabarito e descarta o resto.
-Guardar o arquivo como veio tem a vantagem de ser exatamente o que a secretaria
-mandou, sem intermediário.
+**O modelo guardado no sistema é o arquivo da prefeitura como ele vem**, com a
+semana preenchida e o layout torto que ele tiver no dia. Não há versão limpa a
+manter, e não deve haver: limpar à mão acrescentaria um passo humano entre a
+secretaria e o sistema — mais um lugar onde algo se perde — para apagar
+justamente o que o gerador descarta sozinho. O que o administrador sobe na
+US015 é o arquivo que recebeu, sem cerimônia.
+
+Isso é uma inversão que vale registrar. O desleixo do arquivo era o obstáculo
+que se esperava ter de contornar para gerar o documento; acabou virando algo
+que o sistema **corrige** — as alturas travadas a olho, o cabeçalho copiado no
+meio da tabela, os rótulos de assinatura fora de lugar e o tracejado
+pendurado desaparecem a cada geração, sem ninguém precisar arrumar nada. O mapa
+que sai do sistema é mais bem formado que o modelo de onde veio.
