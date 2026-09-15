@@ -16,16 +16,20 @@ navegável desde o começo da etapa.
 |---|---|---|
 | [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes e build |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
+| [`spikes.yml`](../../.github/workflows/spikes.yml) | `supabase/spikes/` | formatação, lint, checagem de tipos e testes dos protótipos de servidor, em Deno |
 
-Os dois rodam de novo na `main` depois do merge. Não é zelo excessivo: o
+Os três rodam de novo na `main` depois do merge. Não é zelo excessivo: o
 *squash merge* produz um commit que **não existia** enquanto o PR era
 verificado — é a junção do trabalho com o que entrou na `main` no meio do
 caminho, e é exatamente esse commit que o Cloudflare vai publicar.
 
-**Por que dois fluxos e não um.** O filtro de caminho é o que separa: um PR só
-de documentação não paga nada, um PR de tela paga o Node, e só quem mexe no
-banco paga o minuto de contêiner. Juntá-los num fluxo só faria todo PR pagar o
-preço do mais caro.
+**Por que três fluxos e não um.** O filtro de caminho é o que separa: um PR só
+de documentação não paga nada, um PR de tela paga o Node, um PR de spike paga o
+Deno, e só quem mexe no banco paga o minuto de contêiner. Juntá-los num fluxo
+só faria todo PR pagar o preço do mais caro. É também por isso que
+`supabase/spikes/` é **excluído** do fluxo do banco: o que vive ali roda em
+Deno e não toca o schema, e mexer num protótipo não deveria custar uma
+reconstrução do banco.
 
 **Por que as duas verificações do banco vivem no mesmo emprego.** Tanto o
 pgTAP quanto a checagem de tipos precisam do banco de pé. Subir o Supabase duas
@@ -37,6 +41,7 @@ O mesmo, na sua máquina, antes de abrir o PR:
 cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
+cd supabase/spikes/template-oficial && deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
 ```
 
 ## As versões são fixas, e isso é a metade do valor da CI

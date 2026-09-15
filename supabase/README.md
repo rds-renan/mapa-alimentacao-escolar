@@ -9,8 +9,15 @@ supabase/
 ├── config.toml     # configuração da CLI
 ├── migrations/     # o schema, em ordem
 ├── seed.sql        # dados fictícios de desenvolvimento
+├── spikes/         # protótipos de servidor, fora do caminho de produção
 └── tests/          # cenários em pgTAP
 ```
+
+O que está em `spikes/` não é implantado: são protótipos que respondem a uma
+pergunta antes de ela virar código de produção. O
+[preenchimento do modelo oficial](spikes/template-oficial/) é o primeiro deles,
+e a resposta está na
+[geração do documento oficial](../docs/05-web/geracao-do-documento.md).
 
 ## Subir o banco na sua máquina
 

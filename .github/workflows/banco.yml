@@ -12,6 +12,8 @@ on:
   pull_request:
     paths:
       - 'supabase/**'
+      # Os spikes rodam em Deno e não tocam o schema: têm fluxo próprio.
+      - '!supabase/spikes/**'
       - 'web/src/lib/database.types.ts'
       - 'web/scripts/gerar-tipos-do-banco.mjs'
       - '.github/workflows/banco.yml'
@@ -19,6 +21,7 @@ on:
     branches: [main]
     paths:
       - 'supabase/**'
+      - '!supabase/spikes/**'
       - 'web/src/lib/database.types.ts'
       - 'web/scripts/gerar-tipos-do-banco.mjs'
       - '.github/workflows/banco.yml'

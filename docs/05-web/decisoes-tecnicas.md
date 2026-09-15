@@ -96,11 +96,19 @@
 
 ## 12. O que fica de fora desta decisão, e quando cada coisa se decide
 
-- **Biblioteca de geração do documento** — a Edge Function que preenche o template oficial é o risco declarado no plano de projeto. Merece um *spike* próprio, com issue própria, antes de virar decisão: primeiro se descobre o que preenche o template com fidelidade, depois se escolhe a ferramenta.
+- **Biblioteca de geração do documento** — a Edge Function que preenche o template oficial é o risco declarado no plano de projeto. Merecia um *spike* próprio, com issue própria, antes de virar decisão: primeiro se descobre o que preenche o template com fidelidade, depois se escolhe a ferramenta. **Resolvido** — o spike foi feito e a resposta virou a decisão 13, abaixo.
 - **Biblioteca de gráficos** — nasce com o painel gerencial (US017), já com a paleta de dados definida na decisão 6 da E3.
 - **Formulários, validação e datas** — nascem com a primeira tela que precisar delas, se precisarem.
 - **Notificação de documento pronto** — depende de aparelho registrado, o que só existe na E6 (decisão 12 da E4).
 - **Biblioteca de interface do aplicativo Android** — é decisão da E6, conforme a decisão 6 da E3, e será registrada em `docs/06-app/`. O que atravessa as duas plataformas são os tokens, não os componentes.
+
+## 13. O documento sai do próprio modelo, sem biblioteca de template
+
+**Decisão**: a geração do documento oficial não usa biblioteca de *templating*. O gerador abre o `.docx` do modelo vigente, **clona o bloco de quatro linhas que ele já traz** — as três refeições e a justificativa — uma vez por dia do período, e escreve o conteúdo dentro do XML que veio da prefeitura. As únicas dependências são uma de zip e uma de XML. O reconhecimento do modelo é pelos rótulos que ele próprio imprime, e um modelo que não os traga faz a geração falhar dizendo qual faltou.
+
+**Como ficou**: o protótipo está em [`supabase/spikes/template-oficial/`](../../supabase/spikes/template-oficial/), roda em Deno — o ambiente da Edge Function — e gerou o mês inteiro a partir do arquivo oficial de verdade em 336 ms, contra o teto de 30 segundos do RNF#2. O relato completo do spike, com o que foi testado e descartado, está na [geração do documento oficial](geracao-do-documento.md).
+
+**Por quê**: o spike desfez a premissa de que existia um "template". O arquivo da escola é um mapa preenchido à mão, com altura de linha travada a olho e cabeçalho copiado no meio da tabela — não um gabarito. O docxtemplater, a escolha óbvia, precisa de `{tags}` escritas dentro do documento: testado contra o arquivo oficial, não achou marcação nenhuma e devolveu o arquivo intacto. Preparar o modelo seria trabalho de edição no Word, e quem sobe o modelo é a direção da escola (RN#1 da US015), com o arquivo que a prefeitura mandou — seria transferir o risco do spike para a pessoa menos equipada para absorvê-lo, e refazê-lo a cada arquivo novo. Montar o documento do zero em código daria controle total ao custo de virar dono de uma cópia do formulário que envelhece calada quando a prefeitura mudar o dela — e a US015 existe porque esse dia chega. Reaproveitar o XML do modelo é o que mantém o formato sendo **deles**, não nosso.
 
 ## Ordem de ataque
 

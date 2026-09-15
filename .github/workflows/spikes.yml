@@ -1,0 +1,59 @@
+# Verificação dos protótipos de servidor em `supabase/spikes/`, que rodam em
+# Deno — o mesmo ambiente das Edge Functions.
+#
+# Um spike responde a uma pergunta e depois vira base de código de produção; o
+# que ele descobriu precisa continuar valendo até lá. O preenchimento do modelo
+# oficial é o caso: os testes rodam contra um modelo construído do zero, sem
+# nada da prefeitura, e é isso que permite verificá-lo aqui.
+#
+# Separado do fluxo do banco de propósito: aqui não há Docker nem Supabase para
+# subir, e mexer num spike não deveria custar uma reconstrução do banco.
+name: Spikes
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/spikes/**'
+      - '.github/workflows/spikes.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/spikes/**'
+      - '.github/workflows/spikes.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: spikes-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Preenchimento do modelo oficial
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: supabase/spikes/template-oficial
+    steps:
+      - uses: actions/checkout@v7
+
+      # A faixa basta: o que precisa estar fixo são as dependências, e disso
+      # cuida o `deno.lock` versionado ao lado do código.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      - name: Formatação
+        run: deno fmt --check
+
+      - name: Lint
+        run: deno lint
+
+      - name: Tipos
+        run: deno check *.ts
+
+      # `--frozen`: instala exatamente o que está no deno.lock e falha se o
+      # arquivo estiver fora de sincronia com os imports.
+      - name: Testes
+        run: deno test --allow-read --frozen
