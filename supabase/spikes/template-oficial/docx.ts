@@ -52,6 +52,16 @@ export function firstChild(node: Element, local: string): Element | null {
   return children(node, local)[0] ?? null;
 }
 
+/** Todos os filhos diretos que são elemento, na ordem em que aparecem. */
+export function elementChildren(node: Element): Element[] {
+  const out: Element[] = [];
+  for (let i = 0; i < node.childNodes.length; i++) {
+    const child = node.childNodes[i];
+    if (child.nodeType === 1) out.push(child as Element);
+  }
+  return out;
+}
+
 export function descendants(node: Element, local: string): Element[] {
   const live = node.getElementsByTagNameNS(W, local);
   const out: Element[] = [];

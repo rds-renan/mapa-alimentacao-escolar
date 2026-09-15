@@ -19,10 +19,12 @@ gerar-amostra.ts      a linha de comando
 
 ## Rodar
 
-Os testes não precisam de arquivo nenhum — usam o modelo de teste:
+Os testes não precisam de arquivo nenhum — usam o modelo de teste, e é por isso que
+rodam também na integração contínua, no fluxo
+[`spikes.yml`](../../../.github/workflows/spikes.yml):
 
 ```bash
-deno test --allow-read
+deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
 ```
 
 Para gerar um documento de amostra a partir do modelo de teste:

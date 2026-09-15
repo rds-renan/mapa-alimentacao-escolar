@@ -71,11 +71,8 @@ export function sampleMonth(): DocumentData {
     mealMaps.push(buildMealMap(year, month, day));
   }
 
-  return {
-    schoolName: "Escola Municipal de Turno Integral Exemplo",
-    period: "Setembro/2026",
-    mealMaps,
-  };
+  // Sem `period`: o rótulo do cabeçalho sai das próprias datas.
+  return { schoolName: "Escola Municipal de Turno Integral Exemplo", mealMaps };
 }
 
 function buildMealMap(year: number, month: number, day: number): MealMap {

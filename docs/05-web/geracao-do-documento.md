@@ -23,6 +23,7 @@ circula sendo sobrescrito. Lido por dentro, o `.docx` mostra:
 | Linhas que crescem com o texto | Altura **travada** (`hRule="exact"`), ajustada a olho linha a linha |
 | Cabeçalho que repete sozinho | Cabeçalho **copiado à mão** no meio da tabela, a cada dois dias |
 | Campos de formulário | Nenhum: texto corrido dentro de células |
+| Um arquivo do Word atual | Modo de compatibilidade **Word 2003**, herdado dos editores por onde passou |
 | Um arquivo anônimo | O nome de **duas pessoas** nas propriedades do pacote |
 
 A estrutura, essa sim, é regular e serve de gabarito: página A4 deitada, uma
@@ -33,10 +34,16 @@ dia, dos gêneros, das alterações e do número de refeições são mescladas
 verticalmente ao longo do bloco. Os cinco dias do arquivo têm o esqueleto
 idêntico, célula por célula.
 
-Essa regularidade é o que torna o preenchimento possível. Os três primeiros
-vícios da tabela acima são o que o gerador precisa **normalizar** — estão em
-"[o que o gerador muda de propósito](#o-que-o-gerador-muda-de-propósito)". O
-quarto é um problema de sigilo, e está logo abaixo.
+Essa regularidade é o que torna o preenchimento possível, e cada linha da
+tabela acima teve um destino diferente. O conteúdo da semana de agosto é
+**descartado** — só o primeiro bloco serve, e serve como forma. A altura
+travada e o cabeçalho copiado são **normalizados**, junto com duas imperfeições
+do rodapé e do cabeçalho, em
+"[o que o gerador muda de propósito](#o-que-o-gerador-muda-de-propósito)". A
+ausência de campos de formulário é o que **decidiu a abordagem**, logo abaixo.
+O modo de compatibilidade é **mantido de propósito**, e o porquê está em
+"[como a fidelidade foi verificada](#como-a-fidelidade-foi-verificada)". E o
+nome das duas pessoas é um problema de sigilo, tratado a seguir.
 
 ### O modelo carrega nome de gente
 
@@ -73,6 +80,16 @@ mudar o formulário, o preenchimento **falha alto, dizendo qual rótulo faltou**
 em vez de escrever no lugar errado e devolver um documento plausível e errado.
 Para um documento que vai a prestação de contas, falhar é melhor que mentir.
 
+E o rótulo é procurado no texto do parágrafo inteiro, não dentro de cada trecho
+do XML. A diferença importa porque **o Word reparte texto em vários trechos por
+motivos que nada têm a ver com formatação** — uma correção, uma pausa na
+digitação — e o modelo oficial já mostra isso: o rótulo "Lanche da tarde:" chega
+repartido em quatro. Hoje a linha do grau de aceitação vem inteira, mas basta
+alguém reeditar o modelo para ela se partir; se a procura fosse trecho a
+trecho, o `(X)` simplesmente deixaria de ser marcado, **sem erro nenhum** — o
+documento sairia bonito e sem o grau de aceitação. É o tipo de falha que só
+aparece quando o documento já está na prefeitura.
+
 ### O que entra em cada coluna
 
 | Coluna | Conteúdo | Observação |
@@ -97,9 +114,27 @@ outras refeições em branco e marca `—` no número de refeições. As linhas 
 encolhem: um dia sem aula não deve ocupar, em branco, a mesma meia página de um
 dia cheio.
 
+**Dia letivo com registro parcial** — que as regras permitem, porque a
+merendeira pode ter lançado só o almoço — sai como o formulário em branco
+naquela refeição: o rótulo, a escala de aceitação sem marca, e nada mais. Não
+se inventa descrição, e não se apaga a escala: o dia é letivo, só não foi
+registrado, e quem receber ainda pode completar à mão.
+
+### O campo "MÊS/ANO" quando a seleção não é um mês
+
+O cabeçalho do formulário tem um campo "MÊS/ANO", mas a seleção não é
+obrigatoriamente um mês: a merendeira pode gerar uma semana, ou dias avulsos.
+O rótulo é derivado das próprias datas — uma seleção dentro de setembro sai
+como `Setembro/2026`, mesmo sendo três dias soltos, porque **quais dias
+entraram é o que a tabela mostra logo abaixo, dia a dia**. O que o campo não
+pode é mentir: uma seleção que atravessa meses os nomeia (`Agosto e
+Setembro/2026`), e uma que atravessa anos repete o ano dos dois lados
+(`Dezembro/2026 a Fevereiro/2027`). Quem chamar o preenchimento pode passar um
+rótulo próprio e ele prevalece.
+
 ## O que o gerador muda de propósito
 
-Três coisas do modelo não sobrevivem a um mês gerado, e o gerador as troca por
+Cinco coisas do modelo não sobrevivem a um mês gerado, e o gerador as troca por
 equivalentes que o Word calcula sozinho. São desvios conscientes — o resultado
 é mais fiel ao *formulário* do que a cópia literal seria:
 
@@ -115,8 +150,25 @@ equivalentes que o Word calcula sozinho. São desvios conscientes — o resultad
   `cantSplit`). Sem isso — e acontece no arquivo original — a linha da
   justificativa fica órfã no alto da página seguinte, sob uma célula de dia
   vazia, e quem lê não sabe de que dia ela é.
+- **As assinaturas passam a se apoiar em paradas de tabulação** centralizadas,
+  calculadas a partir da largura útil da página. No modelo, os dois traços e os
+  rótulos "Cozinheiro(a) responsável pelo mapa" e "Diretor(a)" foram
+  posicionados com sequências de espaço contadas a olho — e em fonte
+  proporcional isso nunca alinha: o "Diretor(a)" sai à direita do traço dele. A
+  tabulação centralizada é o mecanismo que o Word tem para exatamente isso.
+- **A lacuna preenchida perde o rabicho.** "ESCOLA:" e "MÊS/ANO" são lacunas
+  tracejadas, e o valor entra por cima delas; o que sobra vira espaço, não mais
+  tracejado. Linha preenchida não precisa do convite a preencher, e o
+  `Escola Municipal ____________` é justamente a cara de formulário feito às
+  pressas que este produto existe para acabar. Em espaço, o comprimento se
+  mantém e o "MÊS/ANO" continua caindo onde caía.
 
-Fora esses três, o gerador não muda nada do modelo.
+Fora esses cinco, o gerador não muda nada do modelo. Os três primeiros são
+correções de robustez — sem eles o documento sai errado. Os dois últimos são
+acabamento, e se comportam como tal: reconhecem o rodapé pela forma (o
+parágrafo que só tem traço e espaço, e o próximo com texto) e, se não
+reconhecerem, **deixam como está em silêncio**. Não vale reprovar uma geração
+por causa de estética.
 
 ## O que foi testado e descartado
 
@@ -154,8 +206,15 @@ aceitação e duas trocas de cardápio com gêneros e justificativa.
 
 O resultado foi conferido página a página contra o original renderizado lado a
 lado. O brasão, o cabeçalho da prefeitura, as bordas, o sombreado e as fontes
-saíram idênticos; os dois dias por página do original se mantiveram; o
-cabeçalho repetiu sozinho em todas as páginas; nenhum dia ficou partido. Até as
+saíram idênticos; o cabeçalho da tabela repetiu sozinho em todas as páginas; e
+nenhum dia ficou partido entre páginas.
+
+O mês saiu em 12 páginas, com os mesmos **dois dias por página** do original —
+menos a primeira, que leva um dia só porque divide o espaço com o cabeçalho do
+documento, e a última, que fica com a sobra. Vale notar que manter o dia
+inteiro junto **não custou papel**: a versão que deixava o dia partir dava as
+mesmas 12 páginas, e apenas espalhava a justificativa de alguns dias para o
+alto da página seguinte. Até as
 imperfeições do original se mantiveram — a coluna do dia quebra "01/ 09" em
 duas linhas porque é estreita, exatamente como quebra "24/ 08" no arquivo da
 escola. Isso é fidelidade, não defeito: corrigir alargaria a coluna e o
@@ -165,9 +224,24 @@ documento deixaria de ser o formulário deles.
 segundos do RNF#2 da US012. O risco de tempo, que o plano de projeto também
 previa, não se confirmou — sobra folga de duas ordens de grandeza.
 
-**O que ainda não foi verificado**: a conferência foi feita no LibreOffice. O
-documento precisa ser aberto **no Word** antes da implementação — é o programa
-de quem recebe na prefeitura, e é o único juiz que importa nessa pergunta.
+**Conferido no Word.** A primeira leitura foi no LibreOffice, que é tolerante
+com OOXML malformado e por isso não prova nada sobre o risco que mais
+importava: o Word **recusa** um arquivo cuja ordem de elementos viole o schema,
+e o preenchimento mexe justamente em `w:trPr`, `w:pPr` e `w:tabs`, onde essa
+ordem é normativa. O documento foi aberto no Word e impresso em PDF pelo
+servidor da Microsoft: as 12 páginas, o cabeçalho repetido em todas elas e
+nenhum dia partido — tudo como o LibreOffice mostrava.
+
+**O Word avisa que o arquivo está em "modo de compatibilidade", e assim deve
+ficar.** O aviso vem do modelo, não do preenchimento: o `word/settings.xml`
+declara `compatibilityMode` **11** — Word 2003 — e o gerador o repassa
+intocado, como faz com todo o resto do pacote. O arquivo que a escola usa hoje
+abre com o mesmo aviso. Mudar para o modo atual tiraria o aviso e não traria
+nada: o documento não usa um único recurso posterior ao Word 2003 — tabela,
+mescla vertical, tabulação centralizada, repetição de cabeçalho e `keepNext`
+existem desde o Word 97. Em troca, mudaria as regras de layout de tabela que o
+Word aplica, invalidando a conferência acima. Um documento nosso que se
+comportasse **diferente** do modelo é que seria o defeito.
 
 ## Sigilo
 
@@ -182,6 +256,13 @@ construído do zero — mesma estrutura, mesmos rótulos, mesmos dois vícios, s
 brasão e sem nome de prefeitura. É contra ele que os testes rodam, e é com ele
 que qualquer pessoa reproduz o spike sem ter o arquivo oficial em mãos.
 
+É também o que permite verificar o spike na integração contínua, no fluxo
+[`spikes.yml`](../../.github/workflows/spikes.yml): um spike responde a uma
+pergunta e depois vira base de código de produção, e o que ele descobriu
+precisa continuar valendo até lá. A limpeza dos metadados tem teste próprio —
+o modelo de teste nasce com nome de gente justamente para que apagá-lo seja
+verificado, e não confiado à memória de quem implementar.
+
 ## O que fica para a implementação
 
 O spike responde "como preencher". A Edge Function da US012 ainda precisa
@@ -191,10 +272,7 @@ resolver, na issue dela:
   até sete dias (RN#2 da US012);
 - registrar `generated_document` e bloquear os mapas incluídos, numa transação
   só (RN#4 da US012, US007);
-- apontar os dias pendentes do período **antes** de gerar (CA#3 da US012);
-- decidir o rótulo do período quando a seleção não for um mês fechado — o
-  cabeçalho tem um campo "MÊS/ANO", e a merendeira pode selecionar dias avulsos;
-- abrir o documento gerado no Word e confirmar o que o LibreOffice já mostrou.
+- apontar os dias pendentes do período **antes** de gerar (CA#3 da US012).
 
 E uma pergunta que o spike levanta para a direção da escola, não para o código:
 o modelo guardado no sistema deve ser o arquivo da prefeitura **como ele vem** —

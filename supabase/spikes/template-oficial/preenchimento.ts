@@ -17,6 +17,7 @@ import {
   children,
   closePackage,
   descendants,
+  elementChildren,
   firstChild,
   getAttribute,
   makeElement,
@@ -36,6 +37,7 @@ import {
   type DocumentData,
   formatDayAndMonth,
   formatFoodItem,
+  formatPeriod,
   type Meal,
   MEAL_LABELS,
   type MealKind,
@@ -73,6 +75,7 @@ export function fillOfficialTemplate(
 
   const template = extractDayTemplate(table);
   rebuildTable(table, template, data.mealMaps);
+  alignSignatures(body);
 
   writeXml(pkg, DOCUMENT_PART, xml);
   stripPersonalMetadata(pkg);
@@ -122,13 +125,11 @@ function stripPersonalMetadata(pkg: Package): void {
  * caracteres, para a linha não encolher.
  */
 function fillHeading(body: XmlElement, data: DocumentData): void {
+  const period = data.period ?? formatPeriod(data.mealMaps);
   for (const paragraph of children(body, "p")) {
-    const text = textOf(paragraph);
-    if (!text.includes("ESCOLA:")) continue;
-    for (const node of descendants(paragraph, "t")) {
-      const original = node.textContent ?? "";
-      if (!original.includes("ESCOLA:")) continue;
-      node.textContent = original
+    if (!textOf(paragraph).includes("ESCOLA:")) continue;
+    replaceInParagraph(paragraph, (text) =>
+      text
         .replace(
           /(ESCOLA:\s*)(_+)/,
           (_m: string, label: string, gap: string) =>
@@ -136,19 +137,171 @@ function fillHeading(body: XmlElement, data: DocumentData): void {
         )
         .replace(
           /(MÊS\/ANO:\s*)(_+)/,
-          (_m: string, label: string, gap: string) =>
-            label + overwriteGap(gap, data.period),
-        );
-    }
+          (_m: string, label: string, gap: string) => label + overwriteGap(gap, period),
+        ));
     return;
   }
 }
 
-/** Escreve o valor sobre o tracejado, preservando o comprimento da lacuna. */
+/**
+ * Escreve o valor sobre o tracejado. O que sobra da lacuna vira **espaço**, e
+ * não tracejado: linha preenchida não precisa mais do convite a preencher, e
+ * o rabicho de `_` depois do nome da escola é a marca de formulário
+ * preenchido às pressas que este produto existe para acabar. Em espaço, o
+ * comprimento em caracteres se mantém, e o "MÊS/ANO" continua caindo mais ou
+ * menos onde caía.
+ */
 function overwriteGap(gap: string, value: string): string {
   const filled = ` ${value} `;
   if (filled.length >= gap.length) return filled;
-  return filled + "_".repeat(gap.length - filled.length);
+  return filled + " ".repeat(gap.length - filled.length);
+}
+
+/**
+ * Aplica uma substituição ao texto do parágrafo tolerando texto partido entre
+ * runs.
+ *
+ * O Word reparte um trecho em várias `w:r` por motivos que nada têm a ver com
+ * formatação — uma correção, uma pausa na digitação — e o modelo oficial já
+ * mostra isso: o rótulo "Lanche da tarde:" chega em quatro runs. Procurar o
+ * texto dentro de cada `w:t` isolado funciona hoje para a linha da aceitação,
+ * mas basta alguém reeditar o modelo para o `( ) ótimo` cair em dois pedaços e
+ * a marcação parar de acontecer **sem erro nenhum** — o documento sairia
+ * bonito e sem o grau de aceitação.
+ *
+ * Então: primeiro tenta nó a nó, que é o caso comum e preserva a formatação
+ * inteira. Só quando nenhum nó casa sozinho, mas o texto do parágrafo casa, o
+ * parágrafo é colapsado — o resultado vai para o primeiro `w:t` e os demais
+ * esvaziam. Nesse caso a formatação que variava entre as runs se perde, e é um
+ * preço que se paga de bom grado para a marcação não sumir calada.
+ */
+function replaceInParagraph(
+  paragraph: XmlElement,
+  transform: (text: string) => string,
+): boolean {
+  const nodes = descendants(paragraph, "t");
+  if (nodes.length === 0) return false;
+
+  let changed = false;
+  for (const node of nodes) {
+    const original = node.textContent ?? "";
+    const replaced = transform(original);
+    if (replaced === original) continue;
+    node.textContent = replaced;
+    changed = true;
+  }
+  if (changed) return true;
+
+  const whole = nodes.map((node) => node.textContent ?? "").join("");
+  const replaced = transform(whole);
+  if (replaced === whole) return false;
+
+  nodes[0].textContent = replaced;
+  for (const node of nodes.slice(1)) node.textContent = "";
+  return true;
+}
+
+// --- assinaturas -----------------------------------------------------------
+
+/**
+ * Centraliza cada rótulo de assinatura sob o seu traço.
+ *
+ * No modelo, os dois traços e os dois rótimos — "Cozinheiro(a) responsável pelo
+ * mapa" e "Diretor(a)" — foram posicionados com sequências de espaço, contadas
+ * a olho. Em fonte proporcional isso nunca alinha: o "Diretor(a)" sai muito à
+ * direita do traço dele. Aqui os dois parágrafos passam a se apoiar em
+ * **paradas de tabulação centralizadas**, calculadas a partir da largura útil
+ * da página, que é o mecanismo que o Word tem para exatamente isto.
+ *
+ * O reconhecimento é pela forma, não pela posição: o parágrafo dos traços é o
+ * que só tem `_` e espaço, com mais de um grupo; o dos rótulos é o próximo com
+ * texto. Quantidades diferentes de traço e de rótulo fazem a função desistir
+ * em silêncio e deixar o rodapé como estava — é acabamento, não conteúdo, e
+ * não vale falhar uma geração por causa dele.
+ */
+function alignSignatures(body: XmlElement): void {
+  const paragraphs = trailingParagraphs(body);
+  const rulesIndex = paragraphs.findIndex(isRuleParagraph);
+  if (rulesIndex < 0) return;
+
+  const rules = textOf(paragraphs[rulesIndex]).match(/_+/g) ?? [];
+  if (rules.length < 2) return;
+
+  const stops = centeredTabStops(usableWidth(body), rules.length);
+  layOutOnTabs(paragraphs[rulesIndex], rules, stops);
+
+  const labelParagraph = paragraphs
+    .slice(rulesIndex + 1)
+    .find((paragraph) => textOf(paragraph).trim().length > 0);
+  if (!labelParagraph) return;
+
+  const labels = textOf(labelParagraph).trim().split(/\s{2,}/);
+  if (labels.length !== rules.length) return;
+  layOutOnTabs(labelParagraph, labels, stops);
+}
+
+/** Os parágrafos que vêm depois da tabela — o rodapé de assinaturas. */
+function trailingParagraphs(body: XmlElement): XmlElement[] {
+  const all = elementChildren(body);
+  const tableIndex = all.findIndex((node) => node.localName === "tbl");
+  if (tableIndex < 0) return [];
+  return all.slice(tableIndex + 1).filter((node) => node.localName === "p");
+}
+
+/** Um parágrafo de traços não tem nada além de `_` e espaço. */
+function isRuleParagraph(paragraph: XmlElement): boolean {
+  const text = textOf(paragraph);
+  return text.includes("__") && /^[\s_]+$/.test(text);
+}
+
+function usableWidth(body: XmlElement): number {
+  const section = firstChild(body, "sectPr");
+  const size = section ? firstChild(section, "pgSz") : null;
+  const margins = section ? firstChild(section, "pgMar") : null;
+  const number = (el: XmlElement | null, name: string) =>
+    el ? Number(getAttribute(el, name) ?? 0) || 0 : 0;
+
+  const width = number(size, "w") || 16838; // A4 deitado, se o modelo não disser
+  return width - number(margins, "left") - number(margins, "right");
+}
+
+/** O centro de cada uma de `count` colunas iguais dentro da largura útil. */
+function centeredTabStops(width: number, count: number): number[] {
+  return Array.from(
+    { length: count },
+    (_unused, index) => Math.round((width * (2 * index + 1)) / (2 * count)),
+  );
+}
+
+/** Reescreve o parágrafo como `<tab>parte<tab>parte`, uma parte por parada. */
+function layOutOnTabs(
+  paragraph: XmlElement,
+  parts: string[],
+  stops: number[],
+): void {
+  const style = firstChild(children(paragraph, "r")[0] ?? paragraph, "rPr");
+
+  const tabs = paragraphProperty(paragraph, "tabs");
+  for (const existing of elementChildren(tabs)) removeElement(existing);
+  for (const position of stops) {
+    const tab = makeElement(paragraph, "tab");
+    setAttribute(tab, "val", "center");
+    setAttribute(tab, "pos", String(position));
+    tabs.appendChild(tab);
+  }
+  // Um alinhamento de parágrafo herdado do modelo brigaria com as paradas.
+  const alignment = paragraphProperty(paragraph, "jc");
+  setAttribute(alignment, "val", "left");
+
+  for (const run of children(paragraph, "r")) removeElement(run);
+  for (const part of parts) {
+    // Cada parte é precedida da sua tabulação: `w:rPr`, `w:tab`, `w:t`.
+    const run = makeElement(paragraph, "r");
+    if (style) run.appendChild(style.cloneNode(true));
+    run.appendChild(makeElement(paragraph, "tab"));
+    run.appendChild(makeText(paragraph, part));
+    paragraph.appendChild(run);
+  }
 }
 
 // --- leitura do gabarito ---------------------------------------------------
@@ -243,7 +396,7 @@ function prepareBodyRow(row: XmlElement, keepWithNext: boolean): void {
   if (!keepWithNext) return;
   for (const cell of children(row, "tc")) {
     for (const paragraph of children(cell, "p")) {
-      addParagraphProperty(paragraph, "keepNext");
+      paragraphProperty(paragraph, "keepNext");
     }
   }
 }
@@ -276,20 +429,52 @@ function addRowProperty(row: XmlElement, local: string): void {
 }
 
 /**
- * `w:pPr` é uma sequência de ordem normativa: o que vier fora de lugar faz o
- * Word recusar o arquivo. `w:keepNext` entra logo depois de `w:pStyle`.
+ * `w:pPr` é uma sequência de ordem normativa, e o que vier fora de lugar faz o
+ * Word recusar o arquivo inteiro. Esta é a ordem na parte do schema que
+ * interessa aqui — o que o modelo usa, mais o que o preenchimento acrescenta.
  */
-function addParagraphProperty(paragraph: XmlElement, local: string): void {
+const PARAGRAPH_PROPERTY_ORDER = [
+  "pStyle",
+  "keepNext",
+  "keepLines",
+  "pageBreakBefore",
+  "widowControl",
+  "numPr",
+  "pBdr",
+  "shd",
+  "tabs",
+  "suppressAutoHyphens",
+  "snapToGrid",
+  "spacing",
+  "ind",
+  "contextualSpacing",
+  "jc",
+  "textDirection",
+  "textAlignment",
+  "outlineLvl",
+  "rPr",
+];
+
+/** Cria (ou devolve) um `w:<local>` no `w:pPr`, no lugar que o schema manda. */
+function paragraphProperty(paragraph: XmlElement, local: string): XmlElement {
   let properties = firstChild(paragraph, "pPr");
   if (!properties) {
     properties = makeElement(paragraph, "pPr");
     paragraph.insertBefore(properties, paragraph.firstChild);
   }
-  if (firstChild(properties, local)) return;
-  const style = firstChild(properties, "pStyle");
+  const existing = firstChild(properties, local);
+  if (existing) return existing;
+
+  const position = PARAGRAPH_PROPERTY_ORDER.indexOf(local);
+  const successor = elementChildren(properties).find((sibling) => {
+    const index = PARAGRAPH_PROPERTY_ORDER.indexOf(sibling.localName ?? "");
+    return index > position;
+  });
+
   const created = makeElement(paragraph, local);
-  if (style) properties.insertBefore(created, style.nextSibling);
-  else properties.insertBefore(created, properties.firstChild);
+  if (successor) properties.insertBefore(created, successor);
+  else properties.appendChild(created);
+  return created;
 }
 
 // --- montagem da tabela ----------------------------------------------------
@@ -454,11 +639,16 @@ function makeRun(
 ): XmlElement {
   const run = makeElement(owner, "r");
   if (style) run.appendChild(style.cloneNode(true));
+  run.appendChild(makeText(owner, text));
+  return run;
+}
+
+/** Um `w:t` que não come os espaços das pontas. */
+function makeText(owner: XmlElement, text: string): XmlElement {
   const node = makeElement(owner, "t");
   node.setAttribute("xml:space", "preserve");
   node.appendChild(owner.ownerDocument!.createTextNode(text));
-  run.appendChild(node);
-  return run;
+  return node;
 }
 
 /**
@@ -467,14 +657,10 @@ function makeRun(
  * reescrever a linha inteira seria recriar formatação que já existe.
  */
 function markAcceptance(paragraph: XmlElement, acceptance: Meal["acceptance"]): void {
-  const label = acceptance ? ACCEPTANCE_LABELS[acceptance] : null;
-  for (const node of descendants(paragraph, "t")) {
-    const text = node.textContent ?? "";
-    if (!text.includes("(")) continue;
-    node.textContent = label
-      ? text.replace(new RegExp(`\\(\\s*\\)(\\s*${label})`, "i"), "(X)$1")
-      : text;
-  }
+  // Sem registro, a linha fica como o modelo a imprime: nenhuma opção marcada.
+  if (!acceptance) return;
+  const option = new RegExp(`\\(\\s*\\)(\\s*${ACCEPTANCE_LABELS[acceptance]})`, "i");
+  replaceInParagraph(paragraph, (text) => text.replace(option, "(X)$1"));
 }
 
 function dropExtraParagraphs(cell: XmlElement, keep: number): void {

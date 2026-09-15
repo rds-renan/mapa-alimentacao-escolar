@@ -63,6 +63,16 @@ function documentPart(): string {
     ) +
     `<w:tbl>${tableProperties()}${rows.join("")}</w:tbl>` +
     paragraph("") +
+    // O rodapé de assinaturas, com os traços e os rótulos posicionados por
+    // sequências de espaço contadas a olho, como no original.
+    paragraph(
+      "                    " + "_".repeat(51) +
+        "                            " + "_".repeat(51),
+    ) +
+    paragraph(
+      "                            Cozinheiro(a) responsável pelo mapa" +
+        "                                                  Diretor(a)",
+    ) +
     '<w:sectPr><w:pgSz w:orient="landscape" w:w="16838" w:h="11906"/>' +
     '<w:pgMar w:left="284" w:right="284" w:top="720" w:bottom="720"' +
     ' w:header="426" w:footer="0" w:gutter="0"/></w:sectPr>' +
