@@ -49,6 +49,6 @@ E0 fundação ✅ → E1 Design Thinking ✅ → E2 requisitos/backlog ✅ → E
 
 Monorepo: Supabase (Postgres, Auth, Storage, Edge Functions) em `supabase/`, web React em `web/`, Android Flutter em `app/`.
 
-A stack da web foi fechada no início da E5 e está em [decisões técnicas](docs/05-web/decisoes-tecnicas.md): Vite + React + TypeScript, Tailwind + shadcn/ui sobre os tokens da E3, React Router, TanStack Query sobre `supabase-js`, rascunho e fila de envio em IndexedDB, Cloudflare Pages com CI no GitHub Actions, Vitest + Testing Library e um E2E em Playwright. **A web garante que nada se perde; o offline integral é do aplicativo, na E6.**
+A stack da web foi fechada no início da E5 e está em [decisões técnicas](docs/05-web/decisoes-tecnicas.md): Vite + React + TypeScript, Tailwind + shadcn/ui sobre os tokens da E3, React Router, TanStack Query sobre `supabase-js`, rascunho e fila de envio em IndexedDB, Cloudflare (Workers com assets estáticos) com CI no GitHub Actions, Vitest + Testing Library e um E2E em Playwright. **A web garante que nada se perde; o offline integral é do aplicativo, na E6.**
 
 O resto dos detalhes de libs continua sendo decidido quando a necessidade surge — não adicionar dependências por antecipação.

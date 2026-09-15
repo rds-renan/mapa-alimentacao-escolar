@@ -1,0 +1,28 @@
+{
+  // Configuração do Worker que serve a web (decisão 10 da E5). A Cloudflare lê
+  // este arquivo no build: é aqui, e não num painel, que fica declarado o que é
+  // publicado e como as rotas se comportam.
+  "$schema": "node_modules/wrangler/config-schema.json",
+
+  // O nome define o endereço: `mae.<subdomínio da conta>.workers.dev`. Mudar
+  // isto muda a URL, então não se mexe depois que alguém já tem o link.
+  "name": "mae",
+
+  // Congela o comportamento da plataforma na data em que o projeto foi escrito:
+  // atualização futura do runtime não muda o que já está no ar sem que alguém
+  // mude esta linha de propósito.
+  "compatibility_date": "2026-09-14",
+
+  "assets": {
+    // O que o `npm run build` produz. Não há código de servidor: a web é
+    // estática e conversa direto com o Supabase.
+    "directory": "./dist",
+
+    // Caminho que não corresponde a arquivo devolve o `index.html` com 200, que
+    // é o que mantém de pé uma rota do React Router aberta direto na barra de
+    // endereço ou recarregada com F5. Sem isto, tudo que não fosse a raiz daria
+    // 404 — e só em produção, onde o servidor de desenvolvimento não está lá
+    // para disfarçar.
+    "not_found_handling": "single-page-application",
+  },
+}

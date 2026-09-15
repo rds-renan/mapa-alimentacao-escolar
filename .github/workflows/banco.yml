@@ -1,0 +1,65 @@
+# Verificação do banco: sobe o Supabase local no runner, roda os cenários em
+# pgTAP e confere se os tipos versionados em `web/` continuam iguais aos que o
+# schema produz (decisão 8 da E5) — tipo escrito ou esquecido envelhece em
+# silêncio até o dia em que mente.
+#
+# Roda quando o PR toca as migrations, o arquivo de tipos ou o script que o
+# gera; o banco precisa estar de pé para as duas verificações, e por isso elas
+# vivem no mesmo job.
+name: Banco
+
+on:
+  pull_request:
+    paths:
+      - 'supabase/**'
+      - 'web/src/lib/database.types.ts'
+      - 'web/scripts/gerar-tipos-do-banco.mjs'
+      - '.github/workflows/banco.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'supabase/**'
+      - 'web/src/lib/database.types.ts'
+      - 'web/scripts/gerar-tipos-do-banco.mjs'
+      - '.github/workflows/banco.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: banco-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: pgTAP e tipos gerados
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: web/.node-version
+
+      # Versão fixa, e não `latest`: a CLI é quem gera os tipos, e trocar de
+      # versão sozinha faria a checagem acusar defasagem que não existe.
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.117.0
+
+      # Sobem só os contêineres de que estas verificações precisam. Studio,
+      # e-mail, Edge Runtime, telemetria e afins não participam.
+      - name: Subir o banco local
+        run: supabase start -x studio,imgproxy,mailpit,edge-runtime,logflare,vector,supavisor,realtime
+
+      # Reconstrói o banco das migrations em ordem e aplica o seed, para que
+      # os testes corram sempre sobre o mesmo estado.
+      - name: Reconstruir das migrations
+        run: supabase db reset
+
+      - name: Testes do banco
+        run: supabase test db
+
+      - name: Tipos em dia com as migrations
+        run: npm run types:db:check
+        working-directory: web

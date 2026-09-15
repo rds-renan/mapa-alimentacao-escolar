@@ -17,7 +17,7 @@ O sistema permite que as merendeiras registrem diariamente as refeições servid
 | Backend (BaaS) | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
 | Web | React + TypeScript, com Vite, Tailwind e shadcn/ui |
 | Mobile (Android) | Flutter |
-| Hospedagem da web | Cloudflare Pages, com CI no GitHub Actions |
+| Hospedagem da web | Cloudflare Workers (assets estáticos), com CI no GitHub Actions |
 
 Estrutura em **monorepo**. As escolhas da web e o porquê de cada uma estão nas [decisões técnicas da E5](docs/05-web/decisoes-tecnicas.md).
 
@@ -35,7 +35,7 @@ A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como font
 
 **E4 · Banco de dados** — [diagrama de classes](docs/04-banco-de-dados/diagrama-de-classes.md) → [modelo conceitual](docs/04-banco-de-dados/modelo-conceitual.md) → [modelo ER](docs/04-banco-de-dados/modelo-er.md) → [projeto físico](docs/04-banco-de-dados/projeto-fisico.md), com as [decisões de modelagem](docs/04-banco-de-dados/decisoes-de-modelagem.md) explicando o porquê de cada escolha. O SQL está em [`supabase/`](supabase/).
 
-**E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código. A [gravação do dia](docs/05-web/gravacao-do-dia.md) é o contrato da operação que sobe o dia inteiro de uma vez, e a [fundação da web](docs/05-web/fundacao-da-web.md) descreve o projeto em [`web/`](web/) — como rodar, os tokens no tema e os tipos gerados do banco.
+**E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código. A [gravação do dia](docs/05-web/gravacao-do-dia.md) é o contrato da operação que sobe o dia inteiro de uma vez, a [fundação da web](docs/05-web/fundacao-da-web.md) descreve o projeto em [`web/`](web/) — como rodar, os tokens no tema e os tipos gerados do banco — e a [integração contínua e publicação](docs/05-web/integracao-continua-e-publicacao.md) diz o que cada Pull Request verifica e como a web chega ao ar.
 
 ### Diagramas e telas
 

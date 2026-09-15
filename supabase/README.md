@@ -31,7 +31,9 @@ supabase test db
 ```
 
 Os testes vivem em `tests/`, escritos em [pgTAP](https://pgtap.org/), e correm
-contra o banco local com o seed aplicado. Cada arquivo é uma transação que
+contra o banco local com o seed aplicado — os mesmos que a CI roda em todo Pull
+Request que toca este diretório
+([integração contínua e publicação](../docs/05-web/integracao-continua-e-publicacao.md)). Cada arquivo é uma transação que
 termina em `rollback`, então rodar os testes não suja o banco — mas eles contam
 com o seed intacto, então o hábito é `supabase db reset` antes.
 

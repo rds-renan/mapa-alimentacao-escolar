@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Estado local do Wrangler (build e cache da Cloudflare)
+.wrangler
