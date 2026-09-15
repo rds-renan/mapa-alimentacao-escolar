@@ -1,0 +1,66 @@
+# Verificação da aplicação web (decisão 10 da E5): a CI é o lugar onde o erro
+# aparece, e a publicação é outro assunto — ela sai da própria Cloudflare,
+# ligada ao repositório, e não deste arquivo.
+#
+# Roda em todo Pull Request que toca `web/`, e de novo na `main` depois do
+# merge, porque o squash merge produz um commit que ninguém verificou ainda.
+name: Web
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+
+permissions:
+  contents: read
+
+# Push novo na mesma branch cancela a verificação anterior: o que interessa é
+# o resultado do último commit.
+concurrency:
+  group: web-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Lint, tipos, testes e build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          # A versão do Node é a mesma que a Cloudflare lê no build.
+          node-version-file: web/.node-version
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # `npm ci` e não `npm install`: instala exatamente o que está no
+      # package-lock.json e falha se os dois estiverem fora de sincronia.
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Formatação
+        run: npm run format:check
+
+      - name: Tipos
+        run: npm run typecheck
+
+      - name: Testes
+        run: npm test
+
+      # O build por último: é o passo mais lento, e não faz sentido pagá-lo
+      # quando algo mais barato já reprovou.
+      - name: Build
+        run: npm run build

@@ -76,15 +76,21 @@
 
 **Histórias**: US012, US014, US021.
 
-## 10. Cloudflare Pages para hospedar, GitHub Actions para verificar
+## 10. Cloudflare para hospedar, GitHub Actions para verificar
 
 **Decisão**: a web é publicada no Cloudflare Pages, com implantação contínua a partir da `main` e prévia por branch. As GitHub Actions rodam lint, checagem de tipos, build e testes em cada Pull Request. Nenhuma chave sensível entra no pacote publicado: vai apenas a URL do projeto e a chave anônima do Supabase, que é pública por construção e só tem o poder que as políticas de RLS lhe derem. A chave de serviço existe apenas no ambiente das Edge Functions.
+
+**Como ficou**: dois fluxos no GitHub Actions — um para a web, outro para o banco — e o Cloudflare ligado direto ao repositório, sem token no GitHub. O caminho de cada verificação, a configuração do painel e o que a prévia compartilha com a produção estão na [integração contínua e publicação](integracao-continua-e-publicacao.md).
+
+**A hospedagem mudou de produto dentro da Cloudflare, e não de fornecedor**: saiu o Pages, entrou o Workers com assets estáticos. Ao implementar, a própria documentação do Pages passou a dizer que Workers é a plataforma principal e que projetos novos devem começar por lá — o Pages segue mantido e recebendo correções, mas o investimento da Cloudflare está todo no outro lado. Para uma aplicação estática os dois entregam o mesmo (publicação a partir do repositório, prévia por branch, TLS, domínio, requisições a arquivos estáticos sem custo), então o que decidiu foi o horizonte: este sistema é para ficar em uso na escola depois da entrega, e trocar de produto depois custaria trocar o endereço com as merendeiras — que é o tipo de atrito que não se paga duas vezes. A única vantagem que o Pages mantinha — aceitar domínio cujos nameservers não estejam na Cloudflare — caiu quando ficou decidido que uma eventual demanda da prefeitura seria outro produto, não este.
 
 **Por quê**: o [plano de projeto](../planodeprojeto.md) previa "Vercel ou similar" e a escolha caiu no Cloudflare Pages, que entrega o mesmo — publicação a partir do repositório, prévia por branch, TLS e domínio — sem custo para o porte deste projeto. A prévia por branch tem valor além do técnico: cada Pull Request passa a ter um endereço navegável, o que é evidência de gestão para a avaliação. Separar publicação de verificação mantém a CI como o lugar onde o erro aparece, e não a produção.
 
 ## 11. Vitest e Testing Library no dia a dia, um Playwright no caminho crítico
 
 **Decisão**: testes de unidade e de componente com Vitest e Testing Library, cobrindo prioritariamente a fila de envio, a resolução de convergência e as regras de estado do mapa. Um único teste ponta a ponta em Playwright percorre o caminho crítico: registrar um dia, sincronizar, selecionar mapas e gerar o documento.
+
+**Como ficou, por enquanto**: o entorno — Vitest, jsdom e Testing Library — entrou junto com a CI, com um teste de fumaça, porque um passo de testes que não pode reprovar não verifica nada. O peso previsto aqui chega com a fila e a convergência; o Playwright, com o caminho crítico que ele percorre.
 
 **Por quê**: o que quebra em silêncio neste produto não é a tela, é a fila — e fila é exatamente o tipo de lógica que teste de unidade cobre bem e olho humano cobre mal. O E2E é um só de propósito: ele existe para provar que o caminho inteiro fecha, e vira evidência direta no laudo de qualidade da E7. Vale lembrar o que a E7 é e o que ela não é: teste com usuária real, que revela problema de uso, não regressão. As duas coisas não se substituem.
 

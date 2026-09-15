@@ -54,7 +54,7 @@ Estrutura para aprender e usar o GitHub além do commit/push/pull:
 - **Projects (v2)** — um board Kanban do repositório com colunas `Backlog → A fazer → Em andamento → Concluído`, alimentado pelas issues. É a visão de gestão do projeto (e evidência de gestão para a faculdade).
 - **Branches e PRs** — `main` protegida como linha oficial; trabalho em branches `feat/...`, `docs/...`, `fix/...`; merge via Pull Request (self-review com descrição do que foi feito).
 - **Conventional Commits** — `feat:`, `fix:`, `docs:`, `chore:` etc., mantendo o histórico legível.
-- **Actions (CI/CD)** — lint, checagem de tipos, build e testes automáticos a cada Pull Request; o front é publicado no Cloudflare Pages a partir da `main`, com prévia por branch.
+- **Actions (CI/CD)** — lint, checagem de tipos, build e testes automáticos a cada Pull Request; o front é publicado na Cloudflare a partir da `main`, com prévia por branch.
 - **README + Releases** — README como vitrine do projeto; ao final de cada etapa relevante, uma tag/release (ex.: `v0.1-docs`, `v0.2-mvp-web`).
 
 ## 5. Estrutura do repositório

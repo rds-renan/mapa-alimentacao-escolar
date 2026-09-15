@@ -12,7 +12,8 @@ da biblioteca, cada uma delas teria de ser corrigida depois, uma a uma.
 
 ## Como rodar
 
-Precisa de Node 22 ou mais novo. O banco local é o mesmo de
+Precisa do Node na versão de [`.node-version`](../../web/.node-version) — a
+mesma que a CI e o build da Cloudflare usam. O banco local é o mesmo de
 [`supabase/`](../../supabase/README.md).
 
 ```bash
@@ -30,6 +31,8 @@ npm run dev
 | `npm run lint` | ESLint |
 | `npm run format` | Prettier, escrevendo |
 | `npm run format:check` | Prettier, só conferindo |
+| `npm test` | os testes, uma vez |
+| `npm run test:watch` | os testes, acompanhando as mudanças |
 | `npm run typecheck` | só a checagem de tipos |
 | `npm run types:db` | regera os tipos do banco a partir das migrations |
 | `npm run types:db:check` | falha se os tipos versionados estiverem defasados |
@@ -47,13 +50,18 @@ web/
 │   │   ├── database.types.ts   # gerado — não editar
 │   │   ├── supabase.ts         # o cliente, por variáveis de ambiente
 │   │   └── utils.ts
+│   ├── test/setup.ts           # preparação comum dos testes
 │   ├── App.tsx                 # conferência dos tokens (temporária)
+│   ├── App.test.tsx            # o teste de fumaça dela
 │   ├── env.d.ts                # as variáveis de ambiente que a web lê
 │   ├── index.css               # o tema: todos os tokens moram aqui
 │   └── main.tsx
 ├── .env.example
+├── .node-version               # a versão do Node, para a CI e o Cloudflare
 ├── components.json             # configuração do shadcn/ui
-└── eslint.config.js
+├── eslint.config.js
+├── vite.config.ts              # build e configuração do Vitest
+└── wrangler.jsonc              # o que é publicado, e como as rotas se comportam
 ```
 
 ## Os tokens
@@ -102,12 +110,33 @@ torna o ajuste possível.
 `npm run types:db` roda `supabase gen types typescript` contra o banco local e
 escreve [`src/lib/database.types.ts`](../../web/src/lib/database.types.ts), que
 fica versionado. `npm run types:db:check` regera e compara: se o schema mudou e
-o arquivo não, ele falha. É esse par que a CI vai usar
+o arquivo não, ele falha. É esse par que a CI usa
 ([decisão 8](decisoes-tecnicas.md)) para que a interface nunca acredite numa
-coluna que o banco não tem mais.
+coluna que o banco não tem mais — o fluxo está descrito na
+[integração contínua e publicação](integracao-continua-e-publicacao.md).
 
 O arquivo é gerado, e por isso fica fora do ESLint e do Prettier: arquivo
 gerado não se corrige à mão, se regera.
+
+## Os testes
+
+Vitest com jsdom e a Testing Library, como a
+[decisão 11](decisoes-tecnicas.md) previu, configurados dentro do próprio
+[`vite.config.ts`](../../web/vite.config.ts) — mesma resolução de caminhos,
+mesmo `@/`, nenhuma segunda configuração para manter em dia.
+
+Os testes **não** usam as funções globais do Vitest: cada arquivo importa
+`describe`, `it` e `expect`. O preço é uma linha de importação; o ganho é que
+não existe nome mágico no ar e o editor mostra de onde cada coisa vem. Como não
+há globais, a limpeza entre casos é declarada à mão em
+[`src/test/setup.ts`](../../web/src/test/setup.ts), junto dos comparadores do
+jest-dom.
+
+O que existe hoje é um teste de fumaça de `App.tsx`: a aplicação monta e a
+variante escura dos tokens é alcançável. Ele sai junto com a página provisória.
+O entorno entrou agora porque a CI precisa de um passo de testes que possa
+**reprovar de verdade** — e para que as issues seguintes escrevam teste em vez
+de montar entorno.
 
 ## As chaves
 
