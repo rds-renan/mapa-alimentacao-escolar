@@ -48,6 +48,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | Arquivo | O que exercita |
 |---|---|
 | `gravacao-do-dia.test.sql` | `save_meal_map()`: caminho feliz, reenvio, conflito entre aparelhos, catálogo, recorte por escola, cargas malformadas e o carimbo de última edição |
+| `perfis-e-acessos.test.sql` | Quem altera o quê no perfil: a merendeira e o próprio cadastro, o acesso desativado, a direção gerindo acessos e o que nem ela pode |
 
 ## As migrations
 
@@ -58,6 +59,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `20260907120200_rls.sql` | Políticas de acesso por perfil, em todas as tabelas |
 | `20260907120300_storage.sql` | Baldes privados do modelo oficial e dos documentos gerados |
 | `20260911120000_gravacao_atomica_do_dia.sql` | A gravação do dia inteiro numa operação só, e o carimbo de última edição que ela exige |
+| `20260916120000_protecao_do_perfil.sql` | Guarda as colunas do perfil que a política não alcança: papel, acesso, e-mail, escola e identidade |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.

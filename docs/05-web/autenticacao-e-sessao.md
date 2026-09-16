@@ -14,6 +14,12 @@ são as políticas de RLS da E4, no banco, onde ninguém contorna abrindo o
 DevTools. Se um dia a guarda falhar, a pessoa vê uma tela vazia — não os dados
 de outro perfil.
 
+Foi por levar isso a sério que a etapa foi conferir se a tal política segurava
+de verdade — e ela não segurava para o perfil: a merendeira conseguia virar
+administradora editando a própria linha. Está fechado, e o caso inteiro está na
+[decisão 2 da E4](../04-banco-de-dados/decisoes-de-modelagem.md), com os
+cenários em `supabase/tests/perfis-e-acessos.test.sql`.
+
 | Rota | Quem alcança | Tela |
 |---|---|---|
 | `/entrar` | qualquer pessoa | Login (tela 1 da E3) |

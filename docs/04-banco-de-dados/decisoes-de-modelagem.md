@@ -16,6 +16,8 @@
 
 **Por quê**: o autocadastro fechado é regra da US016 (CA#3), e o Supabase já resolve credencial e sessão persistente (RNF#2 da US016). Apagar um usuário quebraria a autoria dos mapas, documentos e desbloqueios que ele deixou (CA#2 da US016), e a autoria é parte da auditoria do sistema.
 
+**Corrigido na E5**: a política que deixa a pessoa editar a própria linha não sabia olhar coluna — o `with check` do RLS não enxerga o valor anterior —, e por isso "pode editar o próprio perfil" valia também para a coluna do papel. Uma merendeira conseguia virar administradora no próprio perfil, reativar-se depois de desativada ou mudar de escola; confirmado por chamada real à API em 16/09/2026, e fechado pela migration `20260916120000_protecao_do_perfil.sql`, no mesmo padrão que esta etapa já usava para a coluna `locked`: o que a política não alcança, o gatilho recusa. A política decide quais **linhas**; o gatilho decide quais **colunas**.
+
 **Histórias**: US016, US023.
 
 ## 3. Um mapa por data; letivo ou não letivo é estado do mesmo objeto
