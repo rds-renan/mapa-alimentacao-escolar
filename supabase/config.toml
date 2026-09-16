@@ -176,9 +176,17 @@ enable_anonymous_sign_ins = false
 # Allow/disallow testing manual linking of accounts
 enable_manual_linking = false
 # Passwords shorter than this value will be rejected as weak. Minimum 6, recommended 8 or more.
-minimum_password_length = 6
+# Oito, e não seis: é o mínimo recomendado, e a conta é criada pela direção —
+# ninguém aqui vai ficar preso a uma regra que não entende.
+minimum_password_length = 8
 # Passwords that do not meet the following requirements will be rejected as weak. Supported values
 # are: `letters_digits`, `lower_upper_letters_digits`, `lower_upper_letters_digits_symbols`
+#
+# Sem exigência de maiúscula, número e símbolo, de propósito: a orientação
+# atual de segurança é cobrar comprimento e não composição, porque regra de
+# composição produz senha previsível (a mesma de sempre com "1!" no fim) e
+# anotada num papel do lado do fogão. O que barra senha ruim de verdade é a
+# checagem de senha vazada, que se liga no painel do projeto na nuvem.
 password_requirements = ""
 
 # Configure passkey sign-ins.
@@ -208,10 +216,20 @@ token_verifications = 30
 web3 = 30
 
 # Configure one of the supported captcha providers: `hcaptcha`, `turnstile`.
+#
+# A guarda contra robôs do login e do pedido de senha nova (issue #59). Fica
+# DESLIGADA no ambiente local de propósito: o desafio depende de serviço
+# externo, e desenvolvimento e testes não podem depender de rede de terceiro.
+# A web já manda o código do desafio quando `VITE_TURNSTILE_SITE_KEY` existe —
+# ligar isto no projeto da nuvem é o que faz o servidor passar a exigi-lo.
+#
+# O par de chaves sai do painel da Cloudflare (Turnstile): a pública vai para
+# a web, a secreta vem para cá, por variável de ambiente — nunca escrita no
+# arquivo.
 # [auth.captcha]
 # enabled = true
-# provider = "hcaptcha"
-# secret = ""
+# provider = "turnstile"
+# secret = "env(TURNSTILE_SECRET_KEY)"
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
