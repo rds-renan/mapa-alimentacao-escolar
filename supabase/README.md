@@ -71,6 +71,11 @@ Todas com a senha `mae-desenvolvimento`, e todas fictícias:
 | `merendeira1@dominio.com.br` | merendeira |
 | `merendeira2@dominio.com.br` | merendeira |
 
+As contas do seed entram com as quatro colunas de token de `auth.users` como
+texto vazio, e não nulas: nulo ali derruba o login com um erro que parece de
+banco e é do seed. O e-mail de senha nova não sai para a internet em
+desenvolvimento: ele cai na caixa local, em <http://127.0.0.1:54324>.
+
 O seed traz uma escola, oito gêneros e quatro dias — um completo com alteração
 de cardápio, um pendente, um não letivo e um já incluído em documento gerado,
 portanto bloqueado. É um de cada estado que a visão do mês mostra.

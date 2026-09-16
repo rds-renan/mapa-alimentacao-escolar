@@ -215,8 +215,14 @@ web3 = 30
 
 [auth.email]
 # Allow/disallow new user signups via email to your project.
-# Ver a nota em [auth]: o app só oferece login.
-enable_signup = false
+#
+# Fica LIGADO, e isto não contradiz o "não há autocadastro" do MAE. A linha
+# vira `GOTRUE_EXTERNAL_EMAIL_ENABLED` no servidor de autenticação, que é o
+# interruptor do provedor de e-mail INTEIRO: desligada, ninguém entra com
+# e-mail e senha — nem as contas que a direção criou. Quem barra o cadastro é
+# o `enable_signup = false` lá em [auth] (`GOTRUE_DISABLE_SIGNUP`), e ele
+# sozinho basta. Descoberto ao subir a tela de login (issue #59).
+enable_signup = true
 # If enabled, a user will be required to confirm any email change on both the old, and new email
 # addresses. If disabled, only the new email is required to confirm.
 double_confirm_changes = true
