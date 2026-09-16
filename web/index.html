@@ -5,6 +5,12 @@
     <link rel="icon" type="image/png" href="/logo.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="theme-color" content="#397ba1" />
+    <!--
+      Fora dos buscadores, de propósito: o MAE é inteiramente atrás de login,
+      serve a uma escola só e não tem nada a indexar. O cabeçalho X-Robots-Tag
+      em public/_headers diz o mesmo para quem não lê o HTML.
+    -->
+    <meta name="robots" content="noindex, nofollow" />
     <title>MAE — Mapa da Alimentação Escolar</title>
   </head>
   <body>
