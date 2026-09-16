@@ -36,26 +36,35 @@ npm run dev
 | `npm run typecheck` | só a checagem de tipos |
 | `npm run types:db` | regera os tipos do banco a partir das migrations |
 | `npm run types:db:check` | falha se os tipos versionados estiverem defasados |
+| `npm run check:secrets` | confere que nenhum segredo entrou no `dist/` |
 
 ## O que tem dentro
 
 ```
 web/
-├── public/logo.png             # o logo do MAE, também como ícone da aba
+├── public/
+│   ├── logo.png                # o logo do MAE, também como ícone da aba
+│   ├── robots.txt              # fora dos buscadores, de propósito
+│   └── _headers                # cabeçalhos das respostas, lidos pela Cloudflare
 ├── scripts/
-│   └── gerar-tipos-do-banco.mjs
+│   ├── gerar-tipos-do-banco.mjs
+│   └── conferir-segredos-do-pacote.mjs
 ├── src/
-│   ├── components/ui/          # componentes do shadcn/ui, já ajustados ao dedo
+│   ├── auth/                   # sessão, perfil e guardas de rota (issue #59)
+│   ├── components/             # os componentes do MAE
+│   │   └── ui/                 # componentes do shadcn/ui, já ajustados ao dedo
 │   ├── lib/
 │   │   ├── database.types.ts   # gerado — não editar
+│   │   ├── local-data.ts       # o que sair do aplicativo apaga
 │   │   ├── supabase.ts         # o cliente, por variáveis de ambiente
 │   │   └── utils.ts
-│   ├── test/setup.ts           # preparação comum dos testes
-│   ├── App.tsx                 # conferência dos tokens (temporária)
-│   ├── App.test.tsx            # o teste de fumaça dela
+│   ├── pages/                  # uma tela por arquivo, com o nome do desenho
+│   ├── test/                   # preparação comum e o Supabase de mentira
+│   ├── App.tsx                 # o mapa de rotas
 │   ├── env.d.ts                # as variáveis de ambiente que a web lê
 │   ├── index.css               # o tema: todos os tokens moram aqui
-│   └── main.tsx
+│   ├── main.tsx
+│   └── routes.ts               # os caminhos, num lugar só
 ├── .env.example
 ├── .node-version               # a versão do Node, para a CI e o Cloudflare
 ├── components.json             # configuração do shadcn/ui
@@ -63,6 +72,13 @@ web/
 ├── vite.config.ts              # build e configuração do Vitest
 └── wrangler.jsonc              # o que é publicado, e como as rotas se comportam
 ```
+
+Os arquivos em `src/` são kebab-case, com uma exceção declarada: as telas em
+`src/pages/` levam o nome do componente, que é o nome da tela no desenho da E3.
+A primeira coisa que entrou nesta estrutura foi a autenticação — a página de
+conferência dos tokens, que ocupava o `App.tsx` da fundação, saiu junto com ela,
+como estava previsto. O que cada peça faz está na
+[autenticação, sessão e rotas por perfil](autenticacao-e-sessao.md).
 
 ## Os tokens
 

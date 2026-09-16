@@ -1,0 +1,13 @@
+# Cabeçalhos das respostas, lidos pela Cloudflare ao servir os arquivos
+# estáticos (o arquivo é copiado para o `dist/` no build e não é publicado).
+#
+# O X-Robots-Tag repete, para quem não lê o HTML, o que a meta tag da página
+# diz: este endereço fica fora dos buscadores. Os outros três são higiene de
+# quem serve página no navegador — não deixar o tipo do arquivo ser adivinhado,
+# não deixar a página ser embutida em outro site e não vazar o endereço interno
+# ao sair dele.
+/*
+  X-Robots-Tag: noindex, nofollow
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: same-origin

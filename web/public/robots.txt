@@ -1,0 +1,5 @@
+# O MAE não tem nada a indexar: tudo o que ele mostra está atrás de login, e o
+# endereço é de uma escola só. Isto vale para quem respeita o arquivo; para o
+# resto, o que protege é o login e as políticas de acesso no banco.
+User-agent: *
+Disallow: /

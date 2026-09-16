@@ -10,6 +10,7 @@ supabase/
 ├── migrations/     # o schema, em ordem
 ├── seed.sql        # dados fictícios de desenvolvimento
 ├── spikes/         # protótipos de servidor, fora do caminho de produção
+├── templates/      # os e-mails que o sistema manda, em português
 └── tests/          # cenários em pgTAP
 ```
 
@@ -47,6 +48,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | Arquivo | O que exercita |
 |---|---|
 | `gravacao-do-dia.test.sql` | `save_meal_map()`: caminho feliz, reenvio, conflito entre aparelhos, catálogo, recorte por escola, cargas malformadas e o carimbo de última edição |
+| `perfis-e-acessos.test.sql` | Quem altera o quê no perfil: a merendeira e o próprio cadastro, o acesso desativado, a direção gerindo acessos e o que nem ela pode |
 
 ## As migrations
 
@@ -57,6 +59,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `20260907120200_rls.sql` | Políticas de acesso por perfil, em todas as tabelas |
 | `20260907120300_storage.sql` | Baldes privados do modelo oficial e dos documentos gerados |
 | `20260911120000_gravacao_atomica_do_dia.sql` | A gravação do dia inteiro numa operação só, e o carimbo de última edição que ela exige |
+| `20260916120000_protecao_do_perfil.sql` | Guarda as colunas do perfil que a política não alcança: papel, acesso, e-mail, escola e identidade |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.
@@ -70,6 +73,13 @@ Todas com a senha `mae-desenvolvimento`, e todas fictícias:
 | `direcao@dominio.com.br` | administrador |
 | `merendeira1@dominio.com.br` | merendeira |
 | `merendeira2@dominio.com.br` | merendeira |
+
+As contas do seed entram com as quatro colunas de token de `auth.users` como
+texto vazio, e não nulas: nulo ali derruba o login com um erro que parece de
+banco e é do seed — o caso está contado na
+[autenticação, sessão e rotas por perfil](../docs/05-web/autenticacao-e-sessao.md).
+O e-mail de senha nova não sai para a internet em desenvolvimento: ele cai na
+caixa local, em <http://127.0.0.1:54324>.
 
 O seed traz uma escola, oito gêneros e quatro dias — um completo com alteração
 de cardápio, um pendente, um não letivo e um já incluído em documento gerado,

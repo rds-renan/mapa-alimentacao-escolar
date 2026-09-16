@@ -20,5 +20,5 @@ que cada Pull Request verifica — além de como isto aqui chega ao ar — está
 Antes de abrir o Pull Request, o que a CI vai rodar:
 
 ```bash
-npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
+npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets
 ```

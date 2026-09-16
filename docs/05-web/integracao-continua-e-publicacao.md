@@ -14,7 +14,7 @@ navegável desde o começo da etapa.
 
 | Fluxo | Dispara quando o PR toca | O que faz |
 |---|---|---|
-| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes e build |
+| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e a conferência de que nenhum segredo entrou no pacote |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
 | [`spikes.yml`](../../.github/workflows/spikes.yml) | `supabase/spikes/` | formatação, lint, checagem de tipos e testes dos protótipos de servidor, em Deno |
 
@@ -38,7 +38,7 @@ vezes, em dois empregos paralelos, custaria o dobro para provar o mesmo.
 O mesmo, na sua máquina, antes de abrir o PR:
 
 ```bash
-cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build
+cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
 cd supabase/spikes/template-oficial && deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
@@ -63,11 +63,10 @@ visível, e não um dia em que "a CI começou a falhar sozinha".
   [decisão 11](decisoes-tecnicas.md), e tem issue própria na etapa.
 - **A Edge Function da geração do documento** nasce depois do *spike* do
   template oficial; a verificação dela entra junto.
-- **Os testes de componente hoje são um teste de fumaça** — a aplicação monta e
-  a variante escura dos tokens é alcançável. O peso previsto pela decisão 11
-  está na fila de envio, na convergência e nas regras de estado do mapa, que
-  ainda não existem. O entorno de teste entrou agora para que essas issues só
-  precisem escrever o teste.
+- **Os testes de componente cobrem hoje a autenticação** — login, sessão
+  persistida, saída, rotas por perfil e a senha esquecida, contra um Supabase
+  de mentira. O peso previsto pela decisão 11 continua à frente: a fila de
+  envio, a convergência e as regras de estado do mapa, que ainda não existem.
 
 ## A publicação
 
@@ -75,6 +74,17 @@ A web é publicada como um **Worker da Cloudflare servindo assets estáticos**,
 ligado ao repositório: cada commit que entra na `main` é construído e publicado,
 e cada branch ganha uma **prévia** com endereço próprio, que a Cloudflare posta
 como comentário no Pull Request.
+
+O endereço de produção é **<https://mae.rds.dev.br>**, declarado como *custom
+domain* em [`web/wrangler.jsonc`](../../web/wrangler.jsonc). Fica no arquivo, e
+não no painel, pela mesma razão que o resto do roteamento: endereço é coisa que
+se lê no repositório e se revisa num Pull Request. Como o domínio já vive na
+Cloudflare, ela cuida do DNS e do certificado sozinha.
+
+O endereço `workers.dev` **continua ligado**, de propósito: é nele que vivem as
+prévias por branch. Vale um aviso que já custou caro em outros projetos —
+declarar `routes` sem dizer nada sobre `workers_dev` faz o Wrangler deduzir
+`false` e derrubar as prévias junto com o endereço antigo.
 
 **Por que Workers e não Pages**, que era o nome na decisão original: a própria
 Cloudflare passou a dizer que Workers é a plataforma principal e que projetos
@@ -140,14 +150,22 @@ Ficam no painel, nos dois ambientes (produção e prévia): `VITE_SUPABASE_URL` 
 [`web/.env.example`](../../web/.env.example), e a explicação de por que são
 públicas está na [fundação da web](fundacao-da-web.md#as-chaves).
 
-**Elas ainda não existem, e por enquanto não fazem falta.** A página que a web
-publica hoje é a conferência dos tokens, que não fala com o Supabase — nada no
-que é construído importa o cliente. O build não lê essas variáveis e a CI
-também não: ela roda lint, tipos, testes e build sem nenhum segredo
-configurado, porque não há segredo a configurar. As duas passam a ser
-obrigatórias no dia em que a autenticação entrar e a primeira tela precisar do
-banco — e é essa issue, não esta, que depende de existir um projeto do Supabase
-na nuvem.
+**O dia previsto aqui chegou com a autenticação.** A web publicada agora abre
+no login e fala com o Supabase desde a primeira tela, então as duas variáveis
+passaram a ser obrigatórias nos dois ambientes do painel — sem elas, o
+aplicativo carrega e não sobe, porque o cliente recusa a configuração ausente
+em vez de tentar falar com endereço nenhum.
+
+A CI continua sem segredo nenhum configurado, e isso não mudou: o build não
+precisa das variáveis para compilar, só o navegador precisa delas para
+funcionar. O que a CI ganhou foi o passo inverso — conferir que **nada além**
+delas entrou no pacote (ver [autenticação, sessão e rotas por perfil](autenticacao-e-sessao.md)).
+
+Junto com as variáveis, o projeto do Supabase na nuvem precisa de duas coisas
+declaradas no painel, que o `config.toml` só resolve no ambiente local: os
+endereços permitidos para o link de senha nova, em *Authentication > URL
+Configuration*, e o texto em português do e-mail de senha nova, em
+*Authentication > Emails*.
 
 ## O que nunca entra no pacote publicado
 

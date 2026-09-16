@@ -5,24 +5,30 @@
 -- anonimização usada na documentação pública.
 
 -- Senha de todas as contas de desenvolvimento: mae-desenvolvimento
+-- As quatro colunas de token entram como texto vazio, e não como nulo: o
+-- servidor de autenticação as lê em campos de texto que não aceitam nulo, e
+-- um nulo aqui derruba o login inteiro com "Database error querying schema" —
+-- erro que parece de banco e é do seed. As demais colunas do tipo já nascem
+-- com `''` por padrão. Descoberto ao subir a tela de login (issue #59).
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password,
   email_confirmed_at, created_at, updated_at,
-  raw_app_meta_data, raw_user_meta_data
+  raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change, email_change_token_new
 )
 values
   ('00000000-0000-0000-0000-000000000000', '11111111-1111-4111-8111-111111111111',
    'authenticated', 'authenticated', 'direcao@dominio.com.br',
    crypt('mae-desenvolvimento', gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}'),
+   '{"provider":"email","providers":["email"]}', '{}', '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', '22222222-2222-4222-8222-222222222222',
    'authenticated', 'authenticated', 'merendeira1@dominio.com.br',
    crypt('mae-desenvolvimento', gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}'),
+   '{"provider":"email","providers":["email"]}', '{}', '', '', '', ''),
   ('00000000-0000-0000-0000-000000000000', '33333333-3333-4333-8333-333333333333',
    'authenticated', 'authenticated', 'merendeira2@dominio.com.br',
    crypt('mae-desenvolvimento', gen_salt('bf')), now(), now(), now(),
-   '{"provider":"email","providers":["email"]}', '{}');
+   '{"provider":"email","providers":["email"]}', '{}', '', '', '', '');
 
 insert into auth.identities (
   provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at
