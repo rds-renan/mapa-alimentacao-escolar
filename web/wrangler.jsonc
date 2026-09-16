@@ -4,8 +4,9 @@
   // publicado e como as rotas se comportam.
   "$schema": "node_modules/wrangler/config-schema.json",
 
-  // O nome define o endereço: `mae.<subdomínio da conta>.workers.dev`. Mudar
-  // isto muda a URL, então não se mexe depois que alguém já tem o link.
+  // O nome do Worker. Ele dá o endereço `workers.dev` e nomeia as prévias, mas
+  // o endereço que as merendeiras recebem é o domínio próprio declarado em
+  // `routes`, logo abaixo. Mudar isto muda as duas coisas.
   "name": "mae",
 
   // Congela o comportamento da plataforma na data em que o projeto foi escrito:
@@ -13,10 +14,19 @@
   // mude esta linha de propósito.
   "compatibility_date": "2026-09-14",
 
+  // O endereço de produção. O domínio já vive na Cloudflare, e por isso ela
+  // cria o registro de DNS e o certificado sozinha — não há nada a fazer no
+  // painel. Fica aqui, e não lá, pela mesma razão que o resto deste arquivo:
+  // endereço é coisa que se lê no repositório e se revisa num Pull Request.
+  "routes": [{ "pattern": "mae.rds.dev.br", "custom_domain": true }],
+
   // As duas linhas abaixo são o padrão da plataforma, declaradas de propósito:
-  // sem elas o Wrangler avisa em todo deploy que está decidindo sozinho. O
-  // endereço `workers.dev` é o que serve a produção enquanto não há domínio
-  // próprio, e as URLs de prévia são o que permite mandar uma tela para as
+  // sem elas o Wrangler avisa em todo deploy que está decidindo sozinho.
+  //
+  // E há um detalhe que morde: declarar `routes` sem dizer nada sobre
+  // `workers_dev` faz o Wrangler DEDUZIR `false` e derrubar o endereço
+  // `workers.dev` — que é onde as prévias por branch vivem. O `true` explícito
+  // é o que mantém de pé o endereço que permite mandar uma tela para as
   // merendeiras antes de ela entrar na `main`.
   "workers_dev": true,
   "preview_urls": true,

@@ -75,6 +75,17 @@ ligado ao repositório: cada commit que entra na `main` é construído e publica
 e cada branch ganha uma **prévia** com endereço próprio, que a Cloudflare posta
 como comentário no Pull Request.
 
+O endereço de produção é **<https://mae.rds.dev.br>**, declarado como *custom
+domain* em [`web/wrangler.jsonc`](../../web/wrangler.jsonc). Fica no arquivo, e
+não no painel, pela mesma razão que o resto do roteamento: endereço é coisa que
+se lê no repositório e se revisa num Pull Request. Como o domínio já vive na
+Cloudflare, ela cuida do DNS e do certificado sozinha.
+
+O endereço `workers.dev` **continua ligado**, de propósito: é nele que vivem as
+prévias por branch. Vale um aviso que já custou caro em outros projetos —
+declarar `routes` sem dizer nada sobre `workers_dev` faz o Wrangler deduzir
+`false` e derrubar as prévias junto com o endereço antigo.
+
 **Por que Workers e não Pages**, que era o nome na decisão original: a própria
 Cloudflare passou a dizer que Workers é a plataforma principal e que projetos
 novos devem começar por lá. O porquê da troca está na
