@@ -64,3 +64,9 @@ jobs:
       # quando algo mais barato já reprovou.
       - name: Build
         run: npm run build
+
+      # E, sobre o pacote pronto, a conferência do que foi parar dentro dele:
+      # ao navegador vão apenas a URL do projeto e a chave publicável (CA#6 da
+      # issue #59). A chave secreta só existe no ambiente das Edge Functions.
+      - name: Segredos no pacote
+        run: npm run check:secrets

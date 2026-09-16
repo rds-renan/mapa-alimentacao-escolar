@@ -1,0 +1,50 @@
+<!--
+  O e-mail de senha nova (issue #59). Fica em português como todo o resto do
+  que a merendeira lê, e segue as regras de linguagem da E3: não culpa quem
+  recebeu, não usa jargão e diz o que acontece se ela não fizer nada.
+
+  Este arquivo vale para o Supabase local, declarado no config.toml. No projeto
+  da nuvem, o mesmo texto se cola em Authentication > Emails.
+-->
+<div
+  style="
+    font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+    color: #09090b;
+    line-height: 1.5;
+    max-width: 480px;
+  "
+>
+  <h2 style="font-size: 18px; margin: 0 0 16px">Criar uma senha nova no MAE</h2>
+
+  <p style="margin: 0 0 16px">
+    Chegou um pedido de senha nova para este e-mail no MAE — Mapa da
+    Alimentação Escolar. Se foi você, o botão abaixo abre a tela para criar a
+    senha. O link vale por uma hora.
+  </p>
+
+  <p style="margin: 0 0 20px">
+    <a
+      href="{{ .ConfirmationURL }}"
+      style="
+        display: inline-block;
+        background: #397ba1;
+        color: #ffffff;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 13px 20px;
+        border-radius: 10px;
+      "
+      >Criar a senha nova</a
+    >
+  </p>
+
+  <p style="margin: 0 0 16px; color: #52525b; font-size: 14px">
+    Se não foi você quem pediu, pode ignorar esta mensagem: sua senha continua
+    a mesma enquanto ninguém abrir este link.
+  </p>
+
+  <p style="margin: 0; color: #a1a1aa; font-size: 12px">
+    Se o botão não funcionar, copie este endereço no navegador:<br />
+    {{ .ConfirmationURL }}
+  </p>
+</div>

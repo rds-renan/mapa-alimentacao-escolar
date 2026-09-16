@@ -10,6 +10,7 @@ supabase/
 ├── migrations/     # o schema, em ordem
 ├── seed.sql        # dados fictícios de desenvolvimento
 ├── spikes/         # protótipos de servidor, fora do caminho de produção
+├── templates/      # os e-mails que o sistema manda, em português
 └── tests/          # cenários em pgTAP
 ```
 
@@ -73,8 +74,10 @@ Todas com a senha `mae-desenvolvimento`, e todas fictícias:
 
 As contas do seed entram com as quatro colunas de token de `auth.users` como
 texto vazio, e não nulas: nulo ali derruba o login com um erro que parece de
-banco e é do seed. O e-mail de senha nova não sai para a internet em
-desenvolvimento: ele cai na caixa local, em <http://127.0.0.1:54324>.
+banco e é do seed — o caso está contado na
+[autenticação, sessão e rotas por perfil](../docs/05-web/autenticacao-e-sessao.md).
+O e-mail de senha nova não sai para a internet em desenvolvimento: ele cai na
+caixa local, em <http://127.0.0.1:54324>.
 
 O seed traz uma escola, oito gêneros e quatro dias — um completo com alteração
 de cardápio, um pendente, um não letivo e um já incluído em documento gerado,
