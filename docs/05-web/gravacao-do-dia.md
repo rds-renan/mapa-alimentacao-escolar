@@ -190,6 +190,11 @@ no cliente.
 A distinção que importa para a fila: **`23514` e `42501` não se resolvem
 reenviando** — é preciso corrigir ou avisar. `40001` se resolve reenviando.
 
+"Tira o item da fila" quer dizer parar de reenviar, e não descartar: o cliente
+mantém o dia guardado no aparelho para ela corrigir, porque perder preenchimento
+por causa de um campo torto é o que a RN#1 da US011 proíbe. Como ficou do outro
+lado está na [camada local](camada-local.md).
+
 ## O que ela não faz
 
 - **Não gera documento nem bloqueia mapa.** O bloqueio nasce na geração

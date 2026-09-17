@@ -75,9 +75,11 @@ Se a revogação no servidor não for possível — sem rede, que é o comum aqu
 sessão sai do aparelho do mesmo jeito. Ficar preso dentro do aplicativo por
 falta de internet seria o pior desfecho.
 
-**Pendência para a issue #60**: quando a fila existir, apagar o local com
-envios pendentes é perder mapa que ainda não subiu, contra a RN#1 da US011. O
-botão de sair vai precisar avisar antes.
+**Resolvido na issue #60**, e não como esta seção previa. Apagar continua sendo
+apagar tudo, inclusive o dia que não subiu — guardar mapa na web depois da saída
+custaria mais do que salva, porque aqui ele pode ficar meses esperando alguém
+que talvez não volte. O que entrou foi o aviso: quem tem mapa por enviar é
+avisada antes e decide. O porquê está na [camada local](camada-local.md).
 
 ## O erro de login não diz qual campo errou
 
@@ -310,8 +312,6 @@ E mais três, que são de segurança e não de idioma:
 
 - **As telas do desenho** — o pedido de senha nova e a senha nova entram na E3
   na revisão da documentação, junto com a história que as descreve.
-- **O aviso antes de sair** com envios pendentes — issue #60, quando a fila
-  existir.
 - **`profile.last_access`** — a coluna existe desde a E4 e ninguém a escreve.
   O lugar natural é a gestão de acessos (issue #68), que é quem a exibe.
 - **A tela-casa de cada perfil** — o que está em `/` e `/admin` hoje é só o
