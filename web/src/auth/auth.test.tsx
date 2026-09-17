@@ -4,6 +4,8 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import App from '@/App'
 import { AuthProvider } from '@/auth/auth-provider'
+import { SyncProvider } from '@/local/sync-provider'
+import { dayKey, putStoredDay } from '@/local/store'
 import { AUTH_MESSAGES } from '@/auth/messages'
 import type { Profile } from '@/auth/auth-context'
 
@@ -58,7 +60,9 @@ function renderApp(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
       <AuthProvider>
-        <App />
+        <SyncProvider>
+          <App />
+        </SyncProvider>
       </AuthProvider>
     </MemoryRouter>
   )
@@ -229,6 +233,83 @@ describe('sessão', () => {
       expect(supabase.auth.signOut).toHaveBeenCalled()
       expect(clearLocalData).toHaveBeenCalled()
     })
+  })
+
+  it('avisa antes de sair quando ainda há mapa por enviar', async () => {
+    /*
+     * Sair apaga o que está guardado no aparelho, inclusive o que não subiu.
+     * O que torna isso legítimo é ela saber antes e decidir: perder por escolha
+     * dela é uma coisa, perder por decisão do sistema seria outra.
+     */
+    await putStoredDay({
+      key: dayKey(cook.id, '2026-09-10'),
+      userId: cook.id,
+      mapDate: '2026-09-10',
+      day: {
+        id: 'a0000000-0000-4000-8000-000000000001',
+        map_date: '2026-09-10',
+        updated_at: '2026-09-10T18:30:00-03:00',
+        non_school_day: false,
+        note: null,
+        meals_served: 312,
+        meals: [],
+      },
+      attempts: 0,
+      rejection: null,
+      queuedAt: '2026-09-10T18:30:00-03:00',
+    })
+
+    givenSignedIn(cook)
+    renderApp('/')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Sair/ }))
+
+    const aviso = await screen.findByRole('alertdialog')
+    expect(aviso).toHaveTextContent(
+      'Ainda tem 1 dia salvo neste computador que não foi enviado.'
+    )
+    // Só o aviso: nada foi apagado nem a sessão encerrada ainda.
+    expect(supabase.auth.signOut).not.toHaveBeenCalled()
+    expect(clearLocalData).not.toHaveBeenCalled()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Sair e apagar' }))
+
+    await waitFor(() => {
+      expect(supabase.auth.signOut).toHaveBeenCalled()
+      expect(clearLocalData).toHaveBeenCalled()
+    })
+  })
+
+  it('deixa ficar quem mudou de ideia diante do aviso', async () => {
+    await putStoredDay({
+      key: dayKey(cook.id, '2026-09-10'),
+      userId: cook.id,
+      mapDate: '2026-09-10',
+      day: {
+        id: 'a0000000-0000-4000-8000-000000000001',
+        map_date: '2026-09-10',
+        updated_at: '2026-09-10T18:30:00-03:00',
+        non_school_day: false,
+        note: null,
+        meals_served: 312,
+        meals: [],
+      },
+      attempts: 0,
+      rejection: null,
+      queuedAt: '2026-09-10T18:30:00-03:00',
+    })
+
+    givenSignedIn(cook)
+    renderApp('/')
+
+    fireEvent.click(await screen.findByRole('button', { name: /Sair/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'Ficar' }))
+
+    await waitFor(() => {
+      expect(screen.queryByRole('alertdialog')).toBeNull()
+    })
+    expect(supabase.auth.signOut).not.toHaveBeenCalled()
+    expect(clearLocalData).not.toHaveBeenCalled()
   })
 
   it('não segura quem teve o acesso desativado pela direção', async () => {

@@ -58,6 +58,7 @@ web/
 │   │   ├── local-data.ts       # o que sair do aplicativo apaga
 │   │   ├── supabase.ts         # o cliente, por variáveis de ambiente
 │   │   └── utils.ts
+│   ├── local/                  # rascunho, fila de envio e convergência (issue #60)
 │   ├── pages/                  # uma tela por arquivo, com o nome do desenho
 │   ├── test/                   # preparação comum e o Supabase de mentira
 │   ├── App.tsx                 # o mapa de rotas
@@ -78,7 +79,9 @@ Os arquivos em `src/` são kebab-case, com uma exceção declarada: as telas em
 A primeira coisa que entrou nesta estrutura foi a autenticação — a página de
 conferência dos tokens, que ocupava o `App.tsx` da fundação, saiu junto com ela,
 como estava previsto. O que cada peça faz está na
-[autenticação, sessão e rotas por perfil](autenticacao-e-sessao.md).
+[autenticação, sessão e rotas por perfil](autenticacao-e-sessao.md) e, para o
+que se guarda no aparelho, na
+[camada local](camada-local.md).
 
 ## Os tokens
 
@@ -148,11 +151,17 @@ há globais, a limpeza entre casos é declarada à mão em
 [`src/test/setup.ts`](../../web/src/test/setup.ts), junto dos comparadores do
 jest-dom.
 
-O que existe hoje é um teste de fumaça de `App.tsx`: a aplicação monta e a
-variante escura dos tokens é alcançável. Ele sai junto com a página provisória.
-O entorno entrou agora porque a CI precisa de um passo de testes que possa
+O entorno entrou na fundação porque a CI precisa de um passo de testes que possa
 **reprovar de verdade** — e para que as issues seguintes escrevam teste em vez
-de montar entorno.
+de montar entorno. O teste de fumaça que ocupava esse lugar saiu com a página
+provisória; hoje o peso está onde a [decisão 11](decisoes-tecnicas.md) previu
+que estaria, na autenticação e na fila de envio.
+
+O IndexedDB é a única coisa que precisou de biblioteca só para o teste: o jsdom
+não o implementa, e `fake-indexeddb` entra como dependência de desenvolvimento
+para que a [camada local](camada-local.md) seja exercitada contra um banco de
+verdade, com transações de verdade — que é onde estava o defeito que os testes
+dela encontraram.
 
 ## As chaves
 

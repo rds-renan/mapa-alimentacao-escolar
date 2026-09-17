@@ -26,6 +26,12 @@
 
 **Por quê**: o IndexedDB e não o `localStorage` porque o objeto salvo é o dia inteiro, com listas dentro, e porque o `localStorage` é síncrono — escrever a cada tecla numa thread que também desenha a tela é como se fabrica travamento. O UUID gerado no cliente é o que torna a fila **idempotente**: reenviar um item que já chegou reescreve o mesmo dia com o mesmo identificador, em vez de duplicar registro — sem isso, toda falha de rede ambígua viraria mapa repetido. E manter o dia como unidade evita que a web invente um protocolo de sincronização diferente do que o aplicativo vai usar na E6, contra o mesmo banco.
 
+**Como ficou**: um depósito só no IndexedDB, porque o rascunho e a fila são a
+mesma coisa — estar guardado ali é ser dia que o servidor ainda não confirmou. O
+que se grava é, campo por campo, o payload de `save_meal_map`, sem tradução no
+meio. Os detalhes, e o defeito de concorrência que os testes acharam no caminho,
+estão na [camada local](camada-local.md).
+
 **Histórias**: US001, US007, US010, US011.
 
 ## 4. A fronteira: TanStack Query cuida do servidor, o rascunho é nosso
@@ -33,6 +39,11 @@
 **Decisão**: o estado que vem do servidor — lista de mapas do mês, catálogo, documentos gerados, dados da escola — é gerenciado pela TanStack Query, com seu cache, revalidação e retentativas. O rascunho não enviado e a fila são um módulo próprio, pequeno, sobre o IndexedDB. As duas coisas não se misturam: a tela do dia lê o rascunho quando ele existe e o servidor quando não existe.
 
 **Por quê**: cache, invalidação e estados de carregando/erro são problema resolvido, e reescrevê-los à mão consumiria a etapa sem entregar nada que a usuária veja. A tentação seria usar a persistência de cache da própria Query e chamar aquilo de offline — mas persistir cache é sobre **leitura**, e o que este produto precisa persistir é **escrita** que ainda não subiu. São problemas diferentes, e confundi-los é como se perde preenchimento. Manter a fila num módulo próprio também é o que deixa a regra "o dado local nunca é descartado antes de confirmado no servidor" (RN#1 da US011) explícita num lugar só, em vez de emergente do comportamento de uma biblioteca.
+
+**Como ficou**: a metade de baixo — a escrita que ainda não subiu — está de pé
+na [camada local](camada-local.md). A TanStack Query ainda não entrou: a
+primeira tela que precisa **ler** do servidor é a visão do mês (issue #61), e
+adicioná-la antes disso seria dependência por antecipação.
 
 **Histórias**: US008, US009, US010, US011, US021.
 
@@ -43,6 +54,11 @@
 **Por quê**: é literalmente o CA#3 da US011, e a decisão 9 da E4 já tinha escolhido resolver o conflito num ponto só justamente para que essa regra coubesse numa comparação de data. As duas merendeiras se revezam no mapa e ambas veem tudo — o cenário não é hipotético.
 
 **Detalhe que a E4 já pagou caro para aprender**: o carimbo de quem editou por último não pode ser tocado por operação que não seja edição da merendeira. Se o desbloqueio feito pela direção reescrevesse esse carimbo, a direção viraria "última editora" e passaria a ganhar toda convergência — a regra da US011 se decidiria pelo evento errado.
+
+**Como ficou**: o servidor compara e devolve `superseded`; o cliente obedece,
+recarrega o dia e **avisa**. O aviso é texto novo — a E3 desenhou a faixa com
+três estados e nenhum deles é o conflito —, e ele está registrado, com a origem
+declarada, na [camada local](camada-local.md).
 
 **Histórias**: US011, US023.
 

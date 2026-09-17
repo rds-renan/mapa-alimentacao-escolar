@@ -108,6 +108,15 @@ export const supabase = {
     updateUser: vi.fn(async () => ({ data: {}, error: null })),
   },
 
+  /*
+   * A gravação do dia. Responde como uma rede que não está lá: o dia continua
+   * na fila, que é o estado que interessa a estes testes.
+   */
+  rpc: vi.fn(async () => ({
+    data: null,
+    error: { code: '', message: 'sem rede', details: '', hint: '' },
+  })),
+
   from: vi.fn(() => ({
     select: () => ({
       eq: () => ({
