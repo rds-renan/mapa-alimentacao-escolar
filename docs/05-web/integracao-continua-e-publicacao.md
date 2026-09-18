@@ -14,7 +14,7 @@ navegável desde o começo da etapa.
 
 | Fluxo | Dispara quando o PR toca | O que faz |
 |---|---|---|
-| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e a conferência de que nenhum segredo entrou no pacote |
+| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
 | [`spikes.yml`](../../.github/workflows/spikes.yml) | `supabase/spikes/` | formatação, lint, checagem de tipos e testes dos protótipos de servidor, em Deno |
 
@@ -38,7 +38,7 @@ vezes, em dois empregos paralelos, custaria o dobro para provar o mesmo.
 O mesmo, na sua máquina, antes de abrir o PR:
 
 ```bash
-cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets
+cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets && npm run check:size
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
 cd supabase/spikes/template-oficial && deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
@@ -55,6 +55,103 @@ acusar defasagem que não existe, num PR que não tem nada a ver com o assunto.
 Atualizar qualquer uma das duas é mudar a linha e ver a CI passar — que é
 precisamente o que se quer de uma atualização de ferramenta: ela vira um PR
 visível, e não um dia em que "a CI começou a falhar sozinha".
+
+## O peso do pacote tem um teto
+
+O assunto nasceu ao medir o pacote durante a [visão do mês](visao-do-mes.md) e
+rendeu duas coisas: os cabeçalhos de cache, que estão mais abaixo, e o que se
+descreve aqui. O pacote pesa **623 kB crus, 185 kB em gzip**, e o que está
+dentro dele é, quase tudo, dependência:
+
+| | kB crus | % |
+|---|---|---|
+| React + react-dom + scheduler | 213,7 | 35,2% |
+| Supabase | 203,8 | 33,6% |
+| React Router | 37,7 | 6,2% |
+| Radix + apoio | 35,5 | 5,9% |
+| TanStack Query | 31,9 | 5,3% |
+| `cn` / tailwind-merge | 25,6 | 4,2% |
+| lucide (só os ícones usados) | 7,1 | 1,2% |
+| **o nosso código** | **44,4** | **7,3%** |
+
+**O problema não era rapidez.** 185 kB em gzip é leve para a internet de hoje,
+e o custo de interpretar 623 kB crus cairia sobre celular barato — mas a web é
+o computador da escola e o plano B; o celular é o aplicativo da E6. O problema
+era outro: **um pedaço só, um hash só**. Mudar uma linha de uma tela trocava o
+nome do pacote inteiro, e todo navegador rebaixava os 185 kB — React e Supabase
+inclusos, sem que nada neles tivesse mudado. E o projeto publica **a cada merge
+na `main`**, então isso não era custo de primeira visita: era recorrente, uma
+vez por merge, para cada merendeira. O `immutable` da seção de cabeçalhos só
+rende se alguma coisa de fato permanecer guardada entre dois deploys — e não
+permanecia nada.
+
+### Duas peças em vez de uma
+
+O build agora separa o que vem de `node_modules` do que é nosso, em
+[`web/vite.config.ts`](../../web/vite.config.ts). O resultado, medido:
+
+| Pedaço | gzip | Troca de nome quando |
+|---|---|---|
+| `vendor` | 171,8 kB | uma dependência é atualizada |
+| o nosso | 14,2 kB | qualquer tela muda |
+| runtime do bundler | 0,4 kB | o Vite é atualizado |
+
+**92% do peso agora sobrevive ao deploy.** O custo é uma requisição a mais, o
+que em HTTP/2 não se mede, e cerca de 1 kB em gzip de repetição entre os dois
+arquivos.
+
+Isso se confere olhando, e foi conferido: dois builds seguidos com uma mudança
+de texto no meio, e o `vendor-C7gUMEVe.js` saiu com o mesmo nome nos dois,
+enquanto o nosso pedaço trocou de hash. É essa igualdade de nome que o cache do
+navegador enxerga.
+
+### O teto, que é um lembrete e não uma meta
+
+A outra metade da história é a divisão por rota — não baixar o painel e a
+administração para quem só vai registrar o almoço. Ela **não paga hoje**: as
+telas candidatas ainda são telas-marco de dez linhas, esperando as suas issues.
+Dividir agora não dividiria nada.
+
+O momento certo é quando existir tela pesada que ninguém abre todo dia, e na
+prática isso quer dizer a biblioteca de gráficos do painel gerencial, que
+sozinha é da ordem de 100 kB em gzip. O problema é que uma issue **lembra, mas
+não garante** — ela some numa limpeza de milestone ou fica esperando uma data
+que ninguém sabe qual é. Quem garante é a CI:
+[`npm run check:size`](../../web/scripts/conferir-peso-do-pacote.mjs) mede o
+`dist/` depois do build e reprova acima de **205 kB em gzip**, ao lado da
+conferência de segredos, no mesmo lugar e pelo mesmo motivo — as duas olham o
+pacote pronto, e não o código-fonte.
+
+**O que se mede é a carga inicial**, e não o maior arquivo: o módulo de entrada
+declarado no `index.html` mais tudo o que o próprio HTML manda pré-carregar.
+Com o pacote partido em dois, o que custa a quem abre a tela é a soma, não a
+maior parcela. E é justamente por isso que um pedaço carregado sob demanda não
+entra na conta: **a saída para o teto é dividir, e a régua tem de reconhecer
+quando alguém dividiu.**
+
+O número deixa cerca de 20 kB de folga sobre os 184,7 kB de hoje. O nosso
+código inteiro, quinze telas, são 14 kB em gzip — então as telas que faltam da
+merendeira cabem sem acender nada, e a biblioteca de gráficos estoura no
+primeiro commit. Que é exatamente o momento em que se quer ser interrompido.
+
+O custo disso é honesto e vale escrever: **é um build vermelho num momento
+inconveniente, por construção.** Quem estiver na issue do painel leva o tapa
+sem ter feito nada de errado. É o preço de a decisão não depender de alguém
+lembrar dela, e a saída, naquele dia, é uma das duas — carregar a biblioteca na
+rota, com `lazy()`, ou subir o teto num commit que diz por quê.
+
+### Duas coisas que ficaram de fora, de propósito
+
+**Os ~55 kB de realtime que nunca usamos.** O `supabase-js` puxa `realtime-js`
+e `phoenix` incondicionalmente, e não há uma chamada a `.channel()` no
+repositório. Fugir disso exigiria importar os sub-clientes direto e abrir mão
+do cliente unificado — o peso é aceitável e a refatoração não se paga.
+
+**O aviso de pacote grande do Vite**, que foi desligado. Ele dispara acima de
+500 kB crus, um número fixo que não sabe nada deste projeto, e o pedaço de
+terceiros vive acima dele por natureza: React e Supabase sozinhos passam disso.
+Um alarme que toca sempre e um alarme que toca quando importa não convivem —
+o segundo vira ruído junto do primeiro.
 
 ## O que a CI ainda não verifica
 
@@ -132,8 +229,12 @@ A primeira é higiene de quem serve página no navegador, e vale para tudo:
 `X-Robots-Tag` para ficar fora dos buscadores, `X-Content-Type-Options`,
 `X-Frame-Options` e `Referrer-Policy`.
 
-A segunda é sobre **cache**, e nasceu fora de escopo, ao medir o peso do pacote
-na issue #61. O padrão da Cloudflare para arquivo estático é
+A segunda é sobre **cache**, e nasceu da mesma medição que gerou o [teto de
+peso](#o-peso-do-pacote-tem-um-teto) — as duas coisas se sustentam: guardar o
+arquivo para sempre só vale se ele sobreviver ao próximo deploy, e é a
+separação descrita lá que faz isso acontecer.
+
+O padrão da Cloudflare para arquivo estático é
 `Cache-Control: public, max-age=0, must-revalidate` — o navegador pode guardar,
 mas tem de perguntar se ainda vale antes de cada uso. É o padrão certo para uma
 página cujo endereço não muda de nome, e errado para tudo que o Vite põe em
