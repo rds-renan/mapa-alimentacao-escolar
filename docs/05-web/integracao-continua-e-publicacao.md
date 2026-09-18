@@ -122,6 +122,39 @@ No painel ficam apenas as ligações com o repositório:
 As prévias por branch exigem ligar as **build branches** de não-produção em
 Settings → Build → Branch control; sem isso, só a `main` é construída.
 
+### Os cabeçalhos das respostas
+
+O que a Cloudflare manda junto de cada arquivo está em
+[`web/public/_headers`](../../web/public/_headers), que o Vite copia para o
+`dist/` no build. São duas regras.
+
+A primeira é higiene de quem serve página no navegador, e vale para tudo:
+`X-Robots-Tag` para ficar fora dos buscadores, `X-Content-Type-Options`,
+`X-Frame-Options` e `Referrer-Policy`.
+
+A segunda é sobre **cache**, e nasceu fora de escopo, ao medir o peso do pacote
+na issue #61. O padrão da Cloudflare para arquivo estático é
+`Cache-Control: public, max-age=0, must-revalidate` — o navegador pode guardar,
+mas tem de perguntar se ainda vale antes de cada uso. É o padrão certo para uma
+página cujo endereço não muda de nome, e errado para tudo que o Vite põe em
+`assets/`: esses nomes levam o hash do próprio conteúdo, então **mudou o
+arquivo, mudou o nome**. Perguntar se um arquivo assim ainda vale é uma ida e
+volta à rede paga à toa, em toda abertura do aplicativo — e numa escola com
+internet fraca é exatamente onde o tempo se perde. O `immutable` encerra a
+pergunta.
+
+O `index.html` fica de fora de propósito, e é o detalhe que torna a regra
+segura: o nome dele **não** muda, e é ele que aponta para os arquivos com hash.
+Guardá-lo congelaria o aplicativo numa versão antiga — o navegador continuaria
+abrindo o índice velho, que continuaria pedindo os arquivos velhos, e uma
+correção publicada nunca chegaria. Pela mesma razão ficam de fora `logo.png` e
+`robots.txt`, que moram na raiz com nome fixo.
+
+O efeito só se confere **publicado**: o servidor de desenvolvimento não é a
+Cloudflare e não lê este arquivo. A prévia do Pull Request serve para isso —
+`curl -I` no endereço da prévia, num arquivo de `assets/`, e o `Cache-Control`
+tem de vir com `immutable`.
+
 ### Para que serve a prévia, já que o desenvolvimento é local
 
 Quem desenvolve testa na própria máquina, e para isso a prévia não acrescenta
