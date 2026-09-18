@@ -70,3 +70,10 @@ jobs:
       # issue #59). A chave secreta só existe no ambiente das Edge Functions.
       - name: Segredos no pacote
         run: npm run check:secrets
+
+      # E o teto de peso: quanto o navegador baixa para abrir a aplicação
+      # (issue #84). Reprovar aqui não quer dizer que a aplicação ficou lenta
+      # — quer dizer que chegou a hora de decidir se o que acabou de entrar
+      # precisa vir na carga inicial ou se carrega sob demanda, na rota.
+      - name: Peso do pacote
+        run: npm run check:size

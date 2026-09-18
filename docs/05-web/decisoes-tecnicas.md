@@ -115,7 +115,7 @@ declarada, na [camada local](camada-local.md).
 ## 12. O que fica de fora desta decisão, e quando cada coisa se decide
 
 - **Biblioteca de geração do documento** — a Edge Function que preenche o template oficial é o risco declarado no plano de projeto. Merecia um *spike* próprio, com issue própria, antes de virar decisão: primeiro se descobre o que preenche o template com fidelidade, depois se escolhe a ferramenta. **Resolvido** — o spike foi feito e a resposta virou a decisão 13, abaixo.
-- **Biblioteca de gráficos** — nasce com o painel gerencial (US017), já com a paleta de dados definida na decisão 6 da E3.
+- **Biblioteca de gráficos** — nasce com o painel gerencial (US017), já com a paleta de dados definida na decisão 6 da E3. É também a candidata a estourar o teto de peso do pacote, e é para esse dia que o teto existe — ver [integração contínua e publicação](integracao-continua-e-publicacao.md#o-peso-do-pacote-tem-um-teto).
 - **Formulários, validação e datas** — nascem com a primeira tela que precisar delas, se precisarem.
 - **Notificação de documento pronto** — depende de aparelho registrado, o que só existe na E6 (decisão 12 da E4).
 - **Biblioteca de interface do aplicativo Android** — é decisão da E6, conforme a decisão 6 da E3, e será registrada em `docs/06-app/`. O que atravessa as duas plataformas são os tokens, não os componentes.
