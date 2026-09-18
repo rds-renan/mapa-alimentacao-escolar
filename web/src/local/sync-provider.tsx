@@ -62,6 +62,11 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     [engine]
   )
 
+  const pendingDays = useCallback(
+    async (prefix: string) => (engine ? engine.pendingDays(prefix) : []),
+    [engine]
+  )
+
   const flush = useCallback(async () => {
     if (engine) await engine.flush()
   }, [engine])
@@ -72,8 +77,16 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   )
 
   const value = useMemo<SyncContextValue>(
-    () => ({ state, save, load, pendingCount, flush, dismissConflict }),
-    [state, save, load, pendingCount, flush, dismissConflict]
+    () => ({
+      state,
+      save,
+      load,
+      pendingCount,
+      pendingDays,
+      flush,
+      dismissConflict,
+    }),
+    [state, save, load, pendingCount, pendingDays, flush, dismissConflict]
   )
 
   return <SyncContext value={value}>{children}</SyncContext>

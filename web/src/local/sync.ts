@@ -91,6 +91,13 @@ export interface SyncEngine {
    * pergunta aqui.
    */
   pendingCount(): Promise<number>
+  /**
+   * Os dias guardados no aparelho cuja data cai dentro do prefixo — `2026-09`
+   * para um mês inteiro. A visão do mês precisa deles porque um dia por enviar
+   * é um dia que já está preenchido: sem isto, ele apareceria vazio na lista
+   * que ela usa justamente para saber o que falta.
+   */
+  pendingDays(prefix: string): Promise<DayPayload[]>
   /** Tenta enviar tudo o que está na fila, agora. */
   flush(): Promise<void>
   dismissConflict(mapDate: string): void
@@ -412,6 +419,13 @@ export function createSyncEngine(userId: string): SyncEngine {
 
     async pendingCount() {
       return (await listStoredDays(userId)).length
+    },
+
+    async pendingDays(prefix) {
+      const records = await listStoredDays(userId)
+      return records
+        .filter((record) => record.mapDate.startsWith(prefix))
+        .map((record) => record.day)
     },
 
     flush,

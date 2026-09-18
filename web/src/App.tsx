@@ -2,7 +2,10 @@ import { Navigate, Route, Routes } from 'react-router'
 
 import { RequireRole, RequireSession } from '@/auth/guards'
 import { AdminDashboard } from '@/pages/AdminDashboard'
+import { DayRegister } from '@/pages/DayRegister'
+import { FoodItems } from '@/pages/FoodItems'
 import { ForgotPassword } from '@/pages/ForgotPassword'
+import { GeneratedDocuments } from '@/pages/GeneratedDocuments'
 import { MonthView } from '@/pages/MonthView'
 import { NewPassword } from '@/pages/NewPassword'
 import { SignIn } from '@/pages/SignIn'
@@ -24,6 +27,12 @@ export default function App() {
       <Route element={<RequireSession />}>
         <Route element={<RequireRole role="cook" />}>
           <Route path={ROUTES.cookHome} element={<MonthView />} />
+          <Route path={ROUTES.dayRegister} element={<DayRegister />} />
+          <Route
+            path={ROUTES.generatedDocuments}
+            element={<GeneratedDocuments />}
+          />
+          <Route path={ROUTES.foodItems} element={<FoodItems />} />
         </Route>
 
         <Route element={<RequireRole role="admin" />}>

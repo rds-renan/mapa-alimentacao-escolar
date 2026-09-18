@@ -40,10 +40,12 @@ estão na [camada local](camada-local.md).
 
 **Por quê**: cache, invalidação e estados de carregando/erro são problema resolvido, e reescrevê-los à mão consumiria a etapa sem entregar nada que a usuária veja. A tentação seria usar a persistência de cache da própria Query e chamar aquilo de offline — mas persistir cache é sobre **leitura**, e o que este produto precisa persistir é **escrita** que ainda não subiu. São problemas diferentes, e confundi-los é como se perde preenchimento. Manter a fila num módulo próprio também é o que deixa a regra "o dado local nunca é descartado antes de confirmado no servidor" (RN#1 da US011) explícita num lugar só, em vez de emergente do comportamento de uma biblioteca.
 
-**Como ficou**: a metade de baixo — a escrita que ainda não subiu — está de pé
-na [camada local](camada-local.md). A TanStack Query ainda não entrou: a
-primeira tela que precisa **ler** do servidor é a visão do mês (issue #61), e
-adicioná-la antes disso seria dependência por antecipação.
+**Como ficou**: as duas metades estão de pé. A de baixo — a escrita que ainda
+não subiu — é a [camada local](camada-local.md); a de cima entrou com a [visão
+do mês](visao-do-mes.md), que é a primeira tela que **lê** do servidor. Lá as
+duas se encontram pela primeira vez, e a fronteira ganhou a regra que faltava:
+quando o mesmo dia existe nas duas origens, vale o rascunho — **menos o
+bloqueio**, que ele não tem como conhecer.
 
 **Histórias**: US008, US009, US010, US011, US021.
 

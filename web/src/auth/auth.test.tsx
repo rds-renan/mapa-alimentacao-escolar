@@ -1,3 +1,4 @@
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
@@ -59,13 +60,33 @@ const admin: Profile = {
 function renderApp(path = '/') {
   return render(
     <MemoryRouter initialEntries={[path]}>
-      <AuthProvider>
-        <SyncProvider>
-          <App />
-        </SyncProvider>
-      </AuthProvider>
+      {/* A visão do mês lê o mês do servidor: sem o cliente da Query ela nem
+          chega a montar. O que estes testes verificam continua sendo a
+          sessão — o mês é só o destino de quem entra. */}
+      <QueryClientProvider client={new QueryClient()}>
+        <AuthProvider>
+          <SyncProvider>
+            <App />
+          </SyncProvider>
+        </AuthProvider>
+      </QueryClientProvider>
     </MemoryRouter>
   )
+}
+
+/*
+ * A tela-casa da merendeira, pelo que ela tem de próprio: o segundo dos dois
+ * caminhos da visão do mês. O título da tela é o mês, e o mês muda com a data
+ * em que o teste roda.
+ */
+const COOK_HOME = 'Gerar documento'
+
+/**
+ * Sair mora dentro do menu desde a issue #61 — é o lugar que a decisão 9 da E3
+ * lhe deu. Chegar lá custa um toque a mais, e é este.
+ */
+async function openMenu() {
+  fireEvent.click(await screen.findByRole('button', { name: 'Abrir o menu' }))
 }
 
 async function fillSignIn(email: string, password: string) {
@@ -209,7 +230,7 @@ describe('login', () => {
 
     await fillSignIn(cook.email, 'mae-desenvolvimento')
 
-    expect(await screen.findByText('Visão do mês')).toBeVisible()
+    expect(await screen.findByText(COOK_HOME)).toBeVisible()
   })
 })
 
@@ -218,7 +239,7 @@ describe('sessão', () => {
     givenSignedIn(cook)
     renderApp('/')
 
-    expect(await screen.findByText('Visão do mês')).toBeVisible()
+    expect(await screen.findByText(COOK_HOME)).toBeVisible()
     expect(supabase.auth.signInWithPassword).not.toHaveBeenCalled()
   })
 
@@ -226,7 +247,8 @@ describe('sessão', () => {
     givenSignedIn(cook)
     renderApp('/')
 
-    fireEvent.click(await screen.findByRole('button', { name: /Sair/ }))
+    await openMenu()
+    fireEvent.click(await screen.findByRole('button', { name: /^Sair$/ }))
 
     expect(await screen.findByRole('button', { name: 'Entrar' })).toBeVisible()
     await waitFor(() => {
@@ -262,7 +284,8 @@ describe('sessão', () => {
     givenSignedIn(cook)
     renderApp('/')
 
-    fireEvent.click(await screen.findByRole('button', { name: /Sair/ }))
+    await openMenu()
+    fireEvent.click(await screen.findByRole('button', { name: /^Sair$/ }))
 
     const aviso = await screen.findByRole('alertdialog')
     expect(aviso).toHaveTextContent(
@@ -302,7 +325,8 @@ describe('sessão', () => {
     givenSignedIn(cook)
     renderApp('/')
 
-    fireEvent.click(await screen.findByRole('button', { name: /Sair/ }))
+    await openMenu()
+    fireEvent.click(await screen.findByRole('button', { name: /^Sair$/ }))
     fireEvent.click(await screen.findByRole('button', { name: 'Ficar' }))
 
     await waitFor(() => {
@@ -328,7 +352,7 @@ describe('rotas por perfil', () => {
     givenSignedIn(cook)
     renderApp('/admin')
 
-    expect(await screen.findByText('Visão do mês')).toBeVisible()
+    expect(await screen.findByText(COOK_HOME)).toBeVisible()
     expect(screen.queryByText('Painel')).not.toBeInTheDocument()
   })
 
@@ -337,7 +361,7 @@ describe('rotas por perfil', () => {
     renderApp('/')
 
     expect(await screen.findByText('Painel')).toBeVisible()
-    expect(screen.queryByText('Visão do mês')).not.toBeInTheDocument()
+    expect(screen.queryByText(COOK_HOME)).not.toBeInTheDocument()
   })
 
   it('manda endereço desconhecido para a casa do perfil', async () => {
@@ -449,11 +473,11 @@ describe('a aba que não veio do link', () => {
   it('não vira uma segunda tela de trocar senha', async () => {
     givenSignedIn(cook)
     renderApp('/')
-    expect(await screen.findByText('Visão do mês')).toBeVisible()
+    expect(await screen.findByText(COOK_HOME)).toBeVisible()
 
     emitFromAnotherTab('PASSWORD_RECOVERY')
 
-    expect(await screen.findByText('Visão do mês')).toBeVisible()
+    expect(await screen.findByText(COOK_HOME)).toBeVisible()
     expect(screen.queryByLabelText('Senha nova')).not.toBeInTheDocument()
   })
 

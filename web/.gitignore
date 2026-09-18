@@ -25,3 +25,6 @@ dist-ssr
 
 # Estado local do Wrangler (build e cache da Cloudflare)
 .wrangler
+
+# Cache do Vitest
+.vitest
