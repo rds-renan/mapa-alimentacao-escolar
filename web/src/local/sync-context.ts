@@ -17,6 +17,8 @@ export interface SyncContextValue {
   load(mapDate: string): Promise<DayPayload | null>
   /** Quantos dias estão guardados agora, perguntando ao disco. */
   pendingCount(): Promise<number>
+  /** Os dias guardados cuja data começa pelo prefixo — o mês, em AAAA-MM. */
+  pendingDays(prefix: string): Promise<DayPayload[]>
   /** Tenta enviar tudo agora, sem esperar a rede avisar que voltou. */
   flush(): Promise<void>
   /** A usuária viu o aviso de conflito. */
