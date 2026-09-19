@@ -13,7 +13,7 @@ flowchart TD
     L[Login] --> M[Visão do mês]
     M -->|toque em um dia| R[Registro do dia]
     R -->|alternância| NL[Dia não letivo\nsó observação]
-    R -->|por refeição| AC[Alteração do cardápio\nprevisto · servido · motivo]
+    R -->|por refeição| AC[Alteração do cardápio\ngêneros da troca · motivo]
     R -->|falta um gênero| EG[Escolher gênero\nbusca e cadastro na sheet]
     M -->|gerar documento| S[Seleção de mapas\ndias · semana · mês]
     S --> G[Documento gerado]

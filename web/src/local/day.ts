@@ -92,14 +92,49 @@ export const MEAL_ORDER: MealType[] = [
  * motivo passam alguns segundos, e nesse intervalo o dia está guardado, não
  * debaixo de uma faixa dizendo que não deu para enviar.
  *
- * Hoje a única dobra é a do dia não letivo, que exige a observação e não tem
- * refeições — as duas recusas estão na tabela de erros da gravação do dia. É
- * aqui que entram as próximas, quando a alteração do cardápio chegar (#63).
+ * São duas dobras, e as duas têm a mesma forma: o meio do caminho de um
+ * preenchimento que o servidor só aceita inteiro. A do dia não letivo exige a
+ * observação e proíbe refeições; a da alteração do cardápio exige o motivo e
+ * ao menos um gênero. Todas estão na tabela de erros da gravação do dia.
  */
 export function canBeSent(day: DayPayload): boolean {
-  if (!day.non_school_day) return true
+  if (day.non_school_day) {
+    return notBlank(day.note) && day.meals.length === 0
+  }
 
-  return day.note !== null && day.note.trim() !== '' && day.meals.length === 0
+  return day.meals.every(mealCanBeSent)
+}
+
+function notBlank(text: string | null): boolean {
+  return text !== null && text.trim() !== ''
+}
+
+/*
+ * A refeição em si nunca impede o envio — descrição e aceitação nulas são o
+ * registro parcial, de propósito (CA#3 da US001). O que impede é o que o
+ * servidor recusa: alteração sem motivo ou sem gênero, e gênero a nascer sem
+ * unidade.
+ */
+function mealCanBeSent(meal: MealPayload): boolean {
+  if (!meal.food_items.every(itemCanBeSent)) return false
+  if (!meal.menu_change) return true
+
+  return (
+    notBlank(meal.menu_change.reason) &&
+    meal.menu_change.food_items.length > 0 &&
+    meal.menu_change.food_items.every(itemCanBeSent)
+  )
+}
+
+/*
+ * A quantidade é inteira e maior que zero (RN#1 da US003), e o gênero que
+ * ainda não está no catálogo precisa da unidade com que vai nascer — o
+ * catálogo manda na unidade de quem já existe, e não aceita item sem ela.
+ */
+function itemCanBeSent(item: FoodItemPayload): boolean {
+  if (!Number.isInteger(item.quantity) || item.quantity <= 0) return false
+
+  return item.food_item_id !== null || notBlank(item.unit)
 }
 
 export function newId(): string {
@@ -121,11 +156,12 @@ export function emptyDay(mapDate: string): DayPayload {
 
 /*
  * A mesma normalização que o servidor usa para decidir se dois nomes são o
- * mesmo gênero. Aqui ela serve só para adotar o identificador que voltou; se
- * errar, o pior que acontece é o servidor resolver pelo nome de novo no envio
- * seguinte.
+ * mesmo gênero. Serve para adotar o identificador que voltou — se errar, o
+ * pior que acontece é o servidor resolver pelo nome de novo no envio seguinte
+ * — e para a tela não pôr o mesmo gênero duas vezes na mesma lista, que é
+ * exatamente o que o servidor fundiria numa linha só.
  */
-function normalizedName(name: string): string {
+export function normalizedName(name: string): string {
   return name.trim().toLowerCase().replace(/\s+/g, ' ')
 }
 

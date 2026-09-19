@@ -99,7 +99,7 @@ function openCard(name: string) {
 }
 
 function typeDescription(value: string) {
-  fireEvent.change(screen.getByLabelText('Cardápio realizado'), {
+  fireEvent.change(screen.getByLabelText('Cardápio previsto'), {
     target: { value },
   })
 }
@@ -230,9 +230,7 @@ describe('o dia não letivo', () => {
     typeDescription('Pão com manteiga')
     fireEvent.click(screen.getByRole('switch'))
 
-    expect(
-      screen.queryByLabelText('Cardápio realizado')
-    ).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Cardápio previsto')).not.toBeInTheDocument()
     expect(screen.getByLabelText('Observação')).toBeInTheDocument()
     expect(screen.getByText(/Escreva o motivo/)).toBeInTheDocument()
 
@@ -272,7 +270,7 @@ describe('o dia não letivo', () => {
 
     fireEvent.click(screen.getByRole('switch'))
 
-    expect(await screen.findByLabelText('Cardápio realizado')).toHaveValue(
+    expect(await screen.findByLabelText('Cardápio previsto')).toHaveValue(
       'Pão com manteiga'
     )
     expect(screen.getByLabelText('Refeições servidas no dia')).toHaveValue(
@@ -304,7 +302,7 @@ describe('o dia que já saiu em documento', () => {
 
     expect(screen.getByRole('switch')).toBeDisabled()
     expect(screen.getByLabelText('Refeições servidas no dia')).toBeDisabled()
-    expect(screen.getByLabelText('Cardápio realizado')).toBeDisabled()
+    expect(screen.getByLabelText('Cardápio previsto')).toBeDisabled()
     expect(screen.getByRole('button', { name: 'Ótimo' })).toBeDisabled()
   })
 
@@ -318,7 +316,7 @@ describe('o dia que já saiu em documento', () => {
 
     openCard('Lanche da manhã')
     await waitFor(() =>
-      expect(screen.getByLabelText('Cardápio realizado')).toHaveValue(
+      expect(screen.getByLabelText('Cardápio previsto')).toHaveValue(
         'Pão com leite'
       )
     )
@@ -339,9 +337,7 @@ describe('quando o dia não vem do servidor', () => {
     expect(
       screen.getByRole('button', { name: 'Tentar de novo' })
     ).toBeInTheDocument()
-    expect(
-      screen.queryByLabelText('Cardápio realizado')
-    ).not.toBeInTheDocument()
+    expect(screen.queryByLabelText('Cardápio previsto')).not.toBeInTheDocument()
   })
 })
 
