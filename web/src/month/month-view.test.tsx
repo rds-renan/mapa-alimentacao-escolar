@@ -342,6 +342,8 @@ describe('menu do aplicativo', () => {
       await screen.findByRole('link', { name: 'Gerenciar gêneros' })
     )
 
-    expect(await screen.findByText('Gerenciar gêneros')).toBeInTheDocument()
+    // O menu diz "Gerenciar gêneros" e a tela se chama "Catálogo de gêneros":
+    // são os dois nomes do desenho da E3, e é a tela que prova a chegada.
+    expect(await screen.findByText('Catálogo de gêneros')).toBeInTheDocument()
   })
 })

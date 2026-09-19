@@ -19,7 +19,7 @@ export const ROUTES = {
   dayRegister: '/dia/:mapDate',
   /** Os documentos ainda dentro da janela de 7 dias (issue #67). */
   generatedDocuments: '/documentos',
-  /** A manutenção do catálogo de gêneros (issue #64). */
+  /** A manutenção do catálogo de gêneros: a tela 4 da E3. */
   foodItems: '/generos',
   /** A tela-casa da direção: o painel gerencial (issue #70). */
   adminHome: '/admin',

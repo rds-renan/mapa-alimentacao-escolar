@@ -4,8 +4,8 @@ import { normalizedName, type FoodItemPayload } from '@/local/day'
  * O catálogo de gêneros da escola, do jeito que o registro do dia precisa
  * dele: uma lista para buscar e as unidades para sugerir.
  *
- * Mora fora de `day/` porque não é do dia — é o catálogo, que a tela de
- * manutenção (#64) vai ler pela mesma porta. O que é do dia é a folha que o
+ * Mora fora de `day/` porque não é do dia — é o catálogo, e a tela de
+ * manutenção (tela 4) lê pela mesma porta. O que é do dia é a folha que o
  * consulta sem tirar a merendeira do registro (decisão 7 da E3).
  */
 
@@ -16,10 +16,23 @@ export interface FoodItem {
 }
 
 /**
+ * O mesmo gênero, como a tela de manutenção precisa vê-lo: com o desativado
+ * junto.
+ *
+ * Quem registra o dia só enxerga os ativos — o desativado sumiu das sugestões
+ * (CA#3 da US009) e nada mais precisa saber dele. Quem mantém o catálogo
+ * precisa: desativar por engano tem de ter volta, e sem os desativados à vista
+ * o erro seria irreversível pela interface.
+ */
+export interface CatalogItem extends FoodItem {
+  active: boolean
+}
+
+/**
  * As unidades que a folha oferece ao cadastrar um gênero no meio do registro.
  *
  * A unidade é texto curto no banco e a lista **não** é fechada (decisão 8 da
- * E4) — mas quem abre o leque é a tela de manutenção do catálogo (#64). Aqui,
+ * E4) — mas quem abre o leque é a tela de manutenção do catálogo. Aqui,
  * no meio de uma refeição, são seis toques e nenhum teclado: é o desenho da
  * tela 3b, e é o que faz o pior caso (o gênero não existe) caber em dois
  * gestos.
