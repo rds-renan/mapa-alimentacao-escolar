@@ -1,10 +1,13 @@
 import {
   MEAL_ORDER,
   newId,
+  normalizedName,
   type AcceptanceLevel,
   type DayPayload,
+  type FoodItemPayload,
   type MealPayload,
   type MealType,
+  type MenuChangePayload,
 } from '@/local/day'
 import { filled, mealIsComplete } from '@/month/month'
 
@@ -150,11 +153,11 @@ export function setMealsServed(
 }
 
 /**
- * O teto do número de refeições: `meals_served` é um `smallint` no banco.
- * Cortar aqui evita o dia que ela preencheu voltar recusado por um dedo que
- * ficou preso na tecla.
+ * O teto de tudo que é contado neste dia: `meals_served` e as quantidades dos
+ * gêneros são `smallint` no banco. Cortar aqui evita o dia que ela preencheu
+ * voltar recusado por um dedo que ficou preso na tecla.
  */
-const MAX_MEALS_SERVED = 32_767
+const MAX_COUNT = 32_767
 
 /**
  * O que ela digitou, virando número.
@@ -168,7 +171,7 @@ export function parseMealsServed(text: string): number | null {
   const digits = text.replace(/\D/g, '')
   if (digits === '') return null
 
-  const value = Math.min(Number(digits), MAX_MEALS_SERVED)
+  const value = Math.min(Number(digits), MAX_COUNT)
   return value === 0 ? null : value
 }
 
@@ -179,7 +182,7 @@ export function stepMealsServed(
 ): number | null {
   const next = (value ?? 0) + delta
   if (next < 1) return null
-  return Math.min(next, MAX_MEALS_SERVED)
+  return Math.min(next, MAX_COUNT)
 }
 
 export function setNote(day: DayPayload, note: string): DayPayload {
@@ -238,4 +241,201 @@ export function setNonSchoolDay(
     meals: restored.meals,
     meals_served: restored.mealsServed,
   }
+}
+
+// ---------------------------------------------------------------------------
+// Os gêneros utilizados, e a alteração do cardápio (issue #63)
+// ---------------------------------------------------------------------------
+
+/**
+ * Onde a lista de gêneros mora. São duas listas com a mesma forma, e não uma:
+ * elas alimentam **colunas diferentes** do documento oficial — os gêneros da
+ * refeição e os gêneros da troca (decisão 7 da E4).
+ */
+export type FoodItemList = 'meal' | 'menu_change'
+
+/**
+ * Como um gênero é achado dentro da lista.
+ *
+ * É o nome normalizado, e não o identificador, porque é assim que o servidor
+ * decide se dois gêneros são o mesmo: o catálogo é único por nome normalizado
+ * dentro da escola, e dois nomes que normalizam igual viram uma linha só na
+ * gravação. Fosse a chave o identificador, "Arroz" do catálogo e um "arroz "
+ * recém-digitado conviveriam aqui e desapareceriam um no outro lá.
+ */
+export function foodItemKey(item: { name: string }): string {
+  return normalizedName(item.name)
+}
+
+function listOf(meal: MealPayload, list: FoodItemList): FoodItemPayload[] {
+  return list === 'meal'
+    ? meal.food_items
+    : (meal.menu_change?.food_items ?? [])
+}
+
+/*
+ * Devolve a refeição com a lista trocada. Mexer nos gêneros da troca quando
+ * ainda não há alteração **cria** a alteração, sem motivo: é a ordem em que a
+ * tela 3a acontece — primeiro ela escolhe o que usou, depois escreve por quê.
+ * Enquanto faltar o motivo, `canBeSent` segura o dia no aparelho.
+ */
+function withList(
+  meal: MealPayload,
+  list: FoodItemList,
+  items: FoodItemPayload[]
+): MealPayload {
+  if (list === 'meal') return { ...meal, food_items: items }
+
+  const change = meal.menu_change ?? { id: newId(), reason: '', food_items: [] }
+  return { ...meal, menu_change: { ...change, food_items: items } }
+}
+
+/** Mexe na lista de gêneros de uma das duas listas de uma refeição. */
+function changeList(
+  day: DayPayload,
+  type: MealType,
+  list: FoodItemList,
+  change: (items: FoodItemPayload[]) => FoodItemPayload[]
+): DayPayload {
+  return withMeal(day, type, (meal) =>
+    withList(meal, list, change(listOf(meal, list)))
+  )
+}
+
+/**
+ * Põe um gênero na lista, com a quantidade em 1 (decisão 7 da E3: escolhido o
+ * item, ele entra na refeição já com o stepper em 1).
+ *
+ * Um gênero que já está na lista não entra de novo nem volta para 1: a
+ * gravação funde os dois pelo nome e ficaria valendo a última quantidade, o
+ * que apagaria em silêncio o número que ela já tinha ajustado.
+ */
+export function addFoodItem(
+  day: DayPayload,
+  type: MealType,
+  list: FoodItemList,
+  item: Omit<FoodItemPayload, 'quantity'>
+): DayPayload {
+  return changeList(day, type, list, (items) =>
+    items.some((one) => foodItemKey(one) === foodItemKey(item))
+      ? items
+      : [...items, { ...item, quantity: 1 }]
+  )
+}
+
+export function setFoodItemQuantity(
+  day: DayPayload,
+  type: MealType,
+  list: FoodItemList,
+  key: string,
+  quantity: number
+): DayPayload {
+  return changeList(day, type, list, (items) =>
+    items.map((item) =>
+      foodItemKey(item) === key
+        ? { ...item, quantity: Math.min(Math.max(quantity, 1), MAX_COUNT) }
+        : item
+    )
+  )
+}
+
+export function removeFoodItem(
+  day: DayPayload,
+  type: MealType,
+  list: FoodItemList,
+  key: string
+): DayPayload {
+  return changeList(day, type, list, (items) =>
+    items.filter((item) => foodItemKey(item) !== key)
+  )
+}
+
+/**
+ * Um a mais, um a menos — e, no "−" de quem está em 1, o gênero sai da lista.
+ *
+ * Quantidade zero não existe no banco (RN#1 da US003), então o botão precisava
+ * parar em 1 ou tirar o item. Tirar é o que ela quer: o gênero foi posto ali
+ * por engano, e um cesto de lixo a mais em cada linha encheria o cartão de
+ * ícone para um gesto que o "−" já nomeia.
+ */
+export function stepFoodItemQuantity(
+  day: DayPayload,
+  type: MealType,
+  list: FoodItemList,
+  key: string,
+  delta: number
+): DayPayload {
+  const meal = mealOf(day, type)
+  const item = meal
+    ? listOf(meal, list).find((one) => foodItemKey(one) === key)
+    : undefined
+  if (!item) return day
+
+  const next = item.quantity + delta
+  if (next < 1) return removeFoodItem(day, type, list, key)
+
+  return setFoodItemQuantity(day, type, list, key, next)
+}
+
+/**
+ * A quantidade que ela digitou, virando número.
+ *
+ * Só dígitos entram, como no número de refeições (CA#2 da US003). O vazio
+ * volta nulo para o campo poder ficar vazio enquanto ela troca o número — a
+ * lista só aceita inteiro maior que zero, e quem comete o valor é quem chama.
+ */
+export function parseQuantity(text: string): number | null {
+  const digits = text.replace(/\D/g, '')
+  if (digits === '') return null
+
+  const value = Math.min(Number(digits), MAX_COUNT)
+  return value === 0 ? null : value
+}
+
+export function setMenuChangeReason(
+  day: DayPayload,
+  type: MealType,
+  reason: string
+): DayPayload {
+  return withMeal(day, type, (meal) => ({
+    ...meal,
+    menu_change: {
+      id: meal.menu_change?.id ?? newId(),
+      food_items: meal.menu_change?.food_items ?? [],
+      reason,
+    },
+  }))
+}
+
+/**
+ * Põe a alteração de volta como estava, ou tira-a. É o "Cancelar" da tela 3a,
+ * e é também a limpeza do que ficou vazio: alteração sem gênero e sem motivo
+ * não é alteração — é a tela 3a aberta e fechada sem nada.
+ */
+export function setMenuChange(
+  day: DayPayload,
+  type: MealType,
+  change: MenuChangePayload | null
+): DayPayload {
+  return withMeal(day, type, (meal) => ({ ...meal, menu_change: change }))
+}
+
+export function menuChangeIsEmpty(change: MenuChangePayload | null): boolean {
+  if (!change) return true
+
+  return !filled(change.reason) && change.food_items.length === 0
+}
+
+/**
+ * A alteração está inteira? São as duas exigências do servidor: a justificativa
+ * (CA#2 da US002) e ao menos um gênero — sem os gêneros que entraram, a troca
+ * não descreve nada. Enquanto faltar uma delas, o dia fica guardado no
+ * aparelho e a tela diz o que falta.
+ */
+export function menuChangeIsComplete(
+  change: MenuChangePayload | null
+): boolean {
+  return (
+    change !== null && filled(change.reason) && change.food_items.length > 0
+  )
 }

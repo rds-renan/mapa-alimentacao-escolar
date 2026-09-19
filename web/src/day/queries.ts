@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
+import { FOOD_ITEMS_QUERY_KEY } from '@/food-items/queries'
 import { supabase } from '@/lib/supabase'
 import {
   emptyDay,
@@ -22,11 +23,10 @@ import { touch } from './register'
  * não existe. Vale o rascunho — ele só está guardado enquanto o servidor não
  * confirmou, então é mais novo por construção.
  *
- * A consulta traz o dia **inteiro**, inclusive os gêneros e a alteração do
- * cardápio que esta issue ainda não edita. Não é antecipação: o que sobe em
- * `save_meal_map` é o dia todo, e o que não vier deixa de existir — ler pela
- * metade faria uma correção de descrição apagar em silêncio os gêneros que a
- * colega registrou.
+ * A consulta traz o dia **inteiro**, com os gêneros e a alteração do cardápio
+ * dentro: o que sobe em `save_meal_map` é o dia todo, e o que não vier deixa
+ * de existir — ler pela metade faria uma correção de descrição apagar em
+ * silêncio os gêneros que a colega registrou.
  */
 
 /*
@@ -139,11 +139,16 @@ export function useDay(mapDate: string): DayData {
    * A fila confirmou alguma coisa: o que o servidor tem agora é diferente do
    * que esta tela leu. Invalidar todos os dias, e não só o aberto, porque a
    * fila pode ter subido outro dia enquanto ela olhava este.
+   *
+   * O catálogo vai junto: o gênero cadastrado no meio do registro só nasce
+   * quando o dia sobe (`save_meal_map` cria o que ainda não existir), e sem
+   * isto ele ficaria fora da busca da folha até a próxima meia hora.
    */
   const settled = useRef(state.pending)
   useEffect(() => {
     if (state.pending < settled.current) {
       void queryClient.invalidateQueries({ queryKey: ['day'] })
+      void queryClient.invalidateQueries({ queryKey: FOOD_ITEMS_QUERY_KEY })
     }
     settled.current = state.pending
   }, [state.pending, queryClient])

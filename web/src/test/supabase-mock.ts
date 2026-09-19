@@ -11,6 +11,21 @@ import type { Profile } from '@/auth/auth-context'
  * senha nova, a leitura do perfil e a consulta dos mapas de um mês.
  */
 
+/** Uma linha de `food_item`: o catálogo da escola, como a folha 3b o lê. */
+export interface FoodItemRow {
+  id: string
+  name: string
+  default_unit: string
+}
+
+/** Um gênero usado, do jeito que a leitura do dia o traz do banco. */
+export interface UsedFoodItemRow {
+  food_item_id: string
+  name: string
+  default_unit: string
+  quantity: number
+}
+
 /** Uma linha de `meal_map` como a visão do mês a pede, com as refeições dentro. */
 export interface MealMapRow {
   map_date: string
@@ -22,16 +37,26 @@ export interface MealMapRow {
     type: 'morning_snack' | 'lunch' | 'afternoon_snack'
     description: string | null
     acceptance: 'great' | 'good' | 'poor' | null
+    /** Só o registro do dia lê estes dois; o mês não pergunta por eles. */
+    food_items?: UsedFoodItemRow[]
+    menu_change?: { id: string; reason: string; food_items: UsedFoodItemRow[] }
   }[]
   /** Só o registro do dia lê estes; o mês não pergunta por eles. */
   id?: string
   updated_at?: string
 }
 
+function usedRow(item: UsedFoodItemRow) {
+  return {
+    food_item_id: item.food_item_id,
+    quantity: item.quantity,
+    food_item: { name: item.name, default_unit: item.default_unit },
+  }
+}
+
 /*
  * A mesma linha, como o registro do dia a pede: com o identificador do mapa e
- * de cada refeição, e com os gêneros e a alteração do cardápio — que a tela
- * ainda não edita, mas relê e devolve inteiros no envio.
+ * de cada refeição, e com os gêneros e a alteração do cardápio dentro.
  */
 function dayRow(row: MealMapRow) {
   return {
@@ -47,8 +72,14 @@ function dayRow(row: MealMapRow) {
       type: meal.type,
       description: meal.description,
       acceptance: meal.acceptance,
-      meal_food_item: [],
-      menu_change: null,
+      meal_food_item: (meal.food_items ?? []).map(usedRow),
+      menu_change: meal.menu_change
+        ? {
+            id: meal.menu_change.id,
+            reason: meal.menu_change.reason,
+            menu_change_food_item: meal.menu_change.food_items.map(usedRow),
+          }
+        : null,
     })),
   }
 }
@@ -64,6 +95,8 @@ let signInError: { code?: string; status?: number; message: string } | null =
   null
 let mealMapRows: MealMapRow[] = []
 let mealMapError: { message: string } | null = null
+let foodItemRows: FoodItemRow[] = []
+let foodItemError: { message: string } | null = null
 
 function sessionFor(profile: Profile): Session {
   return {
@@ -113,6 +146,17 @@ export function givenMealMapsFail(message = 'sem rede') {
   mealMapError = { message }
 }
 
+/** O catálogo de gêneros da escola, como a folha 3b o encontra. */
+export function givenFoodItems(rows: FoodItemRow[]) {
+  foodItemRows = rows
+  foodItemError = null
+}
+
+/** O catálogo não veio — e a folha ainda tem de deixar cadastrar. */
+export function givenFoodItemsFail(message = 'sem rede') {
+  foodItemError = { message }
+}
+
 export function resetSupabaseMock() {
   listeners.clear()
   currentSession = null
@@ -121,6 +165,8 @@ export function resetSupabaseMock() {
   signInError = null
   mealMapRows = []
   mealMapError = null
+  foodItemRows = []
+  foodItemError = null
   vi.clearAllMocks()
 }
 
@@ -207,17 +253,28 @@ export const supabase = {
       },
       then: (
         resolve: (result: {
-          data: MealMapRow[] | null
+          data: MealMapRow[] | FoodItemRow[] | null
           error: { message: string } | null
         }) => unknown
-      ) =>
-        Promise.resolve(
+      ) => {
+        if (table === 'food_item') {
+          return Promise.resolve(
+            resolve(
+              foodItemError
+                ? { data: null, error: foodItemError }
+                : { data: foodItemRows, error: null }
+            )
+          )
+        }
+
+        return Promise.resolve(
           resolve(
             mealMapError
               ? { data: null, error: mealMapError }
               : { data: table === 'meal_map' ? mealMapRows : [], error: null }
           )
-        ),
+        )
+      },
     }
 
     return chain

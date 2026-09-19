@@ -9,25 +9,36 @@ import {
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 
 import { Button } from '@/components/ui/button'
+import type { FoodItemActions } from '@/day/food-item-list'
+import { FoodItemSheet } from '@/day/food-item-sheet'
 import { MealCard } from '@/day/meal-card'
 import { MealsServedCard } from '@/day/meals-served-card'
 import { DAY_MESSAGES, dayTitle } from '@/day/messages'
+import { MenuChangeDialog } from '@/day/menu-change-dialog'
 import { NonSchoolDayCard } from '@/day/non-school-day-card'
 import { useDay } from '@/day/queries'
 import {
+  addFoodItem,
   dayProgress,
   firstUnfinishedMeal,
   mealOf,
+  menuChangeIsEmpty,
   schoolDayContent,
   setAcceptance,
   setDescription,
+  setFoodItemQuantity,
   setMealsServed,
+  setMenuChange,
+  setMenuChangeReason,
   setNonSchoolDay,
   setNote,
+  stepFoodItemQuantity,
   NOTHING_TO_RESTORE,
+  type FoodItemList,
   type SchoolDayContent,
 } from '@/day/register'
-import { MEAL_ORDER, type MealType } from '@/local/day'
+import { chosenNames } from '@/food-items/catalog'
+import { MEAL_ORDER, type MealType, type MenuChangePayload } from '@/local/day'
 import { ConflictNotice } from '@/local/conflict-notice'
 import { SyncBanner } from '@/local/sync-banner'
 import { dayAndMonth, monthKeyOf, monthLabel, shiftDate } from '@/month/month'
@@ -69,6 +80,19 @@ function DayScreen({ mapDate }: { mapDate: string }) {
     useDay(mapDate)
 
   const [openMeal, setOpenMeal] = useState<MealType | null>(null)
+  /** Em qual refeição a tela 3a está aberta. */
+  const [changeFor, setChangeFor] = useState<MealType | null>(null)
+  /** Para qual das duas listas a folha 3b vai entregar o gênero escolhido. */
+  const [sheetFor, setSheetFor] = useState<{
+    type: MealType
+    list: FoodItemList
+  } | null>(null)
+  /*
+   * A alteração como estava quando a tela 3a abriu. É o que o "Cancelar"
+   * devolve — sem isto ele não teria como desfazer, porque o que ela digita
+   * ali já foi para o aparelho na hora.
+   */
+  const changeBefore = useRef<MenuChangePayload | null>(null)
   /*
    * Qual dia já teve o cartão aberto. A escolha é uma vez por dia aberto: se
    * ela recalculasse a cada tecla, o cartão se fecharia sozinho na hora em que
@@ -81,6 +105,19 @@ function DayScreen({ mapDate }: { mapDate: string }) {
     openedFor.current = mapDate
     setOpenMeal(firstUnfinishedMeal(day))
   }, [day, mapDate])
+
+  /*
+   * As setas do cabeçalho continuam funcionando com a tela 3a aberta, e a
+   * alteração de terça não pode ficar de pé sobre o dia de quarta. O ajuste é
+   * no próprio desenho, e não num efeito: um efeito só fecharia a folha depois
+   * de ela já ter aparecido por um quadro sobre o dia errado.
+   */
+  const [shownFor, setShownFor] = useState(mapDate)
+  if (shownFor !== mapDate) {
+    setShownFor(mapDate)
+    setChangeFor(null)
+    setSheetFor(null)
+  }
 
   /*
    * O que o dia tinha antes de ela marcar "dia não letivo", guardado por data:
@@ -105,6 +142,54 @@ function DayScreen({ mapDate }: { mapDate: string }) {
     change(
       setNonSchoolDay(day, on, preserved.current[mapDate] ?? NOTHING_TO_RESTORE)
     )
+  }
+
+  /*
+   * O que os steppers de uma lista fazem. O mesmo trio serve às duas listas da
+   * refeição — os gêneros dela e os da troca —, e é o `list` que diz qual.
+   */
+  function foodItemActions(
+    type: MealType,
+    list: FoodItemList
+  ): FoodItemActions {
+    return {
+      add: () => setSheetFor({ type, list }),
+      step: (key, delta) => {
+        if (day) change(stepFoodItemQuantity(day, type, list, key, delta))
+      },
+      setQuantity: (key, quantity) => {
+        if (day) change(setFoodItemQuantity(day, type, list, key, quantity))
+      },
+    }
+  }
+
+  function openMenuChange(type: MealType) {
+    if (!day) return
+
+    changeBefore.current = mealOf(day, type)?.menu_change ?? null
+    setChangeFor(type)
+  }
+
+  /*
+   * Confirmar é fechar — o que está escrito já está gravado. O que ele decide
+   * é o que fica: a alteração aberta e fechada sem nada dentro sai do dia, em
+   * vez de virar um registro vazio que o servidor recusaria para sempre.
+   */
+  function confirmMenuChange() {
+    const type = changeFor
+    setChangeFor(null)
+    if (!day || type === null) return
+
+    const current = mealOf(day, type)?.menu_change ?? null
+    if (menuChangeIsEmpty(current)) change(setMenuChange(day, type, null))
+  }
+
+  function cancelMenuChange() {
+    const type = changeFor
+    setChangeFor(null)
+    if (!day || type === null) return
+
+    change(setMenuChange(day, type, changeBefore.current))
   }
 
   return (
@@ -218,6 +303,7 @@ function DayScreen({ mapDate }: { mapDate: string }) {
                     meal={mealOf(day, type)}
                     open={openMeal === type}
                     readOnly={readOnly}
+                    foodItems={foodItemActions(type, 'meal')}
                     onOpenChange={(open) => setOpenMeal(open ? type : null)}
                     onDescriptionChange={(description) =>
                       change(setDescription(day, type, description))
@@ -225,6 +311,7 @@ function DayScreen({ mapDate }: { mapDate: string }) {
                     onAcceptanceChange={(acceptance) =>
                       change(setAcceptance(day, type, acceptance))
                     }
+                    onOpenMenuChange={() => openMenuChange(type)}
                   />
                 ))}
 
@@ -238,6 +325,50 @@ function DayScreen({ mapDate }: { mapDate: string }) {
           </>
         )}
       </main>
+
+      {/*
+       * As duas telas que sobem sobre o registro. Ficam aqui, e não dentro do
+       * cartão, porque a 3b abre tanto da refeição quanto de dentro da 3a — e
+       * porque as duas precisam do dia inteiro para gravar o que ela escolher.
+       */}
+      {day && changeFor !== null ? (
+        <MenuChangeDialog
+          open
+          type={changeFor}
+          mapDate={mapDate}
+          change={mealOf(day, changeFor)?.menu_change ?? null}
+          readOnly={readOnly}
+          actions={foodItemActions(changeFor, 'menu_change')}
+          onReasonChange={(reason) =>
+            change(setMenuChangeReason(day, changeFor, reason))
+          }
+          onRemove={() => {
+            change(setMenuChange(day, changeFor, null))
+            setChangeFor(null)
+          }}
+          onCancel={cancelMenuChange}
+          onConfirm={confirmMenuChange}
+        />
+      ) : null}
+
+      {day && sheetFor !== null ? (
+        <FoodItemSheet
+          open
+          type={sheetFor.type}
+          mapDate={mapDate}
+          chosen={chosenNames(
+            sheetFor.list === 'meal'
+              ? (mealOf(day, sheetFor.type)?.food_items ?? [])
+              : (mealOf(day, sheetFor.type)?.menu_change?.food_items ?? [])
+          )}
+          onOpenChange={(open) => {
+            if (!open) setSheetFor(null)
+          }}
+          onChoose={(item) =>
+            change(addFoodItem(day, sheetFor.type, sheetFor.list, item))
+          }
+        />
+      ) : null}
 
       <footer className="sticky bottom-0 border-t border-border bg-card">
         <div className="mx-auto flex w-full max-w-screen flex-col gap-2 px-4 pt-3 pb-4">

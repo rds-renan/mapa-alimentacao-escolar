@@ -80,8 +80,15 @@ export const DAY_MESSAGES = {
   /* Diz o que falta sem chamar de erro o que é apenas o meio do caminho. */
   noteMissing: 'Escreva o motivo para este dia entrar no mapa.',
 
-  descriptionLabel: 'Cardápio realizado',
-  descriptionPlaceholder: 'Toque para escrever o que foi servido',
+  /*
+   * "Previsto", e não "realizado" como a coluna do formulário oficial se
+   * chama: a linha da refeição permanece fiel ao cardápio previsto mesmo
+   * quando houve troca, e é essa permanência que dá sentido à justificativa
+   * (decisão 8 da E3, decisão 7 da E4). Chamá-la de "realizado" na tela
+   * pediria à merendeira exatamente o que a tela 3a lhe diz para não fazer.
+   */
+  descriptionLabel: 'Cardápio previsto',
+  descriptionPlaceholder: 'Toque para escrever o cardápio da refeição',
   acceptanceLabel: 'Aceitação',
 
   mealsServedTitle: 'Refeições servidas no dia',
@@ -89,9 +96,93 @@ export const DAY_MESSAGES = {
   mealsServedLess: 'Uma refeição a menos',
   mealsServedMore: 'Uma refeição a mais',
 
+  foodItemsLabel: 'Gêneros utilizados',
+  foodItemsOptional: 'opcional',
+  addFoodItem: 'Adicionar gênero',
+  menuChange: 'Alteração do cardápio',
+  /*
+   * O "−" de quem está em 1 tira o gênero da lista, e o leitor de tela precisa
+   * dizer isso antes do toque: quantidade zero não existe (RN#1 da US003), e
+   * um botão que às vezes diminui e às vezes apaga não pode ter um nome só.
+   */
+  foodItemLess: (name: string, last: boolean) =>
+    last ? `Tirar ${name} da lista` : `Um a menos de ${name}`,
+  foodItemMore: (name: string) => `Um a mais de ${name}`,
+  foodItemQuantity: (name: string, unit: string | null) =>
+    unit ? `Quantidade de ${name}, em ${unit}` : `Quantidade de ${name}`,
+
   /* A decisão 3 da E3 em uma linha: não há botão de salvar, e isso se diz. */
   autosave: 'Salva sozinho, sem botão de salvar.',
   progress: 'Partes preenchidas do dia',
+} as const
+
+/** "Almoço · Terça, 9 de setembro" — o subtítulo das telas 3a e 3b. */
+export function mealSubtitle(type: MealType, date: string): string {
+  return `${MEAL_TITLES[type]} · ${dayTitle(date)}`
+}
+
+/*
+ * A alteração do cardápio — tela 3a (US002).
+ *
+ * O aviso do alto é a decisão 8 da E3 dita para quem está preenchendo: a
+ * refeição não muda, aqui vai só o que entrou no lugar. Sem ele a tela
+ * convidaria a reescrever o cardápio, que é justamente o que tiraria o sentido
+ * da justificativa.
+ */
+export const MENU_CHANGE_MESSAGES = {
+  title: 'Alteração do cardápio',
+  close: 'Fechar a alteração do cardápio',
+  notice: (type: MealType) =>
+    `O ${MEAL_LABELS[type]} continua registrado como o cardápio previsto. Aqui vão só os gêneros que você usou no lugar.`,
+  itemsLabel: 'Gêneros utilizados na troca',
+  reasonLabel: 'Motivo',
+  reasonPlaceholder: 'Toque para escrever o motivo da troca',
+  /* Texto livre com sugestões de motivos frequentes (RNF#1 da US002). */
+  reasonSuggestions: [
+    'Falta de entrega do fornecedor',
+    'Item impróprio',
+    'Quantidade insuficiente',
+  ],
+  document:
+    'Os gêneros e o motivo saem no documento oficial, na coluna reservada às alterações.',
+  /*
+   * As duas linhas do meio do caminho, no mesmo tom da observação do dia não
+   * letivo: dizem o que falta para o dia subir, sem chamar de erro o que é
+   * apenas o preenchimento em andamento.
+   */
+  itemsMissing: 'Escolha o gênero que entrou para esta alteração valer.',
+  reasonMissing: 'Escreva o motivo para esta alteração entrar no mapa.',
+  remove: 'Remover a alteração',
+  /* No dia bloqueado não há o que cancelar nem confirmar: só fechar. */
+  done: 'Fechar',
+  cancel: 'Cancelar',
+  confirm: 'Confirmar alteração',
+} as const
+
+/*
+ * Escolher gênero — tela 3b, a folha que sobe sobre o registro (decisão 7 da
+ * E3). Sair da tela do dia para o catálogo seria literalmente sair do fluxo, e
+ * o item cadastrado lá não se prenderia sozinho à refeição.
+ */
+export const FOOD_ITEM_SHEET_MESSAGES = {
+  title: 'Escolher gênero',
+  close: 'Fechar a escolha de gênero',
+  search: 'Buscar gênero',
+  loading: 'Carregando o catálogo…',
+  /*
+   * Sem catálogo ela não fica parada: o cadastro embaixo continua de pé, e o
+   * gênero nasce junto com o dia quando ele subir.
+   */
+  loadFailed:
+    'Não deu para carregar o catálogo. Você pode cadastrar o gênero aqui mesmo.',
+  noResults: 'Nenhum gênero com esse nome. Cadastre abaixo.',
+  alreadyChosen: 'já está aqui',
+  newTitle: 'Não está na lista?',
+  newHint: 'Cadastre aqui e o item já entra na refeição.',
+  newNameLabel: 'Nome do gênero',
+  newNamePlaceholder: 'Ex.: feijão preto',
+  newUnitLabel: 'Unidade padrão',
+  add: 'Adicionar à refeição',
 } as const
 
 function capitalize(text: string): string {

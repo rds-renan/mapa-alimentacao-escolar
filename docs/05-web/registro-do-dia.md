@@ -1,15 +1,20 @@
 # O registro do dia
 
-É a tela central do produto: o lugar onde a merendeira transcreve o que foi
-servido em cada uma das três refeições, avalia a aceitação, informa o número de
-refeições do dia e, quando é o caso, marca o dia como não letivo. É a US001 —
-com a US004, a US005, a US006 e a US007 dentro dela — e é a tela 3 da E3.
+É a tela central do produto: o lugar onde a merendeira transcreve o cardápio de
+cada uma das três refeições, avalia a aceitação, anota os gêneros que usou,
+registra a troca quando houve uma, informa o número de refeições do dia e,
+quando é o caso, marca o dia como não letivo. É a US001 — com a US002, a US003,
+a US004, a US005, a US006, a US007 e a US009 dentro dela — e são as telas 3, 3a
+e 3b da E3.
 
-O código está em [`web/src/day/`](../../web/src/day/) (as regras, a consulta e
-os cartões) e em
+O código está em [`web/src/day/`](../../web/src/day/) (as regras, a consulta, os
+cartões e as duas telas que sobem sobre o registro) e em
 [`web/src/pages/DayRegister.tsx`](../../web/src/pages/DayRegister.tsx) (a tela).
-O que ela grava e envia é da [camada local](camada-local.md); o contrato do que
-sobe é a [gravação do dia](gravacao-do-dia.md).
+A leitura do catálogo de gêneros mora fora, em
+[`web/src/food-items/`](../../web/src/food-items/), porque é do catálogo e não
+do dia: a manutenção dele (#64) entra pela mesma porta. O que a tela grava e
+envia é da [camada local](camada-local.md); o contrato do que sobe é a
+[gravação do dia](gravacao-do-dia.md).
 
 ## Uma tela, três cartões
 
@@ -34,6 +39,12 @@ nada (RNF#1 da US004). Os três ocupam a linha em partes iguais porque nenhum é
 o padrão: escolher "Ruim" tem de ser tão fácil quanto escolher "Ótimo". Tocar
 no que já está escolhido não desmarca — um registro sem aceitação existe, mas
 ninguém o faz de propósito com o dedo.
+
+Abaixo da aceitação vêm os **gêneros utilizados**, opcionais (RN#3 da US001), e
+por último a **alteração do cardápio**, que enquanto não existe é só um botão.
+Os dois são do cartão porque são da refeição: as merendeiras sabem de cabeça o
+que foi de cada uma, e é a geração do documento que junta as três numa célula
+só ([decisão 7 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
 
 O número de refeições é **um campo só, do dia inteiro** (RN#1 da US005): na
 escola integral as crianças ficam o dia todo, e o número vem das professoras
@@ -63,6 +74,130 @@ aparelho na hora; quem leva ao servidor é a fila. A faixa logo abaixo do
 cabeçalho é que diz em que pé está o envio, e o rodapé repete a promessa em uma
 linha: _"Salva sozinho, sem botão de salvar."_
 
+## A refeição é o cardápio previsto, e o rótulo passou a dizer isso
+
+A linha da refeição **não muda** quando houve troca: ela continua sendo o
+cardápio previsto, com a sua aceitação ([decisão 8 da E3](../03-ux/decisoes-de-design.md),
+[decisão 7 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)). É essa
+permanência que dá sentido à justificativa — se a descrição já fosse reescrita
+com o que foi servido, não haveria divergência aparente e não haveria o que
+justificar.
+
+O desenho da E3 rotulava o campo como *"Cardápio realizado"*, que é o nome da
+coluna do formulário oficial. Na tela ele pedia o contrário do que a tela 3a
+diz duas telas adiante — _"o almoço continua registrado como o cardápio
+previsto"_ —, e quem lê o rótulo é quem está digitando, não quem vai montar o
+documento. O campo passou a se chamar **"Cardápio previsto"**, na web e no
+desenho; o nome da coluna do formulário continua onde ele importa, na geração
+do documento.
+
+## Os gêneros utilizados, e a alteração do cardápio
+
+São duas listas com a mesma forma e o mesmo gesto, e são duas de propósito:
+alimentam **colunas diferentes** do documento oficial — os gêneros da refeição
+e os gêneros da troca. Por isso a lista é uma peça só no código
+([`food-item-list.tsx`](../../web/src/day/food-item-list.tsx)) usada nos dois
+lugares: desenhá-la duas vezes faria as duas divergirem na primeira correção.
+
+A quantidade é um stepper de inteiros com a unidade do catálogo ao lado
+(decisão 2 da E3, RN#1 da US003). O "−" e o "+" resolvem o caso comum num
+toque, e o número do meio é campo de verdade, com teclado numérico, porque 12
+potes não se alcançam a toques. **O "−" de quem está em 1 tira o gênero da
+lista**: quantidade zero não existe no banco, então o botão precisava parar em
+1 ou remover — e remover é o que ela quer, já que o item foi posto ali por
+engano. Um cesto de lixo em cada linha encheria o cartão de ícone para um gesto
+que o "−" já nomeia; o leitor de tela é avisado, porque o rótulo do botão muda
+para _"Tirar Arroz da lista"_ quando ele vai remover.
+
+O mesmo gênero não entra duas vezes na mesma lista, e repetir o gesto **não**
+devolve a quantidade para 1. A chave da lista é o nome normalizado, e não o
+identificador, porque é assim que o servidor decide se dois gêneros são o
+mesmo: ele funde os repetidos numa linha só valendo a última quantidade, que
+apagaria em silêncio o número que ela já tinha ajustado.
+
+### Escolher gênero sem sair do registro
+
+"Adicionar gênero" abre a folha da tela 3b sobre o dia (decisão 7 da E3): busca
+no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade
+padrão. A busca ignora acento e caixa — "feijao" acha "Feijão" —, e o item
+escolhido entra na refeição já com a quantidade em 1. O que já está na lista
+aparece marcado e não se escolhe de novo.
+
+O gênero cadastrado ali **nasce no envio**, não na hora: `save_meal_map` cria no
+catálogo o que ainda não existir, na mesma operação que grava o dia. É isso que
+permite cadastrar sem rede. Quando a fila confirma, a leitura do catálogo é
+invalidada junto com a dos dias, senão o gênero recém-nascido ficaria fora da
+busca até a consulta envelhecer.
+
+A unidade é escolhida entre seis sugestões, sem campo livre. No banco ela é
+texto curto e a lista **não** é fechada ([decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)),
+mas quem abre o leque é a manutenção do catálogo (#64): no meio de uma refeição
+são seis toques e nenhum teclado, e é isso que faz o pior caso — o gênero não
+existe — caber em dois gestos.
+
+Sem catálogo (a folha abriu offline, ou a leitura falhou) o cadastro continua de
+pé, com a mensagem dizendo o que aconteceu. Ficar sem poder registrar porque a
+lista não veio seria perder preenchimento por falta de rede, que é justamente o
+que o produto promete não fazer.
+
+### As duas sobreposições ficam dentro da coluna
+
+A tela 3a toma a tela inteira e a folha 3b sobe por baixo — no celular, que é o
+desenho. Na web o fluxo da merendeira é o mesmo desenho num **container
+central** de 390 px (decisão 1 da E3), e as duas nasceram presas à janela em
+vez de à coluna: no monitor, a folha se esticava de ponta a ponta sobre uma
+coluna estreita.
+
+As duas passaram a respeitar o mesmo `max-w-screen` do resto do fluxo. O mesmo
+desenho nas duas plataformas não quer dizer o mesmo número de pixels — quer
+dizer a mesma largura de leitura, que é o que a decisão 1 comprou ao dispensar
+telas próprias para a web. A centralização é por margem automática, e não por
+`translate`, porque as animações de entrada e saída já usam o `transform` do
+elemento.
+
+### A alteração registra o que entrou, e aparece no cartão
+
+A tela 3a tem os gêneros usados na troca e o motivo em texto livre, com
+sugestões de motivos frequentes (RNF#1 da US002). **Não há campo para o item que
+saiu** — o formulário oficial não o pede em lugar nenhum —, e há no máximo uma
+alteração por refeição: a justificativa cobre a modificação inteira e os gêneros
+são uma lista, então duas trocas no mesmo almoço são um registro só (RN#2).
+
+Registrada, ela aparece **dentro do cartão da refeição**, com os gêneros
+resumidos e o motivo embaixo, tocável para editar. Tem de aparecer porque é o
+que sai impresso: sem isso, a merendeira abriria a tela 3a no escuro para
+lembrar o que registrou. O resumo pluraliza a unidade com um "s" simples
+("3 bandejas de ovo") — as seis unidades sugeridas pluralizam assim, e o
+documento oficial não passa por aqui, porque lá o formato é "N unidade" (CA#3
+da US003).
+
+### Confirmar não é salvar
+
+O desenho da tela 3a tem "Cancelar" e "Confirmar alteração", e o CA#2 da US002
+fala em não **concluir** uma alteração sem justificativa — mas neste aplicativo
+não existe botão de salvar (decisão 3 da E3), e o que está digitado não pode
+depender de ela chegar ao rodapé. Então cada tecla da tela 3a já vai para o
+aparelho na hora, como em qualquer outro campo, e os dois botões decidem outra
+coisa: se a alteração **fica**.
+
+- **Confirmar** fecha. Fechar pelo X, pela tecla Esc ou pelo fundo é a mesma
+  coisa — o que está escrito já está gravado, e desfazer por acidente seria a
+  surpresa. A alteração aberta e fechada sem nada dentro sai do dia, em vez de
+  virar um registro vazio que o servidor recusaria para sempre.
+- **Cancelar** devolve a alteração como ela estava quando a tela abriu. A tela
+  guarda esse retrato ao abrir, porque sem ele não haveria o que desfazer.
+- **Remover a alteração** não está no desenho da E3 e entrou aqui: sem ele, o
+  único caminho de volta seria tirar os gêneros um a um e apagar o motivo —
+  três gestos e nenhuma pista de que o conjunto deles é "não houve troca".
+
+Enquanto faltar o motivo ou o gênero, o dia **fica guardado no aparelho** e não
+vai para a fila: é a mesma dobra do dia não letivo, descrita logo abaixo, e as
+recusas dela entram no mesmo `canBeSent`. Duas linhas dizem o que falta, no
+mesmo tom da observação — _"Escolha o gênero que entrou para esta alteração
+valer."_ e _"Escreva o motivo para esta alteração entrar no mapa."_ —, e a
+segunda também aparece no resumo dentro do cartão, que é a única pista disso
+com a tela 3a fechada.
+
 ## O dia não letivo, e o meio do caminho
 
 Marcar "dia não letivo" recolhe o resto da tela e deixa só a observação (RNF#1
@@ -82,8 +217,8 @@ existir. A faixa continua dizendo a verdade: salvo no aparelho. Embaixo do
 campo, uma linha diz o que falta sem chamar de erro o que é apenas o meio do
 caminho: _"Escreva o motivo para este dia entrar no mapa."_
 
-Hoje essa é a única dobra; quando a alteração do cardápio chegar (#63), as
-recusas dela entram no mesmo lugar.
+É a mesma dobra da alteração do cardápio, acima: o que não pode subir fica
+guardado e sobe sozinho assim que ficar inteiro.
 
 ### Marcar apaga as refeições; desmarcar devolve
 
@@ -106,11 +241,10 @@ fronteira ([decisão 4 da E5](decisoes-tecnicas.md)): **vale o rascunho quando
 ele existe** — ele só está guardado enquanto o servidor não confirmou, então é
 mais novo por construção — e o servidor quando não existe.
 
-A consulta traz o dia **inteiro**, inclusive os gêneros utilizados e a alteração
-do cardápio, que esta tela ainda não edita. Não é antecipação: o que sobe é o
-dia todo, e o que não vier deixa de existir. Ler pela metade faria uma correção
-de uma vírgula na descrição apagar em silêncio os gêneros que a colega
-registrou.
+A consulta traz o dia **inteiro**, com os gêneros utilizados e a alteração do
+cardápio dentro: o que sobe é o dia todo, e o que não vier deixa de existir.
+Ler pela metade faria uma correção de uma vírgula na descrição apagar em
+silêncio os gêneros que a colega registrou.
 
 Pelo mesmo motivo, **quando a leitura falha e não há rascunho, a tela não deixa
 escrever**: mostra o que não se perdeu e oferece tentar de novo. Um formulário
@@ -156,15 +290,10 @@ do mês: recarregar com F5 não pode jogá-la em outro dia. Data que não existe
 
 ## O que ficou de fora, e onde continua
 
-| O que                             | Onde continua |
-| --------------------------------- | ------------- |
-| Gêneros utilizados, com o stepper | #63           |
-| Alteração do cardápio             | #63           |
-
-Os dois são do mesmo cartão e da mesma issue, e ficam **fora** da tela em vez de
-aparecerem desabilitados: botão que não faz nada é promessa falsa, e aqui não há
-o que explicar no lugar dele. O que já existe no banco continua sendo lido e
-devolvido intacto no envio — o que a tela não mostra, ela também não apaga.
+A tela do registro está inteira. O que sobra do catálogo é a **manutenção** dele
+— listar, editar e desativar gênero, com a unidade em texto livre —, que é a
+tela 4, alcançada pelo menu, e mora na #64. A folha 3b só lê o catálogo e
+acrescenta; ela não desativa nem renomeia nada.
 
 ## Verificação
 
@@ -183,6 +312,15 @@ separado da tela: o que pode estar errado aqui é a regra.
 | Marcar dia não letivo                           | tira refeições e número do payload            |
 | Desmarcar                                       | devolve o que estava digitado (CA#3 da US006) |
 | Número de refeições: letra, vírgula, zero, teto | só dígitos, zero é vazio, corta no `smallint` |
+| Gênero entrando na lista                        | quantidade 1, unidade do catálogo             |
+| O mesmo gênero de novo, com outra caixa         | não duplica nem devolve a quantidade para 1   |
+| "−" no gênero que está em 1                     | o gênero sai da lista                         |
+| Quantidade acima do teto, e abaixo de 1         | corta no `smallint`, e o mínimo é 1           |
+| Gêneros da refeição e da troca                  | são duas listas, e uma não invade a outra     |
+| Alteração registrada                            | descrição e aceitação não mudam (CA#3 US002)  |
+| Dois gêneros na mesma troca                     | continua sendo uma alteração só (RN#2 US002)  |
+| Alteração sem motivo, sem gênero, e inteira     | o dia só pode subir quando ela fica inteira   |
+| Gênero a nascer sem unidade                     | o dia fica guardado                           |
 
 [`day-register.test.tsx`](../../web/src/day/day-register.test.tsx) — a tela,
 critério por critério da issue #62:
@@ -199,6 +337,25 @@ critério por critério da issue #62:
 | Dia bloqueado                  | abre, explica e não deixa editar (CA#2 da US007) |
 | Leitura que não veio           | não deixa escrever por cima, e oferece de novo   |
 | Cabeçalho                      | anda entre dias e volta para o mês               |
+
+[`menu-change.test.tsx`](../../web/src/day/menu-change.test.tsx) — as telas 3a e
+3b, critério por critério da issue #63:
+
+| Cenário                          | O que se afirma                                     |
+| -------------------------------- | --------------------------------------------------- |
+| Escolher um gênero do catálogo   | entra na refeição sem tirá-la da tela do registro   |
+| Stepper e campo da quantidade    | inteiros, unidade do catálogo, teclado numérico     |
+| "−" no gênero que está em 1      | o gênero sai da lista                               |
+| Gênero novo no meio do registro  | entra na refeição com a sua unidade (CA#2 da US009) |
+| Catálogo que não veio            | ainda dá para cadastrar                             |
+| Busca "feijao"                   | acha "Feijão carioca" (RNF#1 da US009)              |
+| Alteração registrada             | a refeição continua sendo o cardápio previsto       |
+| Alteração já existente           | vira o resumo no cartão, e o botão some             |
+| Sugestões de motivo              | preenchem o campo, e o texto próprio prevalece      |
+| Alteração sem motivo             | fica guardada no aparelho, e a tela diz o que falta |
+| Cancelar                         | devolve a alteração que estava registrada           |
+| Remover                          | a alteração sai do dia e o botão volta              |
+| Aberta e fechada sem nada dentro | não vira registro nenhum                            |
 
 A trava de envio do dia não letivo é verificada do lado da fila, em
 [`sync.test.ts`](../../web/src/local/sync.test.ts) e
