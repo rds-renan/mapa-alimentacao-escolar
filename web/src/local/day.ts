@@ -72,6 +72,36 @@ export interface SaveResponse {
   }[]
 }
 
+/**
+ * As três refeições do dia letivo, na ordem em que acontecem (RN#1 da US001).
+ * Mora aqui, junto do tipo, porque é a ordem do dia — a tela do registro
+ * desenha os cartões por ela e a visão do mês confere o que falta pela mesma.
+ */
+export const MEAL_ORDER: MealType[] = [
+  'morning_snack',
+  'lunch',
+  'afternoon_snack',
+]
+
+/**
+ * O dia está em condição de subir?
+ *
+ * Não é validação de formulário — é a pergunta de se o servidor aceitaria este
+ * payload. A tela grava cada tecla no aparelho (CA#2 da US010), e a fila leva
+ * só o que não vai voltar recusado: entre marcar "dia não letivo" e escrever o
+ * motivo passam alguns segundos, e nesse intervalo o dia está guardado, não
+ * debaixo de uma faixa dizendo que não deu para enviar.
+ *
+ * Hoje a única dobra é a do dia não letivo, que exige a observação e não tem
+ * refeições — as duas recusas estão na tabela de erros da gravação do dia. É
+ * aqui que entram as próximas, quando a alteração do cardápio chegar (#63).
+ */
+export function canBeSent(day: DayPayload): boolean {
+  if (!day.non_school_day) return true
+
+  return day.note !== null && day.note.trim() !== '' && day.meals.length === 0
+}
+
 export function newId(): string {
   return crypto.randomUUID()
 }

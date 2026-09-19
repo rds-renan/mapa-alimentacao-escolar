@@ -53,12 +53,14 @@ web/
 │   ├── auth/                   # sessão, perfil e guardas de rota (issue #59)
 │   ├── components/             # os componentes do MAE
 │   │   └── ui/                 # componentes do shadcn/ui, já ajustados ao dedo
+│   ├── day/                    # o registro do dia (issue #62)
 │   ├── lib/
 │   │   ├── database.types.ts   # gerado — não editar
 │   │   ├── local-data.ts       # o que sair do aplicativo apaga
 │   │   ├── supabase.ts         # o cliente, por variáveis de ambiente
 │   │   └── utils.ts
 │   ├── local/                  # rascunho, fila de envio e convergência (issue #60)
+│   ├── month/                  # a visão do mês e o estado de cada dia (issue #61)
 │   ├── pages/                  # uma tela por arquivo, com o nome do desenho
 │   ├── test/                   # preparação comum e o Supabase de mentira
 │   ├── App.tsx                 # o mapa de rotas

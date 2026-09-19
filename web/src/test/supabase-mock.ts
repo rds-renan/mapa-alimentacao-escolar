@@ -23,6 +23,34 @@ export interface MealMapRow {
     description: string | null
     acceptance: 'great' | 'good' | 'poor' | null
   }[]
+  /** Só o registro do dia lê estes; o mês não pergunta por eles. */
+  id?: string
+  updated_at?: string
+}
+
+/*
+ * A mesma linha, como o registro do dia a pede: com o identificador do mapa e
+ * de cada refeição, e com os gêneros e a alteração do cardápio — que a tela
+ * ainda não edita, mas relê e devolve inteiros no envio.
+ */
+function dayRow(row: MealMapRow) {
+  return {
+    id: row.id ?? `map-${row.map_date}`,
+    map_date: row.map_date,
+    updated_at: row.updated_at ?? `${row.map_date}T12:00:00.000Z`,
+    non_school_day: row.non_school_day,
+    note: row.note,
+    meals_served: row.meals_served,
+    locked: row.locked,
+    meal: row.meal.map((meal) => ({
+      id: `meal-${row.map_date}-${meal.type}`,
+      type: meal.type,
+      description: meal.description,
+      acceptance: meal.acceptance,
+      meal_food_item: [],
+      menu_change: null,
+    })),
+  }
 }
 
 type Listener = (event: string, session: Session | null) => void
@@ -153,13 +181,30 @@ export const supabase = {
    * por esperar o próprio objeto (a lista do mês), como na biblioteca real.
    */
   from: vi.fn((table: string) => {
+    const filters: Record<string, string> = {}
+
     const chain = {
       select: () => chain,
-      eq: () => chain,
+      eq: (column: string, value: string) => {
+        filters[column] = value
+        return chain
+      },
       gte: () => chain,
       lte: () => chain,
       order: () => chain,
-      maybeSingle: async () => ({ data: profileRow, error: profileError }),
+      /*
+       * Duas telas terminam aqui: o perfil, que é uma linha só por definição,
+       * e o registro do dia, que pede o mapa de uma data.
+       */
+      maybeSingle: async () => {
+        if (table !== 'meal_map') {
+          return { data: profileRow, error: profileError }
+        }
+        if (mealMapError) return { data: null, error: mealMapError }
+
+        const row = mealMapRows.find((one) => one.map_date === filters.map_date)
+        return { data: row ? dayRow(row) : null, error: null }
+      },
       then: (
         resolve: (result: {
           data: MealMapRow[] | null

@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { adoptServerIds, type DayPayload, type SaveResponse } from './day'
+import {
+  adoptServerIds,
+  canBeSent,
+  type DayPayload,
+  type SaveResponse,
+} from './day'
 
 /*
  * O contrato da gravação é explícito: o cliente precisa adotar os
@@ -98,5 +103,45 @@ describe('adotar o que o servidor devolveu', () => {
     expect(adopted.meals[0].menu_change?.reason).toBe(
       'Não veio o frango na entrega da semana.'
     )
+  })
+})
+
+/*
+ * A pergunta que a fila faz antes de tentar: o servidor aceitaria este dia?
+ * Ela existe para que o meio do caminho — o dia não letivo cuja observação ela
+ * ainda não escreveu — fique guardado no aparelho em vez de voltar recusado.
+ */
+describe('o dia em condição de subir', () => {
+  const schoolDay: DayPayload = { ...day }
+
+  it('deixa passar o dia letivo, completo ou pela metade', () => {
+    expect(canBeSent(schoolDay)).toBe(true)
+    expect(canBeSent({ ...schoolDay, meals: [], meals_served: null })).toBe(
+      true
+    )
+  })
+
+  it('segura o dia não letivo enquanto não há o motivo', () => {
+    const marked: DayPayload = {
+      ...schoolDay,
+      non_school_day: true,
+      meals: [],
+      meals_served: null,
+      note: '',
+    }
+
+    expect(canBeSent(marked)).toBe(false)
+    expect(canBeSent({ ...marked, note: '   ' })).toBe(false)
+    expect(canBeSent({ ...marked, note: 'Conselho de classe' })).toBe(true)
+  })
+
+  it('segura o dia não letivo que ainda carrega refeições', () => {
+    expect(
+      canBeSent({
+        ...schoolDay,
+        non_school_day: true,
+        note: 'Conselho de classe',
+      })
+    ).toBe(false)
   })
 })
