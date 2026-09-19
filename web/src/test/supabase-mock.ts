@@ -16,6 +16,8 @@ export interface FoodItemRow {
   id: string
   name: string
   default_unit: string
+  /** Ausente é ativo: a folha 3b só recebe ativos, e não pergunta por isto. */
+  active?: boolean
 }
 
 /** Um gênero usado, do jeito que a leitura do dia o traz do banco. */
@@ -97,6 +99,8 @@ let mealMapRows: MealMapRow[] = []
 let mealMapError: { message: string } | null = null
 let foodItemRows: FoodItemRow[] = []
 let foodItemError: { message: string } | null = null
+let foodItemWriteError: { message: string } | null = null
+let nextFoodItemId = 1
 
 function sessionFor(profile: Profile): Session {
   return {
@@ -157,6 +161,16 @@ export function givenFoodItemsFail(message = 'sem rede') {
   foodItemError = { message }
 }
 
+/** A gravação no catálogo não passou: a tela 4 escreve direto no servidor. */
+export function givenFoodItemWriteFails(message = 'sem rede') {
+  foodItemWriteError = { message }
+}
+
+/** O catálogo como ficou depois do que a tela gravou. */
+export function storedFoodItems(): FoodItemRow[] {
+  return foodItemRows
+}
+
 export function resetSupabaseMock() {
   listeners.clear()
   currentSession = null
@@ -167,6 +181,8 @@ export function resetSupabaseMock() {
   mealMapError = null
   foodItemRows = []
   foodItemError = null
+  foodItemWriteError = null
+  nextFoodItemId = 1
   vi.clearAllMocks()
 }
 
@@ -227,17 +243,51 @@ export const supabase = {
    * por esperar o próprio objeto (a lista do mês), como na biblioteca real.
    */
   from: vi.fn((table: string) => {
-    const filters: Record<string, string> = {}
+    const filters: Record<string, unknown> = {}
+    /* A linha que a gravação acabou de escrever, que é o que `single` devolve. */
+    let written: FoodItemRow | null = null
+    /*
+     * O que `update` recebeu. Ele vem ANTES do `eq` que diz qual linha é — é a
+     * ordem da biblioteca real —, então a troca só acontece quando o resultado
+     * é pedido, e não na hora da chamada.
+     */
+    let changes: Partial<FoodItemRow> | null = null
 
     const chain = {
       select: () => chain,
-      eq: (column: string, value: string) => {
+      eq: (column: string, value: unknown) => {
         filters[column] = value
         return chain
       },
       gte: () => chain,
       lte: () => chain,
       order: () => chain,
+
+      /*
+       * As duas escritas da tela 4 (issue #64). O catálogo do mock é a fonte:
+       * o que entra por aqui aparece na leitura seguinte, que é o que permite
+       * conferir o gênero cadastrado sem simular a invalidação à mão.
+       */
+      insert: (values: { name: string; default_unit: string }) => {
+        if (!foodItemWriteError) {
+          written = {
+            id: `food-${nextFoodItemId++}`,
+            name: values.name,
+            default_unit: values.default_unit,
+            active: true,
+          }
+          foodItemRows = [...foodItemRows, written].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          )
+        }
+        return chain
+      },
+
+      update: (values: Partial<FoodItemRow>) => {
+        changes = values
+        return chain
+      },
+
       /*
        * Duas telas terminam aqui: o perfil, que é uma linha só por definição,
        * e o registro do dia, que pede o mapa de uma data.
@@ -251,6 +301,23 @@ export const supabase = {
         const row = mealMapRows.find((one) => one.map_date === filters.map_date)
         return { data: row ? dayRow(row) : null, error: null }
       },
+
+      /** O que a gravação devolve: a linha escrita, ou a recusa do servidor. */
+      single: async () => {
+        if (foodItemWriteError) return { data: null, error: foodItemWriteError }
+
+        if (changes !== null) {
+          foodItemRows = foodItemRows.map((row) => {
+            if (row.id !== filters.id) return row
+
+            written = { ...row, ...changes }
+            return written
+          })
+        }
+
+        return { data: written, error: null }
+      },
+
       then: (
         resolve: (result: {
           data: MealMapRow[] | FoodItemRow[] | null
@@ -258,11 +325,23 @@ export const supabase = {
         }) => unknown
       ) => {
         if (table === 'food_item') {
+          /*
+           * O `eq('active', true)` da folha 3b: a tela 4 lê sem ele, e é essa
+           * a diferença entre as duas leituras do catálogo.
+           */
+          const rows = foodItemRows
+            .map((row) => ({ ...row, active: row.active ?? true }))
+            .filter(
+              (row) =>
+                filters.active === undefined || row.active === filters.active
+            )
+            .sort((a, b) => a.name.localeCompare(b.name))
+
           return Promise.resolve(
             resolve(
               foodItemError
                 ? { data: null, error: foodItemError }
-                : { data: foodItemRows, error: null }
+                : { data: rows, error: null }
             )
           )
         }

@@ -12,7 +12,7 @@ cartões e as duas telas que sobem sobre o registro) e em
 [`web/src/pages/DayRegister.tsx`](../../web/src/pages/DayRegister.tsx) (a tela).
 A leitura do catálogo de gêneros mora fora, em
 [`web/src/food-items/`](../../web/src/food-items/), porque é do catálogo e não
-do dia: a manutenção dele (#64) entra pela mesma porta. O que a tela grava e
+do dia: a [manutenção dele](catalogo-de-generos.md) entra pela mesma porta. O que a tela grava e
 envia é da [camada local](camada-local.md); o contrato do que sobe é a
 [gravação do dia](gravacao-do-dia.md).
 
@@ -131,7 +131,7 @@ busca até a consulta envelhecer.
 
 A unidade é escolhida entre seis sugestões, sem campo livre. No banco ela é
 texto curto e a lista **não** é fechada ([decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)),
-mas quem abre o leque é a manutenção do catálogo (#64): no meio de uma refeição
+mas quem abre o leque é a [manutenção do catálogo](catalogo-de-generos.md): no meio de uma refeição
 são seis toques e nenhum teclado, e é isso que faz o pior caso — o gênero não
 existe — caber em dois gestos.
 
@@ -292,7 +292,8 @@ do mês: recarregar com F5 não pode jogá-la em outro dia. Data que não existe
 
 A tela do registro está inteira. O que sobra do catálogo é a **manutenção** dele
 — listar, editar e desativar gênero, com a unidade em texto livre —, que é a
-tela 4, alcançada pelo menu, e mora na #64. A folha 3b só lê o catálogo e
+tela 4, alcançada pelo menu: ela ficou pronta na #64 e está descrita em
+[o catálogo de gêneros](catalogo-de-generos.md). A folha 3b só lê o catálogo e
 acrescenta; ela não desativa nem renomeia nada.
 
 ## Verificação

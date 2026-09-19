@@ -161,7 +161,7 @@ não leva a lugar nenhum é pior que um que leva a uma tela dizendo de quem ela
 | ------------------- | --------------------------------------- | ----- |
 | Registro do dia     | pronto — ver [o registro do dia](registro-do-dia.md) | #62   |
 | Documentos gerados  | tela-marco, alcançada pelo menu         | #67   |
-| Catálogo de gêneros | tela-marco, alcançada pelo menu         | #64   |
+| Catálogo de gêneros | pronto — ver [o catálogo de gêneros](catalogo-de-generos.md) | #64   |
 | Tema escuro         | item do menu, à vista e inerte          | #71   |
 | Gerar documento     | botão do rodapé, à vista e inerte       | #66   |
 
