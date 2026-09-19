@@ -242,8 +242,14 @@ describe('visão do mês', () => {
 
     fireEvent.click(screen.getByRole('link', { name: /^1 de setembro/ }))
 
+    /*
+     * Os dois `findBy` são dois momentos, e não um: o título sai do endereço e
+     * aparece antes da resposta do servidor, enquanto o bloqueio só o servidor
+     * conhece. Conferir a faixa sem esperar passa numa máquina folgada e falha
+     * numa ocupada — foi o que a CI pegou.
+     */
     expect(await screen.findByText('Terça, 1 de setembro')).toBeInTheDocument()
-    expect(screen.getByText(/abre só para consulta/)).toBeInTheDocument()
+    expect(await screen.findByText(/abre só para consulta/)).toBeInTheDocument()
   })
 })
 
