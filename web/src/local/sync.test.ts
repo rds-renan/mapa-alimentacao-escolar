@@ -364,3 +364,45 @@ describe('as recusas do servidor', () => {
     expect(await getStoredDay(COOK, DATE)).toBeNull()
   })
 })
+
+/*
+ * O meio do caminho do dia não letivo: ela marcou a alternância e ainda está
+ * indo escrever o motivo. O servidor recusaria isso (23514), e a faixa diria
+ * "ainda não deu para enviar" para quem não fez nada de errado — então a fila
+ * guarda e espera.
+ */
+describe('o dia que ainda não pode subir', () => {
+  function nonSchoolDay(note: string): DayPayload {
+    return {
+      ...dayFor('2026-09-10T18:30:00-03:00'),
+      non_school_day: true,
+      note,
+      meals: [],
+      meals_served: null,
+    }
+  }
+
+  it('guarda no aparelho o dia não letivo sem observação, e não o envia', async () => {
+    const engine = engineFor()
+    await engine.save(nonSchoolDay(''))
+    await engine.flush()
+
+    expect(rpc).not.toHaveBeenCalled()
+    expect((await engine.load(DATE))?.non_school_day).toBe(true)
+    expect(engine.getState().pending).toBe(1)
+    expect(engine.getState().days[DATE].message).toBe(SYNC_MESSAGES.pending)
+  })
+
+  it('sobe assim que o motivo existe', async () => {
+    rpc.mockResolvedValueOnce(saved())
+
+    const engine = engineFor()
+    await engine.save(nonSchoolDay(''))
+    await engine.flush()
+    await engine.save(nonSchoolDay('Conselho de classe'))
+    await engine.flush()
+
+    expect(rpc).toHaveBeenCalledTimes(1)
+    expect(await getStoredDay(COOK, DATE)).toBeNull()
+  })
+})

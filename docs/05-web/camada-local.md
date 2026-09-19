@@ -65,6 +65,26 @@ navegador e a volta da aba ao primeiro plano (CA#1 da US011). Sem rede a fila
 **não tenta**: a tentativa falharia do mesmo jeito, e a faixa passaria a dizer
 "ainda não deu para enviar" quando a frase verdadeira é a outra.
 
+### O que ainda não pode subir também espera
+
+Há um caso que não é recusa nem falha de rede: o dia que **ainda não está em
+condição de ser gravado**. Ele apareceu com o [registro do dia](registro-do-dia.md),
+no intervalo entre marcar "dia não letivo" e escrever a observação — alguns
+segundos em que o payload existe, está guardado, e o servidor devolveria
+`23514` se recebesse.
+
+Mandar assim custaria caro na tela: a faixa passaria a dizer "ainda não deu para
+enviar, vamos tentar de novo" para quem não fez nada de errado e para um erro
+que tentar de novo não resolve. Então a fila pergunta antes — é o `canBeSent` de
+[`day.ts`](../../web/src/local/day.ts), que responde se o servidor aceitaria
+aquele dia. O que não pode subir fica no aparelho, com a faixa dizendo a verdade
+("salvo no aparelho"), e entra na fila sozinho na tecla que completar o que
+falta.
+
+A pergunta mora junto do payload de propósito: ela é sobre o **contrato** da
+gravação, não sobre o formulário. Quem valida campo é a tela, com a linguagem
+dela; aqui só se evita a viagem perdida.
+
 ### Uma correção ao contrato: recusada não quer dizer descartada
 
 A [gravação do dia](gravacao-do-dia.md) diz, para `23514` e `42501`, "tira o item
@@ -189,6 +209,7 @@ erro são os que `save_meal_map` devolve.
 | Cenário | O que se afirma |
 |---|---|
 | Autosave e reabertura do navegador | o rascunho sobrevive ao fechar (CA#2 e CA#3 da US010) |
+| Dia não letivo sem observação | fica guardado, não é enviado, e sobe quando o motivo chega |
 | Rascunho da colega | não aparece para a outra merendeira |
 | Envio confirmado | o dia sobe numa chamada só e só então sai do aparelho |
 | Reenvio | mesma carga, mesmo carimbo — sem registro duplicado |

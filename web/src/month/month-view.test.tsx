@@ -233,8 +233,7 @@ describe('visão do mês', () => {
 
     fireEvent.click(screen.getByRole('link', { name: /^3 de setembro/ }))
 
-    expect(await screen.findByText('Registro do dia')).toBeInTheDocument()
-    expect(screen.getByText(/2026-09-03/)).toBeInTheDocument()
+    expect(await screen.findByText('Quinta, 3 de setembro')).toBeInTheDocument()
   })
 
   it('o dia bloqueado também abre: ele é somente leitura, não inalcançável', async () => {
@@ -243,7 +242,8 @@ describe('visão do mês', () => {
 
     fireEvent.click(screen.getByRole('link', { name: /^1 de setembro/ }))
 
-    expect(await screen.findByText('Registro do dia')).toBeInTheDocument()
+    expect(await screen.findByText('Terça, 1 de setembro')).toBeInTheDocument()
+    expect(screen.getByText(/abre só para consulta/)).toBeInTheDocument()
   })
 })
 

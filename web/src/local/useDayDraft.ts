@@ -17,10 +17,13 @@ export function useDayDraft(mapDate: string): {
   loading: boolean
   status: DaySyncState | null
   update(day: DayPayload): Promise<void>
+  reload(): void
 } {
   const { state, save, load } = useSync()
   const [draft, setDraft] = useState<DayPayload | null>(null)
   const [loading, setLoading] = useState(true)
+  /** Sobe quando alguém pede a releitura do disco — a convergência, hoje. */
+  const [reloads, setReloads] = useState(0)
   /*
    * Quantas vezes ela já digitou. A leitura do disco leva alguns quadros, e uma
    * tecla dada nesse meio-tempo é mais nova que qualquer coisa que a leitura
@@ -44,7 +47,19 @@ export function useDayDraft(mapDate: string): {
     return () => {
       active = false
     }
-  }, [mapDate, load])
+  }, [mapDate, load, reloads])
+
+  /*
+   * Relê o disco. Quem chama é a convergência: perdido o conflito, o rascunho
+   * some do aparelho e o que vale passa a ser o dia do servidor — e a tela
+   * ainda está com o texto dela na mão. O contador de edições volta a zero de
+   * propósito: é o único caso em que a leitura atrasada **deve** ganhar do que
+   * está na tela.
+   */
+  const reload = useCallback(() => {
+    edits.current = 0
+    setReloads((count) => count + 1)
+  }, [])
 
   const update = useCallback(
     async (day: DayPayload) => {
@@ -58,5 +73,11 @@ export function useDayDraft(mapDate: string): {
     [save]
   )
 
-  return { draft, loading, status: state.days[mapDate] ?? null, update }
+  return {
+    draft,
+    loading,
+    status: state.days[mapDate] ?? null,
+    update,
+    reload,
+  }
 }

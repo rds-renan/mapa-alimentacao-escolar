@@ -1,7 +1,12 @@
 import type { Json } from '@/lib/database.types'
 import { supabase } from '@/lib/supabase'
 
-import { adoptServerIds, type DayPayload, type SaveResponse } from './day'
+import {
+  adoptServerIds,
+  canBeSent,
+  type DayPayload,
+  type SaveResponse,
+} from './day'
 import { SYNC_MESSAGES, conflictMessage, type SyncStatus } from './messages'
 import {
   dayKey,
@@ -286,7 +291,15 @@ export function createSyncEngine(userId: string): SyncEngine {
       rerun = false
 
       const records = await listStoredDays(userId)
-      const queue = records.filter((record) => !record.rejection)
+      /*
+       * Fora da fila ficam dois: o recusado, que reenviar não resolve, e o que
+       * ainda não pode subir — o dia não letivo cuja observação ela não
+       * escreveu. Os dois continuam guardados no aparelho; o que não acontece
+       * é a tentativa que já se sabe perdida.
+       */
+      const queue = records.filter(
+        (record) => !record.rejection && canBeSent(record.day)
+      )
 
       patch({ pending: records.length, sending: queue.length > 0 })
 
@@ -409,7 +422,9 @@ export function createSyncEngine(userId: string): SyncEngine {
       })
 
       await refreshPending()
-      scheduleFlush(SEND_DELAY)
+      // A tecla seguinte pode ser justamente a que completa o dia: quando ela
+      // chegar, `save` roda de novo e é aí que o envio é agendado.
+      if (canBeSent(day)) scheduleFlush(SEND_DELAY)
     },
 
     async load(mapDate) {

@@ -1,4 +1,9 @@
-import type { AcceptanceLevel, DayPayload, MealType } from '@/local/day'
+import {
+  MEAL_ORDER,
+  type AcceptanceLevel,
+  type DayPayload,
+  type MealType,
+} from '@/local/day'
 
 /*
  * O mês, como a visão do mês precisa dele.
@@ -44,12 +49,6 @@ export interface DayRecord {
   /** Está guardado no aparelho e ainda não foi confirmado pelo servidor. */
   pendingUpload: boolean
 }
-
-export const MEAL_ORDER: MealType[] = [
-  'morning_snack',
-  'lunch',
-  'afternoon_snack',
-]
 
 export const MEAL_LABELS: Record<MealType, string> = {
   morning_snack: 'lanche da manhã',
@@ -115,6 +114,16 @@ export function monthKeyToday(today = new Date()): MonthKey {
 /** Hoje em AAAA-MM-DD, no fuso de quem está olhando. */
 export function dateToday(today = new Date()): string {
   return `${today.getFullYear()}-${pad(today.getMonth() + 1)}-${pad(today.getDate())}`
+}
+
+/** O dia seguinte, ou o anterior. Em UTC, que é onde a data não escorrega. */
+export function shiftDate(date: string, days: number): string {
+  const [year, month, day] = parts(date)
+  const shifted = new Date(Date.UTC(year, month - 1, day + days))
+
+  return `${shifted.getUTCFullYear()}-${pad(shifted.getUTCMonth() + 1)}-${pad(
+    shifted.getUTCDate()
+  )}`
 }
 
 export function shiftMonth(month: MonthKey, months: number): MonthKey {
@@ -204,7 +213,8 @@ export function groupIntoWeeks(days: string[]): Week[] {
 // O estado de cada dia (decisão 4 da E4, decisão 4 da E3)
 // ---------------------------------------------------------------------------
 
-function filled(text: string | null): boolean {
+/** Texto que existe e não é só espaço. A tela do registro lê o mesmo. */
+export function filled(text: string | null): boolean {
   return text !== null && text.trim() !== ''
 }
 
@@ -213,7 +223,9 @@ function filled(text: string | null): boolean {
  * aceitação: sem ela o registro da refeição não se conclui (CA#3 da US004).
  * Gêneros continuam opcionais (RN#3 da US001) e por isso não entram na conta.
  */
-function mealIsComplete(meal: MealRecord | undefined): boolean {
+export function mealIsComplete(
+  meal: Pick<MealRecord, 'description' | 'acceptance'> | undefined
+): boolean {
   return (
     meal !== undefined && filled(meal.description) && meal.acceptance !== null
   )
