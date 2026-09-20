@@ -37,6 +37,10 @@ const AdminManagement = lazy(() =>
   }))
 )
 
+const AdminMaps = lazy(() =>
+  import('@/pages/AdminMaps').then((tela) => ({ default: tela.AdminMaps }))
+)
+
 /*
  * O mapa de rotas. Ele reproduz o fluxo de telas da E3: um fluxo para a
  * merendeira, outro para a direção, e o login como única porta de entrada dos
@@ -80,6 +84,7 @@ export default function App() {
               path={ROUTES.adminManagement}
               element={<AdminManagement />}
             />
+            <Route path={ROUTES.adminMaps} element={<AdminMaps />} />
           </Route>
         </Route>
       </Route>

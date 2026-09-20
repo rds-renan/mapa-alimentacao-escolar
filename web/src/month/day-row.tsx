@@ -2,8 +2,8 @@ import { Link } from 'react-router'
 
 import { dayPath } from '@/routes'
 
-import { DayBadge } from './day-badge'
-import { DAY_STATE_LABELS } from './messages'
+import { DayBadge, ReopenedBadge } from './day-badge'
+import { DAY_STATE_LABELS, REOPENED_LABEL } from './messages'
 import {
   dayAndMonth,
   daySummary,
@@ -34,11 +34,14 @@ export function DayRow({
   const state = dayState(record)
   const summary = daySummary(record, { isToday })
   const dayNumber = Number(date.slice(-2))
+  const reopened = record?.reopened ?? false
 
   return (
     <Link
       to={dayPath(date)}
-      aria-label={`${dayAndMonth(date)}, ${DAY_STATE_LABELS[state].toLowerCase()}. ${summary}`}
+      aria-label={`${dayAndMonth(date)}, ${DAY_STATE_LABELS[state].toLowerCase()}${
+        reopened ? `, ${REOPENED_LABEL.toLowerCase()} para correção` : ''
+      }. ${summary}`}
       className={`flex min-h-[3.625rem] items-center gap-3 border-b border-muted px-3.5 py-2 last:border-b-0 hover:bg-muted/60 ${
         isToday ? 'bg-accent/45' : ''
       }`}
@@ -66,6 +69,7 @@ export function DayRow({
         {summary}
       </span>
 
+      {reopened ? <ReopenedBadge /> : null}
       <DayBadge state={state} />
     </Link>
   )

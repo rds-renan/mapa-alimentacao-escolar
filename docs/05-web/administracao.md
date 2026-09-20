@@ -6,7 +6,13 @@ modelo o documento sai e o que aparece no cabeçalho dele — e é isso, e só
 isso, que a tela de gestão faz (**US015, US016**).
 
 São as telas 11 e 12 da E3 — Painel e Gestão. O painel gerencial é a issue
-#70; esta issue entrega a Gestão e a navegação que leva às duas.
+#70; esta issue entrega a Gestão e a navegação que leva a elas.
+
+> A direção ganhou um terceiro destino depois desta issue: **Mapas**, a
+> reabertura de um dia bloqueado para correção
+> ([a reabertura de um mapa](desbloqueio-de-mapa.md), issue #69). Ele não muda
+> o que está escrito abaixo — reabrir não é editar o mapa, e o fluxo do
+> registro continua sem caminho de ida nem de volta para cá.
 
 O código está em [`web/src/admin/`](../../web/src/admin/) (as consultas, as
 mensagens e os três cartões), em
@@ -30,7 +36,7 @@ políticas de RLS da E4: `meal_map_cook_insert` exige o papel de merendeira, e
 um endereço digitado à mão não contorna isso —
 [a guarda de rota não é a segurança](autenticacao-e-sessao.md#a-guarda-de-rota-não-é-a-segurança).
 
-A barra lateral vira uma faixa de duas abas no alto quando a tela é estreita.
+A barra lateral vira uma faixa de abas no alto quando a tela é estreita.
 O desenho da E3 é de computador porque é assim que a direção trabalha, mas a
 web abre em qualquer aparelho, e uma coluna de 240 px espremida num celular
 não serve a ninguém.
@@ -261,7 +267,7 @@ critérios de aceite da issue, um a um:
 | Registro recusado após o envio   | o arquivo é apagado e o modelo antigo continua valendo |
 | Escola sem modelo                | avisa, porque sem ele não há documento                 |
 | Dados da escola                  | salvam; nome em branco não deixa salvar                |
-| A navegação da direção           | dois destinos, nenhum deles do mapa                    |
+| A navegação da direção           | três destinos, e nenhum deles registra mapa            |
 | A merendeira em `/admin/gestao`  | volta para a casa dela                                 |
 
 Ponta a ponta, contra o Supabase local: a criação de acesso foi exercitada com

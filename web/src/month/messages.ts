@@ -19,6 +19,16 @@ export const DAY_STATE_LABELS: Record<DayState, string> = {
   empty: 'Vazio',
 }
 
+/*
+ * O dia que a direção reabriu para correção (CA#2 da US023). Não é um estado ao
+ * lado dos cinco: é um aviso que acompanha o estado que o dia já tem, e por isso
+ * tem rótulo próprio e não entra em `DAY_STATE_LABELS`.
+ *
+ * "Reaberto" e não "desbloqueado", como na área da direção e pelo mesmo motivo:
+ * o que ela precisa saber é que o dia voltou para a mão dela.
+ */
+export const REOPENED_LABEL = 'Reaberto'
+
 /** O mesmo rótulo, no plural, para a linha de andamento do mês. */
 const PLURAL: Record<DayState, string> = {
   complete: 'preenchidos',

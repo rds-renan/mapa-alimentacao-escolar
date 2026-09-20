@@ -27,6 +27,8 @@ export const ROUTES = {
   adminHome: '/admin',
   /** A gestão de acessos, modelo oficial e dados da escola: a tela 12 da E3. */
   adminManagement: '/admin/gestao',
+  /** Os dias que saíram em documento, e a reabertura deles (issue #69). */
+  adminMaps: '/admin/mapas',
 } as const
 
 /** Onde cada perfil aterrissa ao entrar. São dois fluxos, não um com menus a mais. */

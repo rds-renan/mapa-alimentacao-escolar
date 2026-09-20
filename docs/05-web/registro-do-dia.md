@@ -267,6 +267,12 @@ conferir depois de gerar o documento. Os campos ficam desabilitados e uma faixa
 diz o porquê e para onde ir: _"Este dia já está em um documento gerado, por isso
 abre só para consulta. A direção pode reabrir o mapa para correção."_
 
+Reaberto o mapa, a faixa é outra, no lugar da mesma — e as duas nunca aparecem
+juntas, porque o dia reaberto é, por definição, o que saiu do bloqueio. Ela diz
+o que mudou e não o porquê: a justificativa da direção fica no registro de
+auditoria, e não vira recado
+([a reabertura de um mapa](desbloqueio-de-mapa.md)).
+
 O `locked` é lido do servidor, que é o único que o conhece. Quando a consulta
 não responde e a tela abre pelo rascunho, o bloqueio não é conhecido; se o dia
 tiver sido bloqueado nesse meio-tempo, quem recusa é a gravação, e a mensagem

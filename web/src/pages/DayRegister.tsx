@@ -5,6 +5,7 @@ import {
   CircleAlert,
   LoaderCircle,
   Lock,
+  LockOpen,
 } from 'lucide-react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router'
 
@@ -76,7 +77,7 @@ export function DayRegister() {
 
 function DayScreen({ mapDate }: { mapDate: string }) {
   const navigate = useNavigate()
-  const { day, locked, loading, failed, status, retry, change } =
+  const { day, locked, reopened, loading, failed, status, retry, change } =
     useDay(mapDate)
 
   const [openMeal, setOpenMeal] = useState<MealType | null>(null)
@@ -251,6 +252,22 @@ function DayScreen({ mapDate }: { mapDate: string }) {
         >
           <Lock className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           <span>{DAY_MESSAGES.locked}</span>
+        </p>
+      ) : null}
+
+      {/*
+       * A faixa da reabertura fica no mesmo lugar da do bloqueio, e as duas
+       * nunca aparecem juntas: o dia reaberto é, por definição, o que saiu do
+       * bloqueio. Aqui o tom é o do aviso, e não o do cinza da leitura — ela
+       * abriu um dia que já estava pronto e há trabalho a fazer nele.
+       */}
+      {reopened ? (
+        <p
+          role="status"
+          className="flex items-start gap-2 border-b border-warning-border bg-warning-subtle px-4 py-2.5 text-sm text-warning"
+        >
+          <LockOpen className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+          <span>{DAY_MESSAGES.reopened}</span>
         </p>
       ) : null}
 

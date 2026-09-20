@@ -58,6 +58,12 @@ da US007). Saber que ele também estava completo não muda nada para ela. Um dia
 não letivo bloqueado mostra o cadeado, e a observação continua na linha de
 apoio.
 
+**Os estados continuam cinco.** O dia que a direção reabriu para correção
+(US023) ganhou uma etiqueta **ao lado** da do estado, e não um estado novo: um
+dia reaberto continua sendo preenchido ou pendente, e continua contando no
+andamento do mês como o que é — ver
+[a reabertura de um mapa](desbloqueio-de-mapa.md).
+
 ### Cor e ícone, nunca só cor
 
 É o RNF#1 da US008, e aqui ele não é formalidade de acessibilidade: quem lê

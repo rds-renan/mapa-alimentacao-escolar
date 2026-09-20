@@ -72,6 +72,14 @@ export const DAY_MESSAGES = {
    */
   locked:
     'Este dia já está em um documento gerado, por isso abre só para consulta. A direção pode reabrir o mapa para correção.',
+  /*
+   * O outro lado do bloqueio (CA#2 da US023): a direção reabriu, e o dia voltou
+   * a aceitar edição. A justificativa que ela escreveu **não** aparece aqui, por
+   * decisão de escopo — o texto é prestação de contas, não recado —, então a
+   * frase diz o que mudou e o que fazer com isso, e não por quê.
+   */
+  reopened:
+    'A direção reabriu este dia para correção. Ele voltou a aceitar edição, e o que você corrigir entra no próximo documento gerado.',
 
   nonSchoolDayTitle: 'Dia não letivo',
   nonSchoolDayHint: 'Registra apenas uma observação',

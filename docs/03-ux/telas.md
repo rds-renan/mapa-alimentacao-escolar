@@ -86,6 +86,20 @@ Histórico mensal: aceitação das refeições, refeições servidas e as merend
 
 Merendeiras e acessos, modelo oficial do mapa e dados da escola. **US015, US016.**
 
+### Mapas
+
+![Mapas](../assets/e3-admin-mapas.png)
+
+Os dias que saíram em documento — bloqueados para edição desde a geração — e o histórico permanente de reaberturas, com quem reabriu, quando e por quê. A lista identifica o dia e não abre o mapa: a direção reabre, e quem corrige é a merendeira. **US023.**
+
+### Reabrir mapa
+
+![Reabertura de um mapa, com a justificativa](../assets/e3-admin-reabrir-mapa.png)
+
+A justificativa é obrigatória, e pedi-la é a própria confirmação: quem escreve o motivo já decidiu. A frase diz o que muda para a merendeira e o que **não** muda no documento que já saiu. **US023, US007.**
+
+> As duas telas acima não vieram do desenho original da E3, que é anterior à revisão de escopo que criou a US023: nasceram na codificação, na issue #69, e entraram aqui pelo mesmo caminho das correções das telas 3 e 3a — o desenho é atualizado no PR que o descobre.
+
 ## Sobre estes arquivos
 
 As telas são desenhadas num canvas de design e exportadas em PNG, cada uma no tamanho do seu artboard e a 2× para não perder nitidez ao entrar no documento da faculdade. As imagens não são editadas à mão: quando uma tela muda, o arquivo é exportado de novo.
