@@ -425,12 +425,13 @@ Ela varre o **balde**, e não a tabela: o balde é quem sabe o que ainda está l
 Pela tabela, cada passagem reprocessaria todo documento já gerado na história
 da escola, e um arquivo que tivesse perdido o registro nunca seria alcançado.
 
-**O agendamento não está em migration**, e é o único passo manual desta issue.
-Ele precisa da chave secreta, que não entra em código — no painel do projeto,
-em *Integrations > Cron*, cria-se um agendamento diário que chama
-`expire-documents` por HTTP, com a chave vinda do Vault. Uma vez por dia basta:
-a janela é de sete dias, e um arquivo que sai algumas horas depois do prazo já
-não era servido a ninguém desde o instante em que venceu.
+**O agendamento não está em migration**, e não pode estar: ele precisa da chave
+secreta, que não entra em código. É um `pg_cron` diário chamando a função por
+HTTP, e o passo a passo está na
+[integração contínua e publicação](integracao-continua-e-publicacao.md#o-agendamento-da-limpeza),
+junto com o resto do que se publica à mão. Uma vez por dia basta: a janela é de
+sete dias, e um arquivo que sai algumas horas depois do prazo já não era servido
+a ninguém desde o instante em que venceu.
 
 ### O que ficou para as telas
 

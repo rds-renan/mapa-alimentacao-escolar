@@ -85,8 +85,8 @@ supabase functions deploy expire-documents
 ```
 
 Nenhum segredo a configurar: o runtime injeta o endereço do projeto e a chave secreta.
-Quem chama a limpeza é o agendador, e como criá-lo está na
-[documentação da etapa](../../docs/05-web/geracao-do-documento.md).
+Publicar o banco, publicar as funções e agendar a limpeza estão, passo a passo, em
+[integração contínua e publicação](../../docs/05-web/integracao-continua-e-publicacao.md#publicar-o-banco-e-as-edge-functions).
 
 ## Sigilo
 

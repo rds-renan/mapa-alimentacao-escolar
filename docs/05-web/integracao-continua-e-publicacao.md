@@ -304,6 +304,104 @@ endereços permitidos para o link de senha nova, em *Authentication > URL
 Configuration*, e o texto em português do e-mail de senha nova, em
 *Authentication > Emails*.
 
+## Publicar o banco e as Edge Functions
+
+A web se publica sozinha a cada merge; o Supabase, não. A assimetria é
+proposital em dois pontos e acidental em nenhum: aplicar uma migration é uma
+**decisão**, não uma consequência de mergear — migration é imutável, e um
+`db push` disparado por engano só se corrige escrevendo a próxima —, e a CI não
+tem, nem deve ter, credencial de produção do banco. Quem publica é quem tem a
+máquina ligada, olhando o que vai subir.
+
+Confira primeiro o que está fora de sincronia:
+
+```bash
+supabase migration list        # lado a lado: o que é local e o que já está no remoto
+supabase db push --dry-run     # o que seria aplicado, sem aplicar
+supabase db push               # aplica
+```
+
+As funções vão em seguida, uma a uma:
+
+```bash
+supabase functions deploy generate-document
+supabase functions deploy expire-documents
+```
+
+**Nenhum segredo a configurar.** O runtime injeta o endereço do projeto e a
+chave secreta; `supabase secrets set` não é preciso. O que está em
+`supabase/functions/_shared/` sobe junto, porque é importado — não se publica
+separado.
+
+A ordem é a do bom senso: mergear, depois publicar. As duas coisas podem ir
+antes do merge sem quebrar nada enquanto nenhuma tela chamar a função, mas aí a
+`main` deixa de ser o que está no ar, e é ela que se lê para saber o que está.
+
+### O agendamento da limpeza
+
+Os arquivos vencidos só somem se alguém chamar a `expire-documents`, e quem
+chama é o [Cron do Supabase](https://supabase.com/docs/guides/cron/quickstart)
+— `pg_cron` disparando um `net.http_post` para a função. **Isto não está em
+migration**, e não pode estar: precisa da chave secreta, que não entra em
+código.
+
+Pelo painel, que é o caminho mais curto porque liga `pg_cron` e `pg_net`
+sozinho: *Integrations > Cron > Create job*, nome `expire-documents`,
+agendamento `0 6 * * *` — a hora é **UTC**, então isto é três da manhã aqui —,
+tipo *Supabase Edge Function*, método POST.
+
+Por SQL dá no mesmo, e o segredo vai para o Vault, nunca para dentro do
+`cron.schedule`:
+
+```sql
+select vault.create_secret('https://<ref>.supabase.co', 'project_url');
+select vault.create_secret('<chave secreta>', 'service_key');
+
+select cron.schedule(
+  'expire-documents',
+  '0 6 * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url')
+           || '/functions/v1/expire-documents',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' ||
+        (select decrypted_secret from vault.decrypted_secrets where name = 'service_key')
+    )
+  );
+  $$
+);
+```
+
+Depois, `select * from cron.job;` mostra o agendamento e
+`select * from cron.job_run_details order by start_time desc limit 5;` mostra as
+últimas passagens.
+
+**Qual chave vai no cabeçalho.** O projeto tem duas gerações de chave secreta
+convivendo: a `service_role` antiga, que é um JWT, e a `sb_secret_…` nova, que é
+opaca. A função aceita as duas; quem pode não aceitar é o portão do Supabase,
+que valida o `Authorization` **antes** de a função rodar. Chamar a função à mão
+resolve a dúvida em dez segundos:
+
+```bash
+curl -i -X POST https://<ref>.supabase.co/functions/v1/expire-documents \
+  -H "Authorization: Bearer <a chave que vai no agendamento>"
+```
+
+Uma resposta `{"removed_files":…}` é a chave certa. Um 401 **no formato de erro
+do MAE** chegou à função e a chave está errada; um 401 sem esse corpo foi o
+portão, e aí ou se usa a chave antiga, ou se desliga o `verify_jwt` dessa função
+no [`config.toml`](../../supabase/config.toml) — o que é seguro, porque o guarda
+da chave é da própria função.
+
+### O que vive só no painel
+
+Fora do repositório, e por isso listado aqui: os endereços permitidos do link de
+senha nova, o texto dos e-mails, as variáveis da Cloudflare, os segredos do
+Vault e o agendamento do Cron. É o inventário do que uma máquina nova não
+reconstrói sozinha a partir de um `git clone`.
+
 ## O que nunca entra no pacote publicado
 
 Só variáveis com o prefixo `VITE_` chegam ao navegador, e só duas existem: a
