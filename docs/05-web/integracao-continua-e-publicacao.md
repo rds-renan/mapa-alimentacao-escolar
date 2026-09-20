@@ -348,7 +348,10 @@ código.
 Pelo painel, que é o caminho mais curto porque liga `pg_cron` e `pg_net`
 sozinho: *Integrations > Cron > Create job*, nome `expire-documents`,
 agendamento `0 6 * * *` — a hora é **UTC**, então isto é três da manhã aqui —,
-tipo *Supabase Edge Function*, método POST.
+tipo *Supabase Edge Function*, método POST. Nos cabeçalhos, o botão
+**Add secret key** põe a chave secreta do projeto num cabeçalho `apiKey`, e é
+assim que se usa: a função aceita a chave por ali. **Não é preciso corpo
+nenhum** — a `expire-documents` decide tudo pelo método e pelo cabeçalho.
 
 Por SQL dá no mesmo, e o segredo vai para o Vault, nunca para dentro do
 `cron.schedule`:
@@ -378,22 +381,39 @@ Depois, `select * from cron.job;` mostra o agendamento e
 `select * from cron.job_run_details order by start_time desc limit 5;` mostra as
 últimas passagens.
 
-**Qual chave vai no cabeçalho.** O projeto tem duas gerações de chave secreta
-convivendo: a `service_role` antiga, que é um JWT, e a `sb_secret_…` nova, que é
-opaca. A função aceita as duas; quem pode não aceitar é o portão do Supabase,
-que valida o `Authorization` **antes** de a função rodar. Chamar a função à mão
-resolve a dúvida em dez segundos:
+Para conferir sem esperar a madrugada:
 
 ```bash
 curl -i -X POST https://<ref>.supabase.co/functions/v1/expire-documents \
-  -H "Authorization: Bearer <a chave que vai no agendamento>"
+  -H "apiKey: <a chave que vai no agendamento>"
 ```
 
-Uma resposta `{"removed_files":…}` é a chave certa. Um 401 **no formato de erro
-do MAE** chegou à função e a chave está errada; um 401 sem esse corpo foi o
-portão, e aí ou se usa a chave antiga, ou se desliga o `verify_jwt` dessa função
-no [`config.toml`](../../supabase/config.toml) — o que é seguro, porque o guarda
-da chave é da própria função.
+`{"removed_files":…, "closed_generations":…}` é o caminho feliz. Um 401 no
+formato de erro do MAE quer dizer que a chamada chegou e a chave não serve — a
+publicável, por exemplo, é recusada.
+
+**Por que esta função não tem `verify_jwt`.** A chave secreta no formato atual
+(`sb_secret_…`) **não é um JWT**, então o Kong não teria como verificá-la e
+recusaria a chamada legítima antes de a função rodar; o próprio painel avisa
+disso ao oferecer a chave no agendamento. Com a verificação desligada em
+[`config.toml`](../../supabase/config.toml), quem autoriza é a função, que
+compara a chave apresentada com as do projeto — e aceita tanto o `apiKey` do
+painel quanto um `Authorization: Bearer`. A `generate-document`, que tem uma
+pessoa do outro lado e recebe um JWT de verdade, continua com `verify_jwt`
+ligado.
+
+**A chave fica guardada em algum lugar, e vale saber qual.** Se o agendamento
+gravar o valor literal, ele fica em texto puro no comando do job — visível para
+quem ler a tabela e presente em qualquer backup do banco:
+
+```sql
+select jobname, command from cron.job;
+```
+
+Aparecendo a chave inteira ali, o caminho é o `cron.schedule` com Vault acima:
+o comando passa a guardar uma referência, e o valor só é decifrado na hora da
+chamada. A exposição não é nova — a chave já é de quem administra o projeto —,
+mas texto puro numa tabela viaja para lugares que ninguém escolhe.
 
 ### O que vive só no painel
 
