@@ -59,6 +59,34 @@ function documentRow(row: GeneratedDocumentRow) {
   }
 }
 
+/**
+ * Uma linha de `profile` como a gestão de acessos a lê (issue #68). O papel
+ * não entra: a lista pede `role = 'cook'`, e o mock só guarda merendeiras.
+ */
+export interface CookRow {
+  id: string
+  name: string
+  email: string
+  active: boolean
+  last_access: string | null
+}
+
+/** A escola, como o cartão de dados institucionais a lê. */
+export interface SchoolRow {
+  id: string
+  name: string
+  city: string
+  school_year: number
+}
+
+/** A versão vigente do modelo oficial. */
+export interface TemplateRow {
+  id: string
+  file_name: string
+  file_path: string
+  uploaded_at: string
+}
+
 /** Uma linha de `meal_map` como a visão do mês a pede, com as refeições dentro. */
 export interface MealMapRow {
   map_date: string
@@ -141,8 +169,34 @@ let generationRequests: string[][] = []
 let generatedDocumentRows: GeneratedDocumentRow[] = []
 let generatedDocumentsError: { message: string } | null = null
 let signedUrlError: { message: string } | null = null
-let signedUrlRequests: { path: string; seconds: number; download?: string }[] =
-  []
+let signedUrlRequests: {
+  bucket: string
+  path: string
+  seconds: number
+  download?: string
+}[] = []
+let cookRows: CookRow[] = []
+let cooksError: { message: string } | null = null
+let cookWriteError: { message: string } | null = null
+let schoolRow: SchoolRow | null = null
+let schoolError: { message: string } | null = null
+let schoolWriteError: { message: string } | null = null
+let templateRow: TemplateRow | null = null
+let templateError: { message: string } | null = null
+let templateRpcError: { code?: string; message: string } | null = null
+let createAccessFailure: {
+  status: number
+  message: string
+  hint?: string
+} | null = null
+let createdAccessRequests: { name: string; email: string }[] = []
+let passwordEmailRequests: string[] = []
+let passwordEmailError: { message: string } | null = null
+let uploadError: { message: string } | null = null
+let uploadedFiles: { bucket: string; path: string; name: string }[] = []
+let removedFiles: string[] = []
+let nextCookId = 1
+let nextTemplateId = 1
 
 function sessionFor(profile: Profile): Session {
   return {
@@ -251,6 +305,103 @@ export function storedFoodItems(): FoodItemRow[] {
   return foodItemRows
 }
 
+/** As merendeiras que a gestão de acessos encontra (issue #68). */
+export function givenCooks(rows: CookRow[]) {
+  cookRows = rows
+  cooksError = null
+}
+
+export function givenCooksFail(message = 'sem rede') {
+  cooksError = { message }
+}
+
+/** Desativar/reativar não passa: a gestão escreve direto no servidor. */
+export function givenCookWriteFails(message = 'sem rede') {
+  cookWriteError = { message }
+}
+
+/** A escola de quem está logada, que é a única que o RLS devolve. */
+export function givenSchool(row: SchoolRow) {
+  schoolRow = row
+  schoolError = null
+}
+
+export function givenSchoolFail(message = 'sem rede') {
+  schoolError = { message }
+}
+
+export function givenSchoolWriteFails(message = 'sem rede') {
+  schoolWriteError = { message }
+}
+
+/** O modelo oficial vigente, ou a falta dele. */
+export function givenCurrentTemplate(row: TemplateRow | null) {
+  templateRow = row
+  templateError = null
+}
+
+export function givenTemplateFail(message = 'sem rede') {
+  templateError = { message }
+}
+
+/** O envio do modelo sobe o arquivo e falha ao registrá-lo. */
+export function givenTemplateRegisterFails(message = 'recusado') {
+  templateRpcError = { code: '42501', message }
+}
+
+/** O balde recusa o arquivo do modelo. */
+export function givenTemplateUploadFails(message = 'sem rede') {
+  uploadError = { message }
+}
+
+/** A Edge Function que cria o acesso recusa o pedido. */
+export function givenCreateAccessFails(
+  message: string,
+  status = 400,
+  hint?: string
+) {
+  createAccessFailure = { status, message, hint }
+}
+
+/** O e-mail de criar senha não sai. */
+export function givenPasswordEmailFails(message = 'sem rede') {
+  passwordEmailError = { message }
+}
+
+/** Os acessos que a tela pediu para criar, na ordem. */
+export function createdAccesses() {
+  return createdAccessRequests
+}
+
+/** Os e-mails de criar senha que a tela disparou, na ordem. */
+export function passwordEmails() {
+  return passwordEmailRequests
+}
+
+/** As merendeiras como ficaram depois do que a tela gravou. */
+export function storedCooks(): CookRow[] {
+  return cookRows
+}
+
+/** A escola como ficou depois do que a tela gravou. */
+export function storedSchool(): SchoolRow | null {
+  return schoolRow
+}
+
+/** O modelo vigente como ficou depois do envio. */
+export function storedTemplate(): TemplateRow | null {
+  return templateRow
+}
+
+/** Os arquivos que subiram ao balde, e os que foram apagados de lá. */
+export function uploads() {
+  return uploadedFiles
+}
+
+export function removals() {
+  return removedFiles
+}
+
 export function resetSupabaseMock() {
   listeners.clear()
   currentSession = null
@@ -269,7 +420,49 @@ export function resetSupabaseMock() {
   generatedDocumentsError = null
   signedUrlError = null
   signedUrlRequests = []
+  cookRows = []
+  cooksError = null
+  cookWriteError = null
+  schoolRow = null
+  schoolError = null
+  schoolWriteError = null
+  templateRow = null
+  templateError = null
+  templateRpcError = null
+  createAccessFailure = null
+  createdAccessRequests = []
+  passwordEmailRequests = []
+  passwordEmailError = null
+  uploadError = null
+  uploadedFiles = []
+  removedFiles = []
+  nextCookId = 1
+  nextTemplateId = 1
   vi.clearAllMocks()
+}
+
+/**
+ * A recusa de uma Edge Function, como a biblioteca a embrulha: o corpo do erro
+ * fica em `context`, e é de lá que a tela tira a frase já escrita.
+ */
+function functionFailure(failure: {
+  status: number
+  message: string
+  hint?: string
+}) {
+  return {
+    data: null,
+    error: {
+      name: 'FunctionsHttpError',
+      message: 'Edge Function returned a non-2xx status code',
+      context: {
+        status: failure.status,
+        json: async () => ({
+          error: { message: failure.message, hint: failure.hint ?? null },
+        }),
+      },
+    },
+  }
 }
 
 export const supabase = {
@@ -308,19 +501,55 @@ export const supabase = {
       }
     ),
 
-    resetPasswordForEmail: vi.fn(async () => ({ data: {}, error: null })),
+    resetPasswordForEmail: vi.fn(async (email: string) => {
+      passwordEmailRequests = [...passwordEmailRequests, email]
+      return passwordEmailError
+        ? { data: null, error: passwordEmailError }
+        : { data: {}, error: null }
+    }),
 
     updateUser: vi.fn(async () => ({ data: {}, error: null })),
   },
 
   /*
-   * A gravação do dia. Responde como uma rede que não está lá: o dia continua
-   * na fila, que é o estado que interessa a estes testes.
+   * As funções do banco. Três telas chegam aqui, e cada uma por um motivo:
+   *
+   *   save_meal_map              responde como uma rede que não está lá — o dia
+   *                              continua na fila, que é o estado que interessa
+   *   touch_last_access          o carimbo do último acesso, que nunca atrapalha
+   *   replace_document_template  a troca do modelo, que é uma operação só
+   *
+   * O retorno é um objeto que se pode esperar **ou** encadear com `single()`,
+   * como o construtor da biblioteca de verdade.
    */
-  rpc: vi.fn(async () => ({
-    data: null,
-    error: { code: '', message: 'sem rede', details: '', hint: '' },
-  })),
+  rpc: vi.fn((name: string, args?: Record<string, unknown>) => {
+    const result = () => {
+      if (name === 'touch_last_access') return { data: null, error: null }
+
+      if (name === 'replace_document_template') {
+        if (templateRpcError) return { data: null, error: templateRpcError }
+
+        templateRow = {
+          id: `template-${nextTemplateId++}`,
+          file_name: String(args?.p_file_name ?? '').trim(),
+          file_path: String(args?.p_file_path ?? ''),
+          uploaded_at: new Date().toISOString(),
+        }
+        return { data: templateRow, error: null }
+      }
+
+      return {
+        data: null,
+        error: { code: '', message: 'sem rede', details: '', hint: '' },
+      }
+    }
+
+    return {
+      single: async () => result(),
+      then: (resolve: (value: ReturnType<typeof result>) => unknown) =>
+        Promise.resolve(resolve(result())),
+    }
+  }),
 
   /*
    * A Edge Function da geração do documento. Ela responde como a de verdade:
@@ -329,25 +558,48 @@ export const supabase = {
    */
   functions: {
     invoke: vi.fn(
-      async (_name: string, options: { body: { meal_map_ids: string[] } }) => {
-        generationRequests = [...generationRequests, options.body.meal_map_ids]
-
-        if (generationFailure) {
-          const { status, message, hint } = generationFailure
-          return {
-            data: null,
-            error: {
-              name: 'FunctionsHttpError',
-              message: 'Edge Function returned a non-2xx status code',
-              context: {
-                status,
-                json: async () => ({ error: { message, hint: hint ?? null } }),
-              },
-            },
+      async (
+        name: string,
+        options: {
+          body: { meal_map_ids?: string[]; name?: string; email?: string }
+        }
+      ) => {
+        /*
+         * A criação do acesso (issue #68). A conta nasce em `auth.users`, que
+         * só a chave secreta escreve, e é por isso que ela é uma Edge Function
+         * e não mais um insert da tela.
+         */
+        if (name === 'create-access') {
+          const wanted = {
+            name: String(options.body.name ?? ''),
+            email: String(options.body.email ?? ''),
           }
+          createdAccessRequests = [...createdAccessRequests, wanted]
+
+          if (createAccessFailure) return functionFailure(createAccessFailure)
+
+          const created: CookRow = {
+            id: `cook-${nextCookId++}`,
+            name: wanted.name,
+            email: wanted.email,
+            active: true,
+            last_access: null,
+          }
+          cookRows = [...cookRows, created].sort((a, b) =>
+            a.name.localeCompare(b.name)
+          )
+
+          return { data: created, error: null }
         }
 
-        const dates = options.body.meal_map_ids
+        generationRequests = [
+          ...generationRequests,
+          options.body.meal_map_ids ?? [],
+        ]
+
+        if (generationFailure) return functionFailure(generationFailure)
+
+        const dates = (options.body.meal_map_ids ?? [])
           .map((id) => id.replace('map-', ''))
           .sort()
 
@@ -375,7 +627,7 @@ export const supabase = {
    * o caminho do arquivo e o nome com que ele deve chegar.
    */
   storage: {
-    from: vi.fn(() => ({
+    from: vi.fn((bucket: string) => ({
       createSignedUrl: vi.fn(
         async (
           path: string,
@@ -384,7 +636,7 @@ export const supabase = {
         ) => {
           signedUrlRequests = [
             ...signedUrlRequests,
-            { path, seconds, download: options?.download },
+            { bucket, path, seconds, download: options?.download },
           ]
 
           if (signedUrlError) return { data: null, error: signedUrlError }
@@ -395,6 +647,20 @@ export const supabase = {
           }
         }
       ),
+
+      /** O envio do modelo oficial, que vai para o balde privado (issue #68). */
+      upload: vi.fn(async (path: string, file: File) => {
+        if (uploadError) return { data: null, error: uploadError }
+
+        uploadedFiles = [...uploadedFiles, { bucket, path, name: file.name }]
+        return { data: { path }, error: null }
+      }),
+
+      /** O arquivo que subiu e não virou versão nenhuma é apagado. */
+      remove: vi.fn(async (paths: string[]) => {
+        removedFiles = [...removedFiles, ...paths]
+        return { data: [], error: null }
+      }),
     })),
   },
 
@@ -407,13 +673,13 @@ export const supabase = {
   from: vi.fn((table: string) => {
     const filters: Record<string, unknown> = {}
     /* A linha que a gravação acabou de escrever, que é o que `single` devolve. */
-    let written: FoodItemRow | null = null
+    let written: FoodItemRow | CookRow | SchoolRow | null = null
     /*
      * O que `update` recebeu. Ele vem ANTES do `eq` que diz qual linha é — é a
      * ordem da biblioteca real —, então a troca só acontece quando o resultado
      * é pedido, e não na hora da chamada.
      */
-    let changes: Partial<FoodItemRow> | null = null
+    let changes: Partial<FoodItemRow & CookRow & SchoolRow> | null = null
 
     const chain = {
       select: () => chain,
@@ -446,7 +712,7 @@ export const supabase = {
         return chain
       },
 
-      update: (values: Partial<FoodItemRow>) => {
+      update: (values: Partial<FoodItemRow & CookRow & SchoolRow>) => {
         changes = values
         return chain
       },
@@ -456,6 +722,12 @@ export const supabase = {
        * e o registro do dia, que pede o mapa de uma data.
        */
       maybeSingle: async () => {
+        if (table === 'school') {
+          return { data: schoolRow, error: schoolError }
+        }
+        if (table === 'document_template') {
+          return { data: templateRow, error: templateError }
+        }
         if (table !== 'meal_map') {
           return { data: profileRow, error: profileError }
         }
@@ -467,6 +739,30 @@ export const supabase = {
 
       /** O que a gravação devolve: a linha escrita, ou a recusa do servidor. */
       single: async () => {
+        /*
+         * As duas escritas da gestão (issue #68). Desativar uma merendeira é
+         * `active = false` e nunca um delete: a linha sustenta a autoria dos
+         * registros dela, e o mock guarda isso como o banco guarda.
+         */
+        if (table === 'profile') {
+          if (cookWriteError) return { data: null, error: cookWriteError }
+
+          let saved: CookRow | null = null
+          cookRows = cookRows.map((row) => {
+            if (row.id !== filters.id) return row
+            saved = { ...row, ...changes }
+            return saved
+          })
+          return { data: saved, error: null }
+        }
+
+        if (table === 'school') {
+          if (schoolWriteError) return { data: null, error: schoolWriteError }
+
+          schoolRow = schoolRow ? { ...schoolRow, ...changes } : schoolRow
+          return { data: schoolRow, error: null }
+        }
+
         if (foodItemWriteError) return { data: null, error: foodItemWriteError }
 
         if (changes !== null) {
@@ -486,6 +782,7 @@ export const supabase = {
           data:
             | MealMapRow[]
             | FoodItemRow[]
+            | CookRow[]
             | ReturnType<typeof documentRow>[]
             | null
           error: { message: string } | null
@@ -509,6 +806,16 @@ export const supabase = {
               foodItemError
                 ? { data: null, error: foodItemError }
                 : { data: rows, error: null }
+            )
+          )
+        }
+
+        if (table === 'profile') {
+          return Promise.resolve(
+            resolve(
+              cooksError
+                ? { data: null, error: cooksError }
+                : { data: cookRows, error: null }
             )
           )
         }

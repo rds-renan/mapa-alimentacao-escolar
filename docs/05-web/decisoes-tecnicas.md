@@ -115,7 +115,7 @@ declarada, na [camada local](camada-local.md).
 ## 12. O que fica de fora desta decisão, e quando cada coisa se decide
 
 - **Biblioteca de geração do documento** — a Edge Function que preenche o template oficial é o risco declarado no plano de projeto. Merecia um *spike* próprio, com issue própria, antes de virar decisão: primeiro se descobre o que preenche o template com fidelidade, depois se escolhe a ferramenta. **Resolvido** — o spike foi feito e a resposta virou a decisão 13, abaixo.
-- **Biblioteca de gráficos** — nasce com o painel gerencial (US017), já com a paleta de dados definida na decisão 6 da E3. É também a candidata a estourar o teto de peso do pacote, e é para esse dia que o teto existe — ver [integração contínua e publicação](integracao-continua-e-publicacao.md#o-peso-do-pacote-tem-um-teto).
+- **Biblioteca de gráficos** — nasce com o painel gerencial (US017), já com a paleta de dados definida na decisão 6 da E3. Era a candidata a estourar o teto de peso do pacote; quem estourou primeiro foi a gestão da direção, e a resposta virou a decisão 14, abaixo — a biblioteca de gráficos já nasce dentro do pedaço carregado sob demanda. Ver [integração contínua e publicação](integracao-continua-e-publicacao.md#o-peso-do-pacote-tem-um-teto).
 - **Formulários, validação e datas** — nascem com a primeira tela que precisar delas, se precisarem.
 - **Notificação de documento pronto** — depende de aparelho registrado, o que só existe na E6 (decisão 12 da E4).
 - **Biblioteca de interface do aplicativo Android** — é decisão da E6, conforme a decisão 6 da E3, e será registrada em `docs/06-app/`. O que atravessa as duas plataformas são os tokens, não os componentes.
@@ -127,6 +127,14 @@ declarada, na [camada local](camada-local.md).
 **Como ficou**: o protótipo gerou o mês inteiro a partir do arquivo oficial de verdade em 336 ms, contra o teto de 30 segundos do RNF#2, e graduou para [`supabase/functions/`](../../supabase/functions/) — o preenchimento em `_shared/`, dentro da Edge Function `generate-document` que o implanta. O relato completo, do spike ao contrato da função, está na [geração do documento oficial](geracao-do-documento.md).
 
 **Por quê**: o spike desfez a premissa de que existia um "template". O arquivo da escola é um mapa preenchido à mão, com altura de linha travada a olho e cabeçalho copiado no meio da tabela — não um gabarito. O docxtemplater, a escolha óbvia, precisa de `{tags}` escritas dentro do documento: testado contra o arquivo oficial, não achou marcação nenhuma e devolveu o arquivo intacto. Preparar o modelo seria trabalho de edição no Word, e quem sobe o modelo é a direção da escola (RN#1 da US015), com o arquivo que a prefeitura mandou — seria transferir o risco do spike para a pessoa menos equipada para absorvê-lo, e refazê-lo a cada arquivo novo. Montar o documento do zero em código daria controle total ao custo de virar dono de uma cópia do formulário que envelhece calada quando a prefeitura mudar o dela — e a US015 existe porque esse dia chega. Reaproveitar o XML do modelo é o que mantém o formato sendo **deles**, não nosso.
+
+## 14. As telas da direção carregam sob demanda; as da merendeira, não
+
+**Decisão**: as duas rotas da área da direção entram por `lazy()`, num pedaço próprio do pacote; o fluxo da merendeira continua inteiro na carga inicial. O relato está em [a administração da escola](administracao.md#o-peso-do-pacote-e-a-divisão-por-rota-que-ele-cobrou).
+
+**Como ficou**: a tela de gestão (issue #68) levou a carga inicial de 203,1 kB para 207,8 kB em gzip e reprovou na CI, que vigia 205 kB. Com a divisão, 203,5 kB — e as telas da direção num arquivo de 6,25 kB que só quem entra como direção baixa.
+
+**Por quê**: não é economia de bytes por esporte, é para quem o peso é cobrado. Quem abre o aplicativo todo dia é a merendeira, de celular e numa rede fraca, e ela nunca abre a administração — são dois fluxos separados (RN#1 da US020), não um com telas a mais. Dividir ali corta o que ela nunca usa sem lhe custar espera nenhuma. Dividir o fluxo **dela** seria o contrário: a espera de um pedaço que falta cairia no meio do registro, que é exatamente o momento em que a rede da escola não está lá. É também a metade da issue #84 que faltava, aplicada no primeiro dia em que ela pagou.
 
 ## Ordem de ataque
 

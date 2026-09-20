@@ -1,15 +1,20 @@
 # supabase/functions/
 
-O código de servidor do MAE, em Deno. Duas funções:
+O código de servidor do MAE, em Deno. Três funções:
 
 | Pasta                | O que faz                                                                                  |
 | -------------------- | ------------------------------------------------------------------------------------------ |
 | `generate-document/` | Gera o documento oficial dos mapas selecionados e devolve o link temporário (US012, US013) |
 | `expire-documents/`  | Apaga o arquivo que venceu e encerra a geração que ficou pelo caminho                      |
+| `create-access/`     | Cria o acesso de uma merendeira, que só a chave secreta consegue criar (US016)             |
+
+Só está aqui o que o navegador não consegue fazer sozinho, e cada uma por um motivo
+diferente: o modelo oficial não pode passar pelo navegador, a limpeza não tem usuária do
+outro lado, e `auth.users` não é do nosso schema.
 
 `_shared/` é o preenchimento do modelo oficial — o que nasceu como spike na issue #58 e
-virou código de produção aqui — mais as peças que as duas funções dividem. O `_` no nome
-é convenção do Supabase: pasta que começa com ele não vira função.
+virou código de produção aqui — mais as peças que as funções dividem. O `_` no nome é
+convenção do Supabase: pasta que começa com ele não vira função.
 
 ```
 _shared/
@@ -82,6 +87,7 @@ deno task amostra --modelo="../../../_privado/<modelo oficial>.docx" \
 ```bash
 supabase functions deploy generate-document
 supabase functions deploy expire-documents
+supabase functions deploy create-access
 ```
 
 Nenhum segredo a configurar: o runtime injeta o endereço do projeto e a chave secreta.

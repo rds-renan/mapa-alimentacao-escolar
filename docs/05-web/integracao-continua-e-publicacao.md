@@ -108,15 +108,24 @@ navegador enxerga.
 ### O teto, que é um lembrete e não uma meta
 
 A outra metade da história é a divisão por rota — não baixar o painel e a
-administração para quem só vai registrar o almoço. Ela **não paga hoje**: a
-área da direção ainda é um marco de dez linhas, esperando as issues #68 e #70.
-Dividir agora não dividiria nada.
+administração para quem só vai registrar o almoço. Quando isto foi escrito ela
+**não pagava**: a área da direção era um marco de dez linhas, esperando as
+issues #68 e #70, e dividir não dividiria nada.
+
+**A #68 mudou isso, e o teto foi quem cobrou.** A tela de gestão levou a carga
+inicial de 203,1 kB para 207,8 kB, e a saída foi a que esta seção previa:
+`lazy()` nas duas rotas da direção, que devolveu a conta a 203,5 kB e pôs as
+telas dela num pedaço de 6,25 kB que só quem entra como direção baixa. O fluxo
+da merendeira continua inteiro na carga inicial, de propósito — ali a espera
+de um pedaço que falta cairia no meio do trabalho dela. O relato está em
+[a administração da escola](administracao.md#o-peso-do-pacote-e-a-divisão-por-rota-que-ele-cobrou).
 
 O momento certo é quando existir tela pesada que ninguém abre todo dia, e na
 prática isso quer dizer a biblioteca de gráficos do painel gerencial, que
-sozinha é da ordem de 100 kB em gzip. O problema é que uma issue **lembra, mas
-não garante** — ela some numa limpeza de milestone ou fica esperando uma data
-que ninguém sabe qual é. Quem garante é a CI:
+sozinha é da ordem de 100 kB em gzip — e que já nasce dentro do pedaço da
+direção, porque a rota dela agora é carregada sob demanda. O problema é que
+uma issue **lembra, mas não garante** — ela some numa limpeza de milestone ou
+fica esperando uma data que ninguém sabe qual é. Quem garante é a CI:
 [`npm run check:size`](../../web/scripts/conferir-peso-do-pacote.mjs) mede o
 `dist/` depois do build e reprova acima de **205 kB em gzip**, ao lado da
 conferência de segredos, no mesmo lugar e pelo mesmo motivo — as duas olham o
@@ -129,10 +138,12 @@ maior parcela. E é justamente por isso que um pedaço carregado sob demanda nã
 entra na conta: **a saída para o teto é dividir, e a régua tem de reconhecer
 quando alguém dividiu.**
 
-O número deixa cerca de 20 kB de folga sobre os 184,7 kB de hoje. O nosso
-código inteiro, quinze telas, são 14 kB em gzip — então as telas que faltam da
-merendeira cabem sem acender nada, e a biblioteca de gráficos estoura no
-primeiro commit. Que é exatamente o momento em que se quer ser interrompido.
+O número deixava cerca de 20 kB de folga sobre os 184,7 kB de quando foi
+escolhido. O nosso código inteiro, quinze telas, eram 14 kB em gzip — então as
+telas que faltavam da merendeira cabiam sem acender nada, e a biblioteca de
+gráficos estouraria no primeiro commit. Que é exatamente o momento em que se
+quer ser interrompido. Quem estourou primeiro foi a gestão da direção, e o
+desfecho está algumas linhas acima.
 
 O custo disso é honesto e vale escrever: **é um build vermelho num momento
 inconveniente, por construção.** Quem estiver na issue do painel leva o tapa
@@ -326,6 +337,7 @@ As funções vão em seguida, uma a uma:
 ```bash
 supabase functions deploy generate-document
 supabase functions deploy expire-documents
+supabase functions deploy create-access
 ```
 
 **Nenhum segredo a configurar.** O runtime injeta o endereço do projeto e a

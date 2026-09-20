@@ -312,7 +312,11 @@ E mais três, que são de segurança e não de idioma:
 
 - **As telas do desenho** — o pedido de senha nova e a senha nova entram na E3
   na revisão da documentação, junto com a história que as descreve.
-- **`profile.last_access`** — a coluna existe desde a E4 e ninguém a escreve.
-  O lugar natural é a gestão de acessos (issue #68), que é quem a exibe.
+- **`profile.last_access`** — **resolvido na issue #68**: quem carimba é
+  `public.touch_last_access()`, chamada a cada abertura do aplicativo, logo
+  depois de o perfil chegar. O porquê de não ser no login está em
+  [a administração da escola](administracao.md#o-último-acesso).
 - **A tela-casa de cada perfil** — o que está em `/` e `/admin` hoje é só o
-  destino das guardas: a visão do mês é a issue #61 e o painel, a #70.
+  destino das guardas: a visão do mês é a issue #61 e o painel, a #70. A casa
+  da merendeira chegou na #61; a da direção continua sendo uma tela-marco, com
+  a barra lateral da #68 já em volta dela.

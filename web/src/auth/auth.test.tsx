@@ -353,14 +353,18 @@ describe('rotas por perfil', () => {
     renderApp('/admin')
 
     expect(await screen.findByText(COOK_HOME)).toBeVisible()
-    expect(screen.queryByText('Painel')).not.toBeInTheDocument()
+    expect(
+      screen.queryByRole('heading', { name: 'Painel' })
+    ).not.toBeInTheDocument()
   })
 
   it('não deixa a direção no fluxo do mapa', async () => {
     givenSignedIn(admin)
     renderApp('/')
 
-    expect(await screen.findByText('Painel')).toBeVisible()
+    // Pelo cabeçalho, e não pelo texto: "Painel" também é um destino da barra
+    // lateral da direção, que a issue #68 montou.
+    expect(await screen.findByRole('heading', { name: 'Painel' })).toBeVisible()
     expect(screen.queryByText(COOK_HOME)).not.toBeInTheDocument()
   })
 
@@ -368,7 +372,7 @@ describe('rotas por perfil', () => {
     givenSignedIn(admin)
     renderApp('/um-endereco-que-nao-existe')
 
-    expect(await screen.findByText('Painel')).toBeVisible()
+    expect(await screen.findByRole('heading', { name: 'Painel' })).toBeVisible()
   })
 })
 
