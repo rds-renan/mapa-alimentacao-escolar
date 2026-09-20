@@ -12,6 +12,7 @@ import {
   type Profile,
 } from './auth-context'
 import { AUTH_MESSAGES } from './messages'
+import { sendPasswordEmail } from './password-email'
 
 /*
  * A sessão e o perfil de quem está usando o aplicativo, num contexto só.
@@ -130,6 +131,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setProfile(data)
       setLoading(false)
+
+      /*
+       * O último acesso, que é o que a gestão de acessos exibe (issue #68).
+       *
+       * Carimbado aqui, e não no login: a sessão sobrevive ao navegador (RNF#2
+       * da US016), então a merendeira pode passar meses usando o aplicativo
+       * todo dia sem digitar senha nenhuma — e "último acesso: há três meses"
+       * faria a direção desativar quem está trabalhando.
+       *
+       * Sem `await` e sem tratar o erro de propósito: é um carimbo, não um
+       * passo do caminho. Se a rede não estiver lá, a tela abre igual.
+       */
+      void supabase.rpc('touch_last_access')
     })()
 
     return () => {
@@ -175,13 +189,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const requestPasswordReset = useCallback(
     async (email: string, captchaToken?: string | null) => {
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        email.trim(),
-        {
-          redirectTo: `${window.location.origin}/nova-senha`,
-          ...(captchaToken ? { captchaToken } : {}),
-        }
-      )
+      const error = await sendPasswordEmail(email, captchaToken)
 
       /*
        * Erro aqui nunca é "este e-mail não existe" — o Supabase responde igual

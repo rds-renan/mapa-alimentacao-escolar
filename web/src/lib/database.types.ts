@@ -531,6 +531,24 @@ export type Database = {
       }
       is_service: { Args: never; Returns: boolean }
       meal_map_is_locked: { Args: { map_id: string }; Returns: boolean }
+      replace_document_template: {
+        Args: { p_file_name: string; p_file_path: string }
+        Returns: {
+          file_name: string
+          file_path: string
+          id: string
+          is_current: boolean
+          school_id: string
+          uploaded_at: string
+          uploaded_by: string | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "document_template"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       save_meal_map: { Args: { payload: Json }; Returns: Json }
       start_document_generation: {
         Args: {
@@ -557,6 +575,7 @@ export type Database = {
           isSetofReturn: false
         }
       }
+      touch_last_access: { Args: never; Returns: undefined }
       unlock_meal_map: {
         Args: { map_id: string; unlock_reason: string }
         Returns: {

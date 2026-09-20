@@ -49,6 +49,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `gravacao-do-dia.test.sql` | `save_meal_map()`: caminho feliz, reenvio, conflito entre aparelhos, catálogo, recorte por escola, cargas malformadas e o carimbo de última edição |
 | `perfis-e-acessos.test.sql` | Quem altera o quê no perfil: a merendeira e o próprio cadastro, o acesso desativado, a direção gerindo acessos e o que nem ela pode |
 | `geracao-do-documento.test.sql` | Os três passos da geração: quem pode pedir, o modelo vigente, o dia de outra escola, o bloqueio na publicação e a falha que não bloqueia |
+| `administracao.test.sql` | A troca do modelo oficial numa transação só, quem pode fazê-la, e o carimbo de último acesso |
 
 ## As migrations
 
@@ -62,6 +63,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `20260916120000_protecao_do_perfil.sql` | Guarda as colunas do perfil que a política não alcança: papel, acesso, e-mail, escola e identidade |
 | `20260919120000_geracao_do_documento.sql` | Os três passos da geração do documento: abrir, publicar bloqueando os mapas, e encerrar em falha |
 | `20260920120000_nome_do_arquivo_publicado.sql` | O nome com que o documento é entregue passa a ser gravado, para a lista poder assinar um link novo dias depois |
+| `20260920130000_administracao.sql` | A troca do modelo oficial sem deixar a escola sem modelo no meio do caminho, e o carimbo de último acesso com a hora do servidor |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.

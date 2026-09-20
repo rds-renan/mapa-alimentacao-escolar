@@ -3,7 +3,7 @@
     "modelo": "deno run --allow-write _shared/modelo-de-teste.ts",
     "amostra": "deno run --allow-read --allow-write _shared/gerar-amostra.ts",
     "teste": "deno test --allow-read",
-    "verificar": "deno fmt --check && deno lint && deno check _shared/*.ts generate-document/*.ts expire-documents/*.ts && deno test --allow-read"
+    "verificar": "deno fmt --check && deno lint && deno check _shared/*.ts generate-document/*.ts expire-documents/*.ts create-access/*.ts && deno test --allow-read"
   },
   "imports": {
     "@std/assert": "jsr:@std/assert@1",
