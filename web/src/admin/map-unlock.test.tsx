@@ -416,13 +416,21 @@ describe('o dia reaberto, na tela da merendeira', () => {
     ).toBeVisible()
 
     /*
+     * Esperar o cartão, e não só a faixa: a faixa aparece assim que o servidor
+     * responde, e o dia só é desenhado quando o rascunho do aparelho termina de
+     * ser lido. Sem esta espera, as afirmações abaixo passariam por o dia ainda
+     * não estar na tela — o contrário do que elas querem dizer. Aqui passava e
+     * na CI, mais lenta, não.
+     */
+    expect(
+      await screen.findByRole('switch', { name: /Dia não letivo/ })
+    ).toBeEnabled()
+
+    /*
      * A justificativa fica na área da direção: aqui ela não aparece, por
      * decisão de escopo — o texto é prestação de contas, não recado.
      */
     expect(screen.queryByText(/Refeições\./)).not.toBeInTheDocument()
-
-    // Editável de novo: o campo do dia não letivo volta a aceitar toque.
-    expect(screen.getByRole('switch', { name: /Dia não letivo/ })).toBeEnabled()
     expect(screen.queryByText(/abre só para consulta/)).not.toBeInTheDocument()
   })
 
