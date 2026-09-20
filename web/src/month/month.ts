@@ -40,6 +40,12 @@ export interface MealRecord {
  * saber de onde o dia veio.
  */
 export interface DayRecord {
+  /**
+   * O identificador do mapa **no servidor**. Nulo enquanto o dia só existe no
+   * aparelho: o rascunho tem um UUID próprio, mas quem manda é o do servidor
+   * (o de lá pode ser outro), e é ele que a geração do documento recebe.
+   */
+  id: string | null
   mapDate: string
   nonSchoolDay: boolean
   note: string | null
@@ -73,6 +79,16 @@ const MONTH_NAMES = [
 
 const WEEKDAY_LABELS = ['dom', 'seg', 'ter', 'qua', 'qui', 'sex', 'sáb']
 
+const WEEKDAY_NAMES = [
+  'Domingo',
+  'Segunda',
+  'Terça',
+  'Quarta',
+  'Quinta',
+  'Sexta',
+  'Sábado',
+]
+
 // ---------------------------------------------------------------------------
 // Datas
 // ---------------------------------------------------------------------------
@@ -96,6 +112,11 @@ export function weekdayLabel(date: string): string {
   return WEEKDAY_LABELS[weekdayOf(date)]
 }
 
+/** "Segunda", por extenso: como a tela 5 chama o dia na linha de seleção. */
+export function weekdayName(date: string): string {
+  return WEEKDAY_NAMES[weekdayOf(date)]
+}
+
 /** Segunda a sexta. Fim de semana não conta como pendência (RN#1 da US008). */
 export function isWeekday(date: string): boolean {
   const weekday = weekdayOf(date)
@@ -104,6 +125,15 @@ export function isWeekday(date: string): boolean {
 
 export function monthKeyOf(date: string): MonthKey {
   return date.slice(0, 7)
+}
+
+/**
+ * O mês veio da barra de endereço, onde pode estar escrito qualquer coisa. As
+ * duas telas que abrem por mês — a visão do mês e a seleção de mapas —
+ * perguntam isto antes de acreditar no que leram.
+ */
+export function isMonthKey(value: string | null): value is MonthKey {
+  return value !== null && /^\d{4}-\d{2}$/.test(value)
 }
 
 /** O mês de hoje, pelo relógio do aparelho — é o mês em que a tela abre. */
@@ -144,6 +174,11 @@ export function monthLabel(month: MonthKey): string {
   const [year, index] = month.split('-').map(Number)
   const name = MONTH_NAMES[index - 1]
   return `${name.charAt(0).toUpperCase()}${name.slice(1)} de ${year}`
+}
+
+/** "setembro", em minúscula: o nome do mês dentro de uma frase corrida. */
+export function monthName(month: MonthKey): string {
+  return MONTH_NAMES[Number(month.slice(5, 7)) - 1]
 }
 
 /** "1 de setembro" — como ela lê a data no rótulo da semana e no leitor de tela. */
@@ -351,6 +386,12 @@ export function monthProgress(
 /** O rascunho guardado no aparelho, na forma que esta tela lê. */
 export function recordFromDraft(draft: DayPayload): DayRecord {
   return {
+    /*
+     * O identificador do rascunho não serve aqui: o servidor pode ter adotado
+     * outro, e um dia que ainda não subiu não tem identificador de lá. Quando
+     * as duas origens existem, `mergeDays` recupera o do servidor.
+     */
+    id: null,
     mapDate: draft.map_date,
     nonSchoolDay: draft.non_school_day,
     note: draft.note,
@@ -375,9 +416,10 @@ export function recordFromDraft(draft: DayPayload): DayRecord {
  *
  * A fronteira da decisão 4 da E5 diz qual dos dois vale: **o rascunho, quando
  * existe** — ele é mais novo por construção, porque só está guardado enquanto
- * o servidor não confirmou. O que não se herda do rascunho é o bloqueio, que
- * ele não tem como conhecer: esse continua vindo da linha do servidor, senão
- * um dia já dentro de um documento voltaria a parecer editável.
+ * o servidor não confirmou. O que não se herda do rascunho são as duas coisas
+ * que ele não tem como conhecer: o bloqueio, senão um dia já dentro de um
+ * documento voltaria a parecer editável, e o identificador do servidor, que é
+ * o que a geração do documento pede.
  */
 export function mergeDays(
   fromServer: DayRecord[],
@@ -389,6 +431,7 @@ export function mergeDays(
     const server = byDate.get(draft.mapDate)
     byDate.set(draft.mapDate, {
       ...draft,
+      id: server?.id ?? null,
       locked: server?.locked ?? false,
     })
   }

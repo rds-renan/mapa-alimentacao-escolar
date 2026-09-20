@@ -23,7 +23,7 @@ import {
 
 /** O que o servidor precisa devolver para a tela decidir o estado de cada dia. */
 const MONTH_COLUMNS =
-  'map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance)'
+  'id, map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance)'
 
 export function monthQueryKey(month: MonthKey) {
   return ['month', month] as const
@@ -47,6 +47,7 @@ async function fetchMonth(month: MonthKey): Promise<DayRecord[]> {
   if (error) throw new Error(error.message)
 
   return (data ?? []).map((row) => ({
+    id: row.id,
     mapDate: row.map_date,
     nonSchoolDay: row.non_school_day,
     note: row.note,

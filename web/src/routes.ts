@@ -17,6 +17,8 @@ export const ROUTES = {
   cookHome: '/',
   /** O registro de um dia (issue #62). A data vai no caminho, em AAAA-MM-DD. */
   dayRegister: '/dia/:mapDate',
+  /** A seleção de mapas e o pedido de geração: a tela 5 da E3. */
+  selectMaps: '/gerar',
   /** Os documentos ainda dentro da janela de 7 dias (issue #67). */
   generatedDocuments: '/documentos',
   /** A manutenção do catálogo de gêneros: a tela 4 da E3. */
@@ -33,6 +35,17 @@ export function homePathFor(role: UserRole): string {
 /** O caminho do registro de um dia: `/dia/2026-09-10`. */
 export function dayPath(mapDate: string): string {
   return `/dia/${mapDate}`
+}
+
+/**
+ * O caminho da seleção de mapas, com o mês aberto junto: `/gerar?mes=2026-09`.
+ *
+ * O mês vai no endereço pelo mesmo motivo que vai na visão do mês — a tela 5
+ * não tem navegação de mês (a E3 não a desenhou com uma), então o mês de onde
+ * ela veio é a única coisa que diz quais dias mostrar.
+ */
+export function selectMapsPath(month: string): string {
+  return `${ROUTES.selectMaps}?${MONTH_PARAM}=${month}`
 }
 
 /**

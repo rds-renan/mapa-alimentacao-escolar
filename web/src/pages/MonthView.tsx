@@ -6,7 +6,7 @@ import {
   FileText,
   LoaderCircle,
 } from 'lucide-react'
-import { useSearchParams } from 'react-router'
+import { Link, useSearchParams } from 'react-router'
 
 import { AppMenu } from '@/components/app-menu'
 import { Button } from '@/components/ui/button'
@@ -23,15 +23,15 @@ import {
 import {
   dateToday,
   groupIntoWeeks,
+  isMonthKey,
   listedDays,
   monthKeyToday,
   monthLabel,
   monthProgress,
   shiftMonth,
-  type MonthKey,
 } from '@/month/month'
 import { useMonth } from '@/month/queries'
-import { MONTH_PARAM } from '@/routes'
+import { MONTH_PARAM, selectMapsPath } from '@/routes'
 
 /*
  * A visão do mês — tela 2 da E3, a tela-casa da merendeira (US008).
@@ -45,14 +45,10 @@ import { MONTH_PARAM } from '@/routes'
  * é derivado do conteúdo a cada desenho da tela.
  */
 
-function validMonth(value: string | null): value is MonthKey {
-  return value !== null && /^\d{4}-\d{2}$/.test(value)
-}
-
 export function MonthView() {
   const [params, setParams] = useSearchParams()
   const requested = params.get(MONTH_PARAM)
-  const month = validMonth(requested) ? requested : monthKeyToday()
+  const month = isMonthKey(requested) ? requested : monthKeyToday()
   const today = dateToday()
 
   const { byDate, loading, failed, pending, retry } = useMonth(month)
@@ -217,15 +213,17 @@ export function MonthView() {
       </main>
 
       {/*
-       * O segundo dos dois caminhos da tela-casa. O destino é a seleção de
-       * mapas (issue #66); até ela existir, o botão fica aqui inerte, porque o
-       * rodapé é parte do desenho da tela e não da tela seguinte.
+       * O segundo dos dois caminhos da tela-casa: a seleção de mapas. O mês
+       * aberto vai junto no endereço, porque a tela 5 não tem navegação de mês
+       * — ela mostra os dias do mês de onde a merendeira veio.
        */}
       <footer className="sticky bottom-0 border-t border-border bg-card">
         <div className="mx-auto w-full max-w-screen px-4 pt-3 pb-4">
-          <Button size="lg" className="w-full" disabled>
-            <FileText aria-hidden="true" />
-            Gerar documento
+          <Button size="lg" className="w-full" asChild>
+            <Link to={selectMapsPath(month)}>
+              <FileText aria-hidden="true" />
+              Gerar documento
+            </Link>
           </Button>
         </div>
       </footer>

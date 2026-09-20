@@ -24,6 +24,7 @@ import {
 
 function day(overrides: Partial<DayRecord> = {}): DayRecord {
   return {
+    id: 'map-2026-09-10',
     mapDate: '2026-09-10',
     nonSchoolDay: false,
     note: null,
