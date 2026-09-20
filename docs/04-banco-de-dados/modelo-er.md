@@ -120,6 +120,7 @@ erDiagram
         timestamptz requested_at
         timestamptz completed_at
         text file_path
+        text file_name
         timestamptz expires_at
     }
 
@@ -195,7 +196,9 @@ Um índice único parcial sobre `school_id`, restrito às linhas com `is_current
 
 ### `generated_document`
 
-Nasce em `processing` quando a merendeira pede, e o servidor a move para `available` ou `failed`. `completed_at`, `file_path` e `expires_at` só existem depois de concluída. Quando o arquivo expira, a linha permanece e a lista mostra "fora do ar" (CA#3 da US021). `document_template_id` registra com qual modelo o documento saiu.
+Nasce em `processing` quando a merendeira pede, e o servidor a move para `available` ou `failed`. `completed_at`, `file_path`, `file_name` e `expires_at` só existem depois de concluída. Quando o arquivo expira, a linha permanece e a lista mostra "fora do ar" (CA#3 da US021). `document_template_id` registra com qual modelo o documento saiu.
+
+`file_path` é o endereço no balde; `file_name` é o nome com que o arquivo chega em quem o recebe, e os dois não se confundem. A coluna do nome entrou na E5, quando a [lista de documentos gerados](../05-web/documentos-gerados.md#o-nome-do-arquivo-mora-no-registro) precisou assinar um link novo dias depois da geração: o nome nasce do período dos mapas incluídos, e recalculá-lo em cada leitor seria a mesma regra escrita duas vezes, livre para divergir.
 
 ### `document_meal_map`
 

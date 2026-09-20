@@ -28,6 +28,37 @@ export interface UsedFoodItemRow {
   quantity: number
 }
 
+/**
+ * Uma linha de `generated_document`, como a lista de documentos a pede. As
+ * datas viram a ligação `document_meal_map`, que é de onde a tela deriva o
+ * período e a quantidade de mapas.
+ */
+export interface GeneratedDocumentRow {
+  id: string
+  status: 'processing' | 'available' | 'failed'
+  requested_at: string
+  completed_at?: string | null
+  expires_at?: string | null
+  file_path?: string | null
+  file_name?: string | null
+  dates: string[]
+}
+
+function documentRow(row: GeneratedDocumentRow) {
+  return {
+    id: row.id,
+    status: row.status,
+    requested_at: row.requested_at,
+    completed_at: row.completed_at ?? null,
+    expires_at: row.expires_at ?? null,
+    file_path: row.file_path ?? null,
+    file_name: row.file_name ?? null,
+    document_meal_map: row.dates.map((map_date) => ({
+      meal_map: { map_date },
+    })),
+  }
+}
+
 /** Uma linha de `meal_map` como a visão do mês a pede, com as refeições dentro. */
 export interface MealMapRow {
   map_date: string
@@ -107,6 +138,11 @@ let generationFailure: {
   hint?: string
 } | null = null
 let generationRequests: string[][] = []
+let generatedDocumentRows: GeneratedDocumentRow[] = []
+let generatedDocumentsError: { message: string } | null = null
+let signedUrlError: { message: string } | null = null
+let signedUrlRequests: { path: string; seconds: number; download?: string }[] =
+  []
 
 function sessionFor(profile: Profile): Session {
   return {
@@ -184,6 +220,27 @@ export function givenGenerationFails(
   generationFailure = { status, message, hint }
 }
 
+/** Os documentos que o servidor devolve para a lista, na ordem em que vierem. */
+export function givenGeneratedDocuments(rows: GeneratedDocumentRow[]) {
+  generatedDocumentRows = rows
+  generatedDocumentsError = null
+}
+
+/** A lista não veio — na escola, quase sempre é a internet. */
+export function givenGeneratedDocumentsFail(message = 'sem rede') {
+  generatedDocumentsError = { message }
+}
+
+/** O balde recusou assinar o link do arquivo. */
+export function givenSignedUrlFails(message = 'sem rede') {
+  signedUrlError = { message }
+}
+
+/** Os links que a tela pediu ao balde, com o nome que pediu para cada um. */
+export function signedUrls() {
+  return signedUrlRequests
+}
+
 /** Os pedidos de geração que chegaram, na ordem, com os dias de cada um. */
 export function sentGenerations(): string[][] {
   return generationRequests
@@ -208,6 +265,10 @@ export function resetSupabaseMock() {
   nextFoodItemId = 1
   generationFailure = null
   generationRequests = []
+  generatedDocumentRows = []
+  generatedDocumentsError = null
+  signedUrlError = null
+  signedUrlRequests = []
   vi.clearAllMocks()
 }
 
@@ -309,6 +370,35 @@ export const supabase = {
   },
 
   /*
+   * O balde dos documentos gerados. A lista assina o link ela mesma — a
+   * política do balde deixa —, e o que interessa conferir é o que ela pede:
+   * o caminho do arquivo e o nome com que ele deve chegar.
+   */
+  storage: {
+    from: vi.fn(() => ({
+      createSignedUrl: vi.fn(
+        async (
+          path: string,
+          seconds: number,
+          options?: { download?: string }
+        ) => {
+          signedUrlRequests = [
+            ...signedUrlRequests,
+            { path, seconds, download: options?.download },
+          ]
+
+          if (signedUrlError) return { data: null, error: signedUrlError }
+
+          return {
+            data: { signedUrl: `https://exemplo/${path}?assinado` },
+            error: null,
+          }
+        }
+      ),
+    })),
+  },
+
+  /*
    * O construtor de consulta, reduzido ao que as telas encadeiam. Ele é o
    * mesmo objeto em cada passo — `select`, `eq`, `gte`, `lte`, `order` só
    * devolvem ele mesmo —, e o resultado sai por `maybeSingle` (o perfil) ou
@@ -334,6 +424,7 @@ export const supabase = {
       gte: () => chain,
       lte: () => chain,
       order: () => chain,
+      limit: () => chain,
 
       /*
        * As duas escritas da tela 4 (issue #64). O catálogo do mock é a fonte:
@@ -392,7 +483,11 @@ export const supabase = {
 
       then: (
         resolve: (result: {
-          data: MealMapRow[] | FoodItemRow[] | null
+          data:
+            | MealMapRow[]
+            | FoodItemRow[]
+            | ReturnType<typeof documentRow>[]
+            | null
           error: { message: string } | null
         }) => unknown
       ) => {
@@ -414,6 +509,16 @@ export const supabase = {
               foodItemError
                 ? { data: null, error: foodItemError }
                 : { data: rows, error: null }
+            )
+          )
+        }
+
+        if (table === 'generated_document') {
+          return Promise.resolve(
+            resolve(
+              generatedDocumentsError
+                ? { data: null, error: generatedDocumentsError }
+                : { data: generatedDocumentRows.map(documentRow), error: null }
             )
           )
         }

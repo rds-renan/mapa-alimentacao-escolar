@@ -224,18 +224,17 @@ critérios de aceite da issue, um a um:
 | "Gerar" na confirmação           | manda os 22 dias e leva para os documentos gerados    |
 | A geração falha                  | diz que nada foi bloqueado, e "Tentar de novo" repete |
 
-## O que ficou para a próxima issue
+## Para onde ela leva
 
-**O documento gerado não tem tela ainda.** Gerada com sucesso, esta tela leva
-para `/documentos`, que hoje é a tela-marco da issue #67 — é lá que entram o
-download do arquivo, o botão de compartilhamento nativo quando o navegador o
-oferecer, e a lista dos documentos ainda dentro da janela de sete dias.
+Gerada com sucesso, esta tela vai para
+[os documentos gerados](documentos-gerados.md), levando junto, no estado da
+navegação, qual documento acabou de sair — é o que faz o primeiro cartão de lá
+abrir como a tela 6 da E3, com a confirmação, o nome do arquivo e o aviso do
+bloqueio. Quem chega àquela tela por outro caminho vê só a lista.
 
-É a fronteira que as issues desenham, e ela é honesta desde que se diga o que
-custa: **quem gerar um documento antes do #67 não recebe o link**. O documento
-existe, os mapas ficam bloqueados e o registro está no servidor — o que falta é
-a tela que o mostra. Até lá, a geração é verificável pelo registro e pelo
-balde, não pela interface.
+A navegação é da **chamada**, e não da mutação, e isso já foi dito acima: se a
+merendeira saiu daqui no meio, a geração termina do mesmo jeito e o documento
+a espera lá, que é exatamente o beco que a decisão 10 da E3 fechou.
 
 ## O peso do pacote, que ficou apertado
 

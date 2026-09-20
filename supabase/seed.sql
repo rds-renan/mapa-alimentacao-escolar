@@ -128,12 +128,13 @@ values
 
 insert into public.generated_document (
   id, school_id, document_template_id, requested_by,
-  status, completed_at, file_path, expires_at
+  status, completed_at, file_path, file_name, expires_at
 )
 values ('90000001-0000-4000-8000-000000000001', 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
         'd0000001-0000-4000-8000-000000000001', '22222222-2222-4222-8222-222222222222',
         'available', now(),
         'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/mapa-2026-09-04.docx',
+        'mapa-da-alimentacao-escolar-setembro-2026.docx',
         now() + interval '7 days');
 
 insert into public.document_meal_map (generated_document_id, meal_map_id)

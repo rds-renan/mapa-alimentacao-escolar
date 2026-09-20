@@ -1,15 +1,18 @@
+import type { DocumentAvailability } from './generated'
 import type { MissingReason, SelectionMode } from './selection'
 
 /*
- * Os textos da seleção de mapas. Valem as três regras do catálogo de avisos da
- * E3: nenhuma mensagem culpa a merendeira, o erro diz primeiro o que não se
+ * Os textos das duas telas do documento: a seleção de mapas (tela 5) e os
+ * documentos gerados (telas 6 e 2b). Valem as três regras do catálogo de
+ * avisos da E3: nenhuma mensagem culpa a merendeira, o erro diz primeiro o que não se
  * perdeu, e nada de jargão.
  *
- * Quatro frases daqui são da E3, palavra por palavra, e é bom que se saiba
+ * Várias frases daqui são da E3, palavra por palavra, e é bom que se saiba
  * quais: o cartão do documento único e o aviso do bloqueio, que estão
  * desenhados na tela 5; o aviso de geração sem internet, do catálogo de avisos
- * dentro da tela; e a confirmação antes de gerar, que é a única confirmação do
- * fluxo da merendeira.
+ * dentro da tela; a confirmação antes de gerar, que é a única confirmação do
+ * fluxo da merendeira; e, na tela 2b, o aviso do alto, as etiquetas de
+ * situação e a nota do documento fora do ar.
  */
 
 export const SELECTION_MESSAGES = {
@@ -126,3 +129,91 @@ export const FAILURE_MESSAGES = {
   close: 'Fechar',
   retry: 'Tentar de novo',
 } as const
+
+// ---------------------------------------------------------------------------
+// Os documentos gerados (telas 6 e 2b)
+// ---------------------------------------------------------------------------
+
+/*
+ * As duas telas da E3 são uma só aqui, e não por economia.
+ *
+ * A tela 6 é o beco que a decisão 10 da E3 identificou: ela mostra o documento
+ * recém-gerado e, ao ser deixada, some com ele. A 2b existe para isso não
+ * acontecer. Juntá-las resolve o beco pela raiz — o documento recém-gerado é o
+ * primeiro da lista, no lugar onde ele estará amanhã também — e poupa à
+ * merendeira aprender dois lugares para a mesma coisa.
+ *
+ * O que a tela 6 tinha e a lista não teria fica no cartão do recém-gerado: a
+ * confirmação de que saiu, o nome do arquivo e o aviso do bloqueio, que é a
+ * consequência que ela precisa ver **uma vez**, no momento em que acontece.
+ */
+
+export const DOCUMENT_MESSAGES = {
+  title: 'Documentos gerados',
+  subtitle: 'O arquivo fica disponível por 7 dias',
+  back: 'Voltar para o mês',
+  /* O aviso do alto da tela 2b, adaptado num ponto: na web não há notificação
+   * fora do aplicativo, então o que a frase promete é a própria lista. */
+  notice:
+    'Gerar um documento precisa de internet, e os mapas ainda não enviados sobem primeiro. Quando ficar pronto, ele aparece aqui — não é preciso esperar na tela.',
+  loading: 'Carregando os documentos…',
+  loadFailed:
+    'Não deu para carregar a lista de documentos. Os mapas que você registrou continuam guardados — foi só a lista que não veio.',
+  retry: 'Tentar de novo',
+  empty: 'Você ainda não gerou nenhum documento.',
+  emptyHint: 'Quando gerar o primeiro, ele aparece aqui.',
+  generate: 'Gerar documento',
+  download: 'Baixar',
+  share: 'Compartilhar',
+  /* A tela 6 chamava este botão de "Baixar no aparelho". Na web o aparelho é
+   * o computador da cozinha tanto quanto o celular, e "Baixar" basta. */
+  justGenerated: 'Documento gerado',
+  expireNote:
+    'O arquivo expira sozinho. Se precisar de novo, é só gerar outra vez com os mesmos dias.',
+  /* A frase da tela 2b para o documento fora da janela (CA#3 da US021). O "no
+   * app" do desenho sai: aqui não é o aparelho que guarda, é o servidor. */
+  expiredNote: 'Os mapas desse período continuam guardados.',
+  failedNote:
+    'A geração não chegou ao fim. Nenhum mapa foi bloqueado e os registros do período continuam guardados — dá para gerar de novo.',
+  processingNote: 'Ele aparece aqui assim que ficar pronto.',
+  offline:
+    'Baixar o documento precisa de internet. A lista continua aqui, e o arquivo também — é só tentar de novo quando houver.',
+  linkFailed:
+    'Não deu para abrir o arquivo agora. Ele continua no ar até a data que o cartão mostra — dá para tentar de novo.',
+} as const
+
+/**
+ * A etiqueta de situação do cartão. São as palavras da tela 2b, e as duas que
+ * a E3 não desenhou — "Gerando" e "Não saiu" — existem porque o registro da
+ * geração sobrevive à falha (decisão 10 da E4) e precisa dizer o que houve.
+ */
+export const AVAILABILITY_LABELS: Record<DocumentAvailability, string> = {
+  processing: 'Gerando',
+  available: 'Disponível',
+  expiring: 'Sai amanhã',
+  expired: 'Fora do ar',
+  failed: 'Não saiu',
+}
+
+/** "Sai hoje" quando é hoje mesmo: o desenho só previu o "Sai amanhã". */
+export function availabilityLabel(
+  availability: DocumentAvailability,
+  left: number | null
+): string {
+  if (availability === 'expiring' && left !== null && left <= 0) {
+    return 'Sai hoje'
+  }
+  return AVAILABILITY_LABELS[availability]
+}
+
+/** A etiqueta de acessibilidade do botão, que diz de qual documento ele é. */
+export function actionLabel(action: string, period: string): string {
+  return `${action} o documento de ${period}`
+}
+
+/** O aviso do bloqueio, na tela 6: a consequência, vista uma vez. */
+export function lockedNotice(count: number): string {
+  return count === 1
+    ? 'O mapa incluído ficou bloqueado para edição. Precisou corrigir algo? Fale com a direção.'
+    : `Os ${count} mapas incluídos ficaram bloqueados para edição. Precisou corrigir algo? Fale com a direção.`
+}

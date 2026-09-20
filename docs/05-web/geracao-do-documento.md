@@ -358,6 +358,12 @@ de quem recebe, e vai sem acento e sem espaço de propósito: ele viaja em
 cabeçalho HTTP, passa por aplicativo de mensagem e termina no sistema de
 arquivos de um celular que não é nosso.
 
+Esse nome é **gravado** no registro, e não só devolvido aqui: a
+[lista de documentos gerados](documentos-gerados.md#o-nome-do-arquivo-mora-no-registro)
+assina um link novo dias depois e precisa entregar o arquivo com o mesmo nome.
+Quem o carimba é `complete_document_generation`, junto com o caminho e a
+validade.
+
 Os erros, com a mensagem já legível por quem vai lê-la:
 
 | Quando | HTTP | O que chega na tela |
@@ -397,10 +403,12 @@ novo" — com os outros dias do período ainda bloqueados. Se a geração recusa
 mapa bloqueado, a correção terminaria num beco: o dia consertado e nenhum
 documento possível. O bloqueio é sobre **editar**, nunca sobre sair de novo.
 
-O documento antigo continua existindo, e é o que a RN#2 da US023 exige. O que
-**não** existe ainda é qualquer sinal de que ele foi substituído — depois de
-uma correção, a lista da US021 mostra dois documentos do mesmo período sem
-dizer qual vale. É assunto da tela dos documentos gerados, não desta função.
+O documento antigo continua existindo, e é o que a RN#2 da US023 exige. Depois
+de uma correção, a lista da US021 mostra dois documentos do mesmo período — e
+quem diz qual vale é
+[a ordem dela](documentos-gerados.md#dois-documentos-do-mesmo-período), do mais
+novo para o mais velho, com a data de geração em cada cartão. Era assunto da
+tela dos documentos gerados, e lá se resolveu.
 
 ### O arquivo expira, e apagar é mesmo apagar
 
@@ -440,9 +448,10 @@ Duas coisas da US012 não são desta issue, e vale dizer onde estão:
 - **apontar os dias pendentes do período antes de gerar** (CA#3) é da tela de
   seleção — a função não recusa dia pendente, porque registro parcial é
   permitido e sai no documento como o formulário em branco naquela refeição;
-- **compartilhar** é da tela do documento gerado. Na web, compartilhar é baixar
-  ([decisão 9](decisoes-tecnicas.md)); a folha de compartilhamento do Android é
-  da E6.
+- **compartilhar** é da tela do documento gerado, e está pronto: na web,
+  [compartilhar é baixar](documentos-gerados.md#na-web-compartilhar-é-baixar)
+  ([decisão 9](decisoes-tecnicas.md)), com o botão nativo quando o navegador
+  souber compartilhar arquivo; a folha de compartilhamento do Android é da E6.
 
 ## O modelo é o arquivo da prefeitura como ele vem
 

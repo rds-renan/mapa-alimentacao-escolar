@@ -42,6 +42,7 @@ interface GeneratedDocument {
   requested_at: string;
   completed_at: string | null;
   expires_at: string | null;
+  file_name: string | null;
 }
 
 /** O identificador dos dias pedidos, como a web os manda. */
@@ -116,6 +117,7 @@ Deno.serve(async (request) => {
       .rpc("complete_document_generation", {
         p_document_id: opened.id,
         p_file_path: filePath,
+        p_file_name: filled.fileName,
       })
       .single<GeneratedDocument>();
     if (completeError) throw completeError;
@@ -140,7 +142,7 @@ Deno.serve(async (request) => {
       expires_at: published.expires_at,
       meal_map_count: filled.dayCount,
       period: filled.period,
-      file_name: filled.fileName,
+      file_name: published.file_name,
       download_url: link.signedUrl,
     });
   } catch (cause) {

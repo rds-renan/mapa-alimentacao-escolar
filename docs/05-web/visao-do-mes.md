@@ -160,7 +160,7 @@ não leva a lugar nenhum é pior que um que leva a uma tela dizendo de quem ela
 | O que               | Onde está hoje                          | Issue |
 | ------------------- | --------------------------------------- | ----- |
 | Registro do dia     | pronto — ver [o registro do dia](registro-do-dia.md) | #62   |
-| Documentos gerados  | tela-marco, alcançada pelo menu         | #67   |
+| Documentos gerados  | pronto — ver [os documentos gerados](documentos-gerados.md) | #67   |
 | Catálogo de gêneros | pronto — ver [o catálogo de gêneros](catalogo-de-generos.md) | #64   |
 | Tema escuro         | item do menu, à vista e inerte          | #71   |
 | Gerar documento     | pronto — ver [a seleção de mapas](selecao-de-mapas.md) | #66   |

@@ -129,6 +129,7 @@ export type Database = {
           completed_at: string | null
           document_template_id: string
           expires_at: string | null
+          file_name: string | null
           file_path: string | null
           id: string
           requested_at: string
@@ -140,6 +141,7 @@ export type Database = {
           completed_at?: string | null
           document_template_id: string
           expires_at?: string | null
+          file_name?: string | null
           file_path?: string | null
           id?: string
           requested_at?: string
@@ -151,6 +153,7 @@ export type Database = {
           completed_at?: string | null
           document_template_id?: string
           expires_at?: string | null
+          file_name?: string | null
           file_path?: string | null
           id?: string
           requested_at?: string
@@ -476,11 +479,16 @@ export type Database = {
     }
     Functions: {
       complete_document_generation: {
-        Args: { p_document_id: string; p_file_path: string }
+        Args: {
+          p_document_id: string
+          p_file_name: string
+          p_file_path: string
+        }
         Returns: {
           completed_at: string | null
           document_template_id: string
           expires_at: string | null
+          file_name: string | null
           file_path: string | null
           id: string
           requested_at: string
@@ -506,6 +514,7 @@ export type Database = {
           completed_at: string | null
           document_template_id: string
           expires_at: string | null
+          file_name: string | null
           file_path: string | null
           id: string
           requested_at: string
@@ -533,6 +542,7 @@ export type Database = {
           completed_at: string | null
           document_template_id: string
           expires_at: string | null
+          file_name: string | null
           file_path: string | null
           id: string
           requested_at: string

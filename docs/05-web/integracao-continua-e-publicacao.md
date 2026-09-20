@@ -108,8 +108,8 @@ navegador enxerga.
 ### O teto, que é um lembrete e não uma meta
 
 A outra metade da história é a divisão por rota — não baixar o painel e a
-administração para quem só vai registrar o almoço. Ela **não paga hoje**: as
-telas candidatas ainda são telas-marco de dez linhas, esperando as suas issues.
+administração para quem só vai registrar o almoço. Ela **não paga hoje**: a
+área da direção ainda é um marco de dez linhas, esperando as issues #68 e #70.
 Dividir agora não dividiria nada.
 
 O momento certo é quando existir tela pesada que ninguém abre todo dia, e na

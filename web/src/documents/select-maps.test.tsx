@@ -318,7 +318,7 @@ describe('a confirmação, que é a única do fluxo dela', () => {
     expect(sentGenerations()[0]).toContain('map-2026-09-01')
 
     expect(
-      await screen.findByRole('heading', { name: 'Documentos gerados' })
+      await screen.findByRole('heading', { name: /Documentos gerados/ })
     ).toBeInTheDocument()
   })
 })

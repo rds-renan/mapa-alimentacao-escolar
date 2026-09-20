@@ -61,6 +61,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `20260911120000_gravacao_atomica_do_dia.sql` | A gravação do dia inteiro numa operação só, e o carimbo de última edição que ela exige |
 | `20260916120000_protecao_do_perfil.sql` | Guarda as colunas do perfil que a política não alcança: papel, acesso, e-mail, escola e identidade |
 | `20260919120000_geracao_do_documento.sql` | Os três passos da geração do documento: abrir, publicar bloqueando os mapas, e encerrar em falha |
+| `20260920120000_nome_do_arquivo_publicado.sql` | O nome com que o documento é entregue passa a ser gravado, para a lista poder assinar um link novo dias depois |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.

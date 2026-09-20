@@ -76,6 +76,7 @@ classDiagram
         +DateTime solicitadoEm
         +DateTime concluidoEm
         +SituacaoDocumento situacao
+        +String nomeArquivo
         +String caminhoArquivo
         +DateTime expiraEm
         +periodo() Periodo
@@ -204,7 +205,7 @@ Uma versão do modelo oficial do documento, enviada pelo administrador. O arquiv
 
 ### DocumentoGerado
 
-O registro de cada geração: quem pediu, quando, com qual modelo, quais mapas entraram, a situação (`em_processamento`, `disponivel` ou `falhou`), o caminho do arquivo e quando ele sai do ar. O registro é permanente; o arquivo, não — expira em até 7 dias (RN#2 da US012), e `disponivel()` diz se ainda pode ser baixado. `periodo()` e `quantidadeMapas()` derivam dos mapas incluídos, que é o que a lista de documentos gerados mostra. **US012, US013, US021, US022.**
+O registro de cada geração: quem pediu, quando, com qual modelo, quais mapas entraram, a situação (`em_processamento`, `disponivel` ou `falhou`), onde o arquivo está, com que nome ele é entregue e quando sai do ar. O registro é permanente; o arquivo, não — expira em até 7 dias (RN#2 da US012), e `disponivel()` diz se ainda pode ser baixado. `periodo()` e `quantidadeMapas()` derivam dos mapas incluídos, que é o que a lista de documentos gerados mostra. **US012, US013, US021, US022.**
 
 ### DesbloqueioMapa
 

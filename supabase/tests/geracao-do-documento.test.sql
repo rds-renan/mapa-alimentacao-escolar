@@ -15,7 +15,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(21);
+select plan(23);
 
 -- ---------------------------------------------------------------------------
 -- Apoio
@@ -70,7 +70,8 @@ select throws_ok(
 
 select throws_ok(
   $$ select public.complete_document_generation(
-       '90000001-0000-4000-8000-000000000001', 'qualquer/caminho.docx') $$,
+       '90000001-0000-4000-8000-000000000001',
+       'qualquer/caminho.docx', 'qualquer-nome.docx') $$,
   '42501',
   null,
   'A merendeira não publica um documento por fora do servidor'
@@ -233,13 +234,22 @@ create temporary table publicado as
 select * from public.complete_document_generation(
   (select id from public.start_document_generation(
      escola(), merendeira_1(), array[dia_completo(), dia_pendente()])),
-  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documento.docx'
+  'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa/documento.docx',
+  'mapa-da-alimentacao-escolar-setembro-2026.docx'
 );
 
 select is(
   (select status::text from publicado),
   'available',
   'Publicado o arquivo, a situação passa a disponível'
+);
+
+-- O nome fica no registro porque é ele que a lista de documentos gerados lê
+-- dias depois, para assinar um link novo com o mesmo nome (US021).
+select is(
+  (select file_name from publicado),
+  'mapa-da-alimentacao-escolar-setembro-2026.docx',
+  'O nome do arquivo é carimbado junto com a publicação'
 );
 
 select ok(
@@ -265,7 +275,19 @@ select is(
 
 select throws_ok(
   format(
-    $$ select public.complete_document_generation(%L, 'outro/caminho.docx') $$,
+    $$ select public.complete_document_generation(%L, 'caminho.docx', '  ') $$,
+    (select id from public.start_document_generation(
+       escola(), merendeira_1(), array[dia_completo()]))
+  ),
+  '23514',
+  'O documento publicado precisa do nome do arquivo.',
+  'Publicar sem nome de arquivo não passa'
+);
+
+select throws_ok(
+  format(
+    $$ select public.complete_document_generation(
+         %L, 'outro/caminho.docx', 'outro-nome.docx') $$,
     (select id from publicado)
   ),
   '23514',

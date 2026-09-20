@@ -19,7 +19,7 @@ export const ROUTES = {
   dayRegister: '/dia/:mapDate',
   /** A seleção de mapas e o pedido de geração: a tela 5 da E3. */
   selectMaps: '/gerar',
-  /** Os documentos ainda dentro da janela de 7 dias (issue #67). */
+  /** O documento recém-gerado e a lista dos que ainda estão no ar: telas 6 e 2b. */
   generatedDocuments: '/documentos',
   /** A manutenção do catálogo de gêneros: a tela 4 da E3. */
   foodItems: '/generos',
