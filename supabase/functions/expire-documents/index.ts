@@ -15,11 +15,12 @@
 // de uma escola. "O sistema não mantém cópia permanente do documento" é regra
 // da US012 e é a regra de sigilo do projeto.
 //
-// Quem chama é o agendador, com a chave secreta: não há usuária do outro lado.
-// Como agendá-lo está em docs/05-web/geracao-do-documento.md.
+// Quem chama é o agendador, com a chave secreta: não há usuária do outro lado,
+// e é esta função que autoriza, não o portão. Como agendá-la está em
+// docs/05-web/integracao-continua-e-publicacao.md.
 
 import { isServiceToken, serviceClient } from "../_shared/cliente.ts";
-import { bearer, failure, json, preflight } from "../_shared/resposta.ts";
+import { failure, json, preflight, presentedKey } from "../_shared/resposta.ts";
 
 const DOCUMENT_BUCKET = "generated-documents";
 
@@ -32,8 +33,11 @@ const PAGE = 1000;
 Deno.serve(async (request) => {
   if (request.method === "OPTIONS") return preflight();
 
-  const token = bearer(request);
-  if (!token || !isServiceToken(token)) {
+  // Não há `verify_jwt` na frente desta função (ver supabase/config.toml): a
+  // chave secreta do formato atual não é um JWT, e o portão a recusaria. Quem
+  // autoriza é esta linha.
+  const key = presentedKey(request);
+  if (!key || !isServiceToken(key)) {
     return failure(401, "Esta rotina é chamada pelo próprio servidor.");
   }
 

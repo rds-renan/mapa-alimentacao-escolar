@@ -411,15 +411,26 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
-# As Edge Functions do MAE. As duas verificam o token de quem chamou — a
-# geração espera a sessão da merendeira, a limpeza espera a chave secreta do
-# agendador —, então `verify_jwt` fica ligado nas duas: token torto morre no
-# Kong, antes de gastar um worker.
+# As Edge Functions do MAE. As duas verificam o token de quem chamou, mas não do
+# mesmo jeito.
+#
+# A geração espera a sessão da merendeira, que é um JWT: o `verify_jwt` ligado
+# faz token torto morrer no Kong, antes de gastar um worker.
+#
+# A limpeza espera a chave secreta do agendador, e aí o `verify_jwt` atrapalha:
+# a chave secreta no formato atual (`sb_secret_…`) **não é um JWT**, então o
+# Kong não tem como verificá-la e recusaria a chamada legítima. O próprio painel
+# avisa disso ao oferecer a chave no agendamento do Cron. Desligado, quem
+# autoriza é a função — que já era o desenho: ela compara a chave apresentada
+# com as do projeto e devolve 401 sem tocar em nada. O que se paga é uma
+# requisição sem chave chegar até o worker para levar o 401 ali, em vez de no
+# portão; é o padrão para função chamada por máquina, e não há sessão a
+# proteger deste lado.
 [functions.generate-document]
 verify_jwt = true
 
 [functions.expire-documents]
-verify_jwt = true
+verify_jwt = false
 
 [edge_runtime]
 enabled = true

@@ -40,6 +40,20 @@ export function bearer(request: Request): string | null {
   return token;
 }
 
+/**
+ * A chave que o chamador apresentou, no `Authorization` ou no cabeçalho
+ * `apiKey`.
+ *
+ * Os dois, porque o segundo é onde o painel do Supabase põe a chave quando se
+ * agenda um Cron para uma Edge Function — é o que o botão "Add secret key"
+ * escreve. Aceitar como ele escreve dispensa cabeçalho digitado à mão, que é um
+ * lugar a menos para a chave secreta ser colada errada. A busca do cabeçalho
+ * não distingue maiúsculas, então `apiKey` e `apikey` são o mesmo.
+ */
+export function presentedKey(request: Request): string | null {
+  return bearer(request) ?? request.headers.get("apikey");
+}
+
 interface PostgresError {
   code?: string;
   message?: string;
