@@ -151,8 +151,16 @@ export function SelectMaps() {
        * navegação não deve acontecer por baixo do que ela estiver fazendo. A
        * geração continua — o registro é do servidor, e o documento aparece em
        * Documentos gerados de qualquer jeito.
+       *
+       * Qual documento acabou de sair vai junto no estado da navegação: é o
+       * que faz o primeiro cartão de lá abrir como a tela 6 da E3, com a
+       * confirmação e o aviso do bloqueio. Quem chega a Documentos gerados
+       * por outro caminho vê só a lista, que é o certo.
        */
-      onSuccess: () => void navigate(ROUTES.generatedDocuments),
+      onSuccess: (document) =>
+        void navigate(ROUTES.generatedDocuments, {
+          state: { justGenerated: document.generated_document_id },
+        }),
     })
   }
 
