@@ -163,11 +163,13 @@ não leva a lugar nenhum é pior que um que leva a uma tela dizendo de quem ela
 | Documentos gerados  | tela-marco, alcançada pelo menu         | #67   |
 | Catálogo de gêneros | pronto — ver [o catálogo de gêneros](catalogo-de-generos.md) | #64   |
 | Tema escuro         | item do menu, à vista e inerte          | #71   |
-| Gerar documento     | botão do rodapé, à vista e inerte       | #66   |
+| Gerar documento     | pronto — ver [a seleção de mapas](selecao-de-mapas.md) | #66   |
 
-O botão do rodapé e o item do tema ficam **visíveis e inertes** porque são
-parte do desenho desta tela, não da seguinte: tirá-los e recolocá-los depois
-custaria mais do que deixá-los explicados.
+O item do tema fica **visível e inerte** porque é parte do desenho desta tela,
+não da seguinte: tirá-lo e recolocá-lo depois custaria mais do que deixá-lo
+explicado. O botão do rodapé esteve assim até a issue #66, e hoje leva à
+seleção de mapas, com o mês aberto junto no endereço — a tela 5 não tem
+navegação de mês, então o mês de onde ela veio é o que diz quais dias mostrar.
 
 ## Verificação
 

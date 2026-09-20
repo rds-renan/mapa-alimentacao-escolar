@@ -101,6 +101,12 @@ let foodItemRows: FoodItemRow[] = []
 let foodItemError: { message: string } | null = null
 let foodItemWriteError: { message: string } | null = null
 let nextFoodItemId = 1
+let generationFailure: {
+  status: number
+  message: string
+  hint?: string
+} | null = null
+let generationRequests: string[][] = []
 
 function sessionFor(profile: Profile): Session {
   return {
@@ -166,6 +172,23 @@ export function givenFoodItemWriteFails(message = 'sem rede') {
   foodItemWriteError = { message }
 }
 
+/**
+ * A geração do documento não passa: a Edge Function devolve o corpo de erro que
+ * a borda HTTP dela escreve, e é dele que a tela tira a frase do diálogo.
+ */
+export function givenGenerationFails(
+  message: string,
+  status = 400,
+  hint?: string
+) {
+  generationFailure = { status, message, hint }
+}
+
+/** Os pedidos de geração que chegaram, na ordem, com os dias de cada um. */
+export function sentGenerations(): string[][] {
+  return generationRequests
+}
+
 /** O catálogo como ficou depois do que a tela gravou. */
 export function storedFoodItems(): FoodItemRow[] {
   return foodItemRows
@@ -183,6 +206,8 @@ export function resetSupabaseMock() {
   foodItemError = null
   foodItemWriteError = null
   nextFoodItemId = 1
+  generationFailure = null
+  generationRequests = []
   vi.clearAllMocks()
 }
 
@@ -235,6 +260,53 @@ export const supabase = {
     data: null,
     error: { code: '', message: 'sem rede', details: '', hint: '' },
   })),
+
+  /*
+   * A Edge Function da geração do documento. Ela responde como a de verdade:
+   * o corpo do erro vem embrulhado num `context`, que é de onde a tela tira a
+   * frase já escrita para a merendeira.
+   */
+  functions: {
+    invoke: vi.fn(
+      async (_name: string, options: { body: { meal_map_ids: string[] } }) => {
+        generationRequests = [...generationRequests, options.body.meal_map_ids]
+
+        if (generationFailure) {
+          const { status, message, hint } = generationFailure
+          return {
+            data: null,
+            error: {
+              name: 'FunctionsHttpError',
+              message: 'Edge Function returned a non-2xx status code',
+              context: {
+                status,
+                json: async () => ({ error: { message, hint: hint ?? null } }),
+              },
+            },
+          }
+        }
+
+        const dates = options.body.meal_map_ids
+          .map((id) => id.replace('map-', ''))
+          .sort()
+
+        return {
+          data: {
+            generated_document_id: 'doc-1',
+            status: 'available',
+            requested_at: '2026-09-09T12:00:00.000Z',
+            completed_at: '2026-09-09T12:00:00.300Z',
+            expires_at: '2026-09-16T12:00:00.300Z',
+            meal_map_count: dates.length,
+            period: { from: dates[0], to: dates[dates.length - 1] },
+            file_name: 'mapa-da-alimentacao-escolar-setembro-2026.docx',
+            download_url: 'https://exemplo/documento.docx',
+          },
+          error: null,
+        }
+      }
+    ),
+  },
 
   /*
    * O construtor de consulta, reduzido ao que as telas encadeiam. Ele é o
@@ -346,13 +418,23 @@ export const supabase = {
           )
         }
 
-        return Promise.resolve(
-          resolve(
-            mealMapError
-              ? { data: null, error: mealMapError }
-              : { data: table === 'meal_map' ? mealMapRows : [], error: null }
-          )
-        )
+        if (mealMapError) {
+          return Promise.resolve(resolve({ data: null, error: mealMapError }))
+        }
+
+        /*
+         * A visão do mês e a seleção de mapas pedem o identificador do mapa
+         * junto: é ele que a geração do documento recebe.
+         */
+        const rows =
+          table === 'meal_map'
+            ? mealMapRows.map((row) => ({
+                ...row,
+                id: row.id ?? `map-${row.map_date}`,
+              }))
+            : []
+
+        return Promise.resolve(resolve({ data: rows, error: null }))
       },
     }
 

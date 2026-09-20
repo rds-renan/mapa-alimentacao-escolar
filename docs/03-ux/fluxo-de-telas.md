@@ -57,7 +57,7 @@ O admin consulta tudo, mas não registra mapa (decisão da E2): o fluxo do docum
 | Menu | requisito de design (E3) | — |
 | Documentos gerados | US012, US014 + requisito de design (E3) | disponível · sai amanhã · fora do ar |
 | Catálogo de gêneros | US009 | — |
-| Seleção de mapas | US013, US007 | selecionável · pendente · sem registro (desabilitado) |
+| Seleção de mapas | US013, US007 | selecionável · pendente e sem registro (desabilitados) |
 | Documento gerado | US012, US014, US007 | expiração do link · aviso de bloqueio |
 | Admin · Painel | US017 | — |
 | Admin · Gestão | US015, US016 | — |

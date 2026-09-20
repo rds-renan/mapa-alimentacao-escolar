@@ -8,6 +8,7 @@ import { ForgotPassword } from '@/pages/ForgotPassword'
 import { GeneratedDocuments } from '@/pages/GeneratedDocuments'
 import { MonthView } from '@/pages/MonthView'
 import { NewPassword } from '@/pages/NewPassword'
+import { SelectMaps } from '@/pages/SelectMaps'
 import { SignIn } from '@/pages/SignIn'
 import { ROUTES } from '@/routes'
 
@@ -28,6 +29,7 @@ export default function App() {
         <Route element={<RequireRole role="cook" />}>
           <Route path={ROUTES.cookHome} element={<MonthView />} />
           <Route path={ROUTES.dayRegister} element={<DayRegister />} />
+          <Route path={ROUTES.selectMaps} element={<SelectMaps />} />
           <Route
             path={ROUTES.generatedDocuments}
             element={<GeneratedDocuments />}
