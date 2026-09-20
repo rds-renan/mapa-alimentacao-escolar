@@ -7,17 +7,16 @@ o porquê de cada escolha está nas [decisões de modelagem](../docs/04-banco-de
 ```
 supabase/
 ├── config.toml     # configuração da CLI
+├── functions/      # as Edge Functions, em Deno
 ├── migrations/     # o schema, em ordem
 ├── seed.sql        # dados fictícios de desenvolvimento
-├── spikes/         # protótipos de servidor, fora do caminho de produção
 ├── templates/      # os e-mails que o sistema manda, em português
 └── tests/          # cenários em pgTAP
 ```
 
-O que está em `spikes/` não é implantado: são protótipos que respondem a uma
-pergunta antes de ela virar código de produção. O
-[preenchimento do modelo oficial](spikes/template-oficial/) é o primeiro deles,
-e a resposta está na
+O código de servidor está em [`functions/`](functions/), com README próprio:
+a geração do documento oficial e a limpeza do que venceu. O porquê de cada
+escolha ali está na
 [geração do documento oficial](../docs/05-web/geracao-do-documento.md).
 
 ## Subir o banco na sua máquina
@@ -49,6 +48,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 |---|---|
 | `gravacao-do-dia.test.sql` | `save_meal_map()`: caminho feliz, reenvio, conflito entre aparelhos, catálogo, recorte por escola, cargas malformadas e o carimbo de última edição |
 | `perfis-e-acessos.test.sql` | Quem altera o quê no perfil: a merendeira e o próprio cadastro, o acesso desativado, a direção gerindo acessos e o que nem ela pode |
+| `geracao-do-documento.test.sql` | Os três passos da geração: quem pode pedir, o modelo vigente, o dia de outra escola, o bloqueio na publicação e a falha que não bloqueia |
 
 ## As migrations
 
@@ -60,6 +60,7 @@ com o seed intacto, então o hábito é `supabase db reset` antes.
 | `20260907120300_storage.sql` | Baldes privados do modelo oficial e dos documentos gerados |
 | `20260911120000_gravacao_atomica_do_dia.sql` | A gravação do dia inteiro numa operação só, e o carimbo de última edição que ela exige |
 | `20260916120000_protecao_do_perfil.sql` | Guarda as colunas do perfil que a política não alcança: papel, acesso, e-mail, escola e identidade |
+| `20260919120000_geracao_do_documento.sql` | Os três passos da geração do documento: abrir, publicar bloqueando os mapas, e encerrar em falha |
 
 Migration é imutável depois de aplicada em qualquer ambiente: corrigir é
 escrever a próxima, nunca editar a anterior.
@@ -107,7 +108,11 @@ Vale a pena saber antes de escrever a aplicação, para não reimplementar:
   repetidos; gênero em uso não se apaga, se desativa.
 - **Uma única versão vigente do modelo oficial**, por índice parcial.
 - **A direção não registra mapa**, e a merendeira não cria documento gerado:
-  quem escreve `generated_document` é o servidor.
+  quem escreve `generated_document` é o servidor, pelas três funções da
+  geração — e o `execute` delas é revogado de quem está autenticado.
+- **O mapa é bloqueado quando o documento fica disponível**, na mesma transação;
+  geração que falha não deixa mapa bloqueado para trás. O contrato está na
+  [geração do documento oficial](../docs/05-web/geracao-do-documento.md).
 - **Cada escola só enxerga o que é seu**, em todas as tabelas.
 - **O dia grava inteiro ou não grava**, por `save_meal_map()`: um mapa por data,
   filhos substituídos pelos enviados, gênero novo criado e gênero já existente

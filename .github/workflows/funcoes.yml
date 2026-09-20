@@ -1,40 +1,40 @@
-# Verificação dos protótipos de servidor em `supabase/spikes/`, que rodam em
-# Deno — o mesmo ambiente das Edge Functions.
+# Verificação das Edge Functions, em `supabase/functions/`, que rodam em Deno.
 #
-# Um spike responde a uma pergunta e depois vira base de código de produção; o
-# que ele descobriu precisa continuar valendo até lá. O preenchimento do modelo
-# oficial é o caso: os testes rodam contra um modelo construído do zero, sem
-# nada da prefeitura, e é isso que permite verificá-lo aqui.
+# Aqui mora o código de servidor do MAE: a geração do documento oficial e a
+# limpeza do que venceu. O preenchimento do modelo, que nasceu como spike na
+# issue #58, é o `_shared/` desta pasta — e os testes dele continuam rodando
+# contra um modelo construído do zero, sem brasão e sem nome de prefeitura, que
+# é o que permite verificá-los aqui.
 #
 # Separado do fluxo do banco de propósito: aqui não há Docker nem Supabase para
-# subir, e mexer num spike não deveria custar uma reconstrução do banco.
-name: Spikes
+# subir, e mexer numa função não deveria custar uma reconstrução do banco.
+name: Edge Functions
 
 on:
   pull_request:
     paths:
-      - 'supabase/spikes/**'
-      - '.github/workflows/spikes.yml'
+      - 'supabase/functions/**'
+      - '.github/workflows/funcoes.yml'
   push:
     branches: [main]
     paths:
-      - 'supabase/spikes/**'
-      - '.github/workflows/spikes.yml'
+      - 'supabase/functions/**'
+      - '.github/workflows/funcoes.yml'
 
 permissions:
   contents: read
 
 concurrency:
-  group: spikes-${{ github.ref }}
+  group: funcoes-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
   verificar:
-    name: Preenchimento do modelo oficial
+    name: Geração do documento e limpeza
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: supabase/spikes/template-oficial
+        working-directory: supabase/functions
     steps:
       - uses: actions/checkout@v7
 
@@ -51,7 +51,7 @@ jobs:
         run: deno lint
 
       - name: Tipos
-        run: deno check *.ts
+        run: deno check _shared/*.ts generate-document/*.ts expire-documents/*.ts
 
       # `--frozen`: instala exatamente o que está no deno.lock e falha se o
       # arquivo estiver fora de sincronia com os imports.

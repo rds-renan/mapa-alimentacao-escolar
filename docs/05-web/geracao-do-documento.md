@@ -4,12 +4,17 @@ O risco declarado no [plano de projeto](../planodeprojeto.md) era este: gerar o
 mapa no padrão da prefeitura pode ser mais difícil do que parece, e descobrir
 isso tarde custaria a etapa inteira. Este documento é o resultado do *spike*
 que atacou o risco — o que o modelo oficial realmente é, como preenchê-lo sem
-perder o formato, e o que foi testado antes de chegar nisso.
+perder o formato, e o que foi testado antes de chegar nisso — e, no fim, a
+implementação que saiu dele.
 
-O protótipo está em [`supabase/spikes/template-oficial/`](../../supabase/spikes/template-oficial/)
-e roda em Deno, o mesmo ambiente da Edge Function que vai implementá-lo (US012,
-issue da geração). **O spike responde "como"; a implementação é outra issue** —
-aqui não há autenticação, nem Storage, nem bloqueio de mapa.
+O código está em [`supabase/functions/`](../../supabase/functions/): o
+preenchimento em `_shared/`, que é o spike graduado, e a Edge Function
+`generate-document`, que o cerca de tudo o que um spike não tem —
+autenticação, Storage, registro e bloqueio dos mapas. Quem quiser só o "como
+preencher" pode parar em
+"[o que foi testado e descartado](#o-que-foi-testado-e-descartado)"; quem
+procura o contrato da função vai direto para
+"[como a Edge Function funciona](#como-a-edge-function-funciona)".
 
 ## O que o modelo oficial é, de verdade
 
@@ -277,28 +282,168 @@ dele. O `.gitignore` barra `.docx` de propósito, e essa barreira não foi
 contornada.
 
 O que está versionado é **código**: o preenchimento, os testes, e um
-[modelo de teste](../../supabase/spikes/template-oficial/modelo-de-teste.ts)
+[modelo de teste](../../supabase/functions/_shared/modelo-de-teste.ts)
 construído do zero — mesma estrutura, mesmos rótulos, mesmos dois vícios, sem
 brasão e sem nome de prefeitura. É contra ele que os testes rodam, e é com ele
 que qualquer pessoa reproduz o spike sem ter o arquivo oficial em mãos.
 
-É também o que permite verificar o spike na integração contínua, no fluxo
-[`spikes.yml`](../../.github/workflows/spikes.yml): um spike responde a uma
+É também o que permite verificá-lo na integração contínua, no fluxo
+[`funcoes.yml`](../../.github/workflows/funcoes.yml): um spike responde a uma
 pergunta e depois vira base de código de produção, e o que ele descobriu
 precisa continuar valendo até lá. A limpeza dos metadados tem teste próprio —
-o modelo de teste nasce com nome de gente justamente para que apagá-lo seja
-verificado, e não confiado à memória de quem implementar.
+o modelo de teste nasce com nome de gente justamente para que apagá-lo fosse
+verificado, e não confiado à memória de quem implementasse.
 
-## O que fica para a implementação
+## Como a Edge Function funciona
 
-O spike responde "como preencher". A Edge Function da US012 ainda precisa
-resolver, na issue dela:
+O spike responde "como preencher". O resto — quem pode pedir, de onde vem o
+modelo, onde o arquivo fica, quando o mapa trava — é a
+[`generate-document`](../../supabase/functions/generate-document/), e o caminho
+dela é este:
 
-- ler o modelo vigente do bucket privado e gravar o resultado com validade de
-  até sete dias (RN#2 da US012);
-- registrar `generated_document` e bloquear os mapas incluídos, numa transação
-  só (RN#4 da US012, US007);
-- apontar os dias pendentes do período **antes** de gerar (CA#3 da US012).
+1. o token da sessão diz quem chamou; o perfil diz a escola e o papel;
+2. `start_document_generation` valida o pedido e registra a geração como **em
+   processamento**, amarrando os mapas incluídos;
+3. a função lê os mapas e baixa o modelo **que aquele registro aponta**;
+4. preenche o modelo com o preenchedor do spike;
+5. grava o `.docx` no balde privado `generated-documents`;
+6. `complete_document_generation` publica o registro e **bloqueia os mapas**,
+   numa transação só;
+7. devolve o link assinado, com a validade que o banco carimbou.
+
+Qualquer tropeço entre 3 e 6 encerra a geração como **falha**, e nenhum mapa é
+bloqueado. Os três passos de banco estão em
+[`20260919120000_geracao_do_documento.sql`](../../supabase/migrations/20260919120000_geracao_do_documento.sql),
+e os cenários deles em
+[`supabase/tests/geracao-do-documento.test.sql`](../../supabase/tests/geracao-do-documento.test.sql).
+
+**A resposta é síncrona.** O mês inteiro sai em menos de meio segundo — 336 ms
+de preenchimento no spike, 200 a 320 ms de ponta a ponta contra o Supabase
+local, com 22 dias —, contra os 30 segundos do RNF#2. A situação "em
+processamento" continua existindo no registro porque é ela que sustenta o
+caminho da falha, não porque a merendeira vá esperar por ela.
+
+### O contrato
+
+`POST /functions/v1/generate-document`, com a sessão da merendeira no
+`Authorization`:
+
+```json
+{ "meal_map_ids": ["c0000001-…", "c0000002-…"] }
+```
+
+A escola **não** está no pedido, e é de propósito: ela vem sempre do perfil de
+quem chamou — a mesma regra da [gravação do dia](gravacao-do-dia.md). Datas
+repetidas na lista viram um dia só no documento.
+
+A resposta, em 200:
+
+```json
+{
+  "generated_document_id": "ec8aa71b-…",
+  "status": "available",
+  "requested_at": "2026-10-31T12:00:00.000Z",
+  "completed_at": "2026-10-31T12:00:00.320Z",
+  "expires_at": "2026-11-07T12:00:00.320Z",
+  "meal_map_count": 22,
+  "period": { "from": "2026-10-01", "to": "2026-10-30" },
+  "file_name": "mapa-da-alimentacao-escolar-outubro-2026.docx",
+  "download_url": "https://…/object/sign/generated-documents/…"
+}
+```
+
+`period` e `meal_map_count` são **derivados** dos mapas incluídos, não gravados
+(decisão 10 da E4). O `file_name` é o nome com que o arquivo chega no aparelho
+de quem recebe, e vai sem acento e sem espaço de propósito: ele viaja em
+cabeçalho HTTP, passa por aplicativo de mensagem e termina no sistema de
+arquivos de um celular que não é nosso.
+
+Os erros, com a mensagem já legível por quem vai lê-la:
+
+| Quando | HTTP | O que chega na tela |
+|---|---|---|
+| Sem sessão, ou sessão vencida | 401 | Entre de novo para gerar o documento. |
+| Direção, ou perfil desativado | 403 | Só a merendeira gera o documento do mapa. |
+| Seleção vazia | 400 | Selecione ao menos um dia para gerar o documento. |
+| Dia que não existe, ou de outra escola | 400 | Algum dia selecionado não existe mais. |
+| Escola sem modelo vigente | 400 | A escola ainda não tem um modelo oficial cadastrado. |
+| Modelo ilegível, balde fora do ar, qualquer tropeço | 500 | Não foi possível gerar o documento agora. |
+
+O 500 é o único que não explica a causa, e é de propósito: a causa dele é
+defeito nosso, não algo que a merendeira possa corrigir. Ela vai para o log, e
+para a tela vai o que interessa — que os registros do período continuam
+guardados.
+
+### O bloqueio entra na publicação, e não no pedido
+
+A [decisão 5 da E4](../04-banco-de-dados/decisoes-de-modelagem.md) punha o
+bloqueio "na mesma transação em que registra o `DocumentoGerado`", e o registro
+nasce no pedido. O que ela não previa é o caminho da falha: bloquear no pedido
+obrigaria a **desbloquear sozinho** quando a geração falhasse — e desbloqueio
+sem rastro é exatamente o que a US023 não admite, porque o único caminho de
+saída do bloqueio é a reabertura pela direção, com justificativa guardada.
+
+Bloquear junto com a publicação mantém a regra de pé ("o que saiu em documento
+não se edita", RN#1 da US007) e deixa a falha sem efeito colateral nenhum. O
+que se paga é uma janela em que um mapa incluído ainda aceita edição: o tempo
+do preenchimento, que é de centenas de milissegundos. Para alguém alcançá-la,
+a outra merendeira teria de salvar exatamente aquele dia dentro dela.
+
+### Um mapa pode entrar em mais de um documento
+
+Não é permissividade, é a US023 fechando. O desbloqueio é de **um mapa**, e o
+CA#4 dela diz que, corrigido o mapa, "o documento do período pode ser gerado de
+novo" — com os outros dias do período ainda bloqueados. Se a geração recusasse
+mapa bloqueado, a correção terminaria num beco: o dia consertado e nenhum
+documento possível. O bloqueio é sobre **editar**, nunca sobre sair de novo.
+
+O documento antigo continua existindo, e é o que a RN#2 da US023 exige. O que
+**não** existe ainda é qualquer sinal de que ele foi substituído — depois de
+uma correção, a lista da US021 mostra dois documentos do mesmo período sem
+dizer qual vale. É assunto da tela dos documentos gerados, não desta função.
+
+### O arquivo expira, e apagar é mesmo apagar
+
+A validade de sete dias (RN#2 da US012) é carimbada pelo banco, num lugar só, e
+o link assinado apenas a acompanha — fossem dois prazos, um deles envelheceria
+sozinho. Vencido o prazo, três coisas acontecem: o link deixa de assinar, a
+política do balde deixa de servir o arquivo, e a
+[`expire-documents`](../../supabase/functions/expire-documents/) o **apaga**.
+
+Apagar de verdade não é zelo: "o sistema não mantém cópia permanente do
+documento" é regra da US012, e o que ficaria guardado é um documento com o
+brasão da prefeitura e o mapa de uma escola — a regra de sigilo do projeto
+valendo para o que o sistema produz. O registro fica, e é ele que diz que os
+mapas do período continuam guardados.
+
+A mesma rotina encerra a geração que ficou **em processamento** além de uma
+hora. A geração é síncrona, então só chega lá a que morreu no meio; sem isso,
+um registro ficaria em processamento para sempre, prometendo à merendeira um
+arquivo que nunca vem.
+
+Ela varre o **balde**, e não a tabela: o balde é quem sabe o que ainda está lá.
+Pela tabela, cada passagem reprocessaria todo documento já gerado na história
+da escola, e um arquivo que tivesse perdido o registro nunca seria alcançado.
+
+**O agendamento não está em migration**, e é o único passo manual desta issue.
+Ele precisa da chave secreta, que não entra em código — no painel do projeto,
+em *Integrations > Cron*, cria-se um agendamento diário que chama
+`expire-documents` por HTTP, com a chave vinda do Vault. Uma vez por dia basta:
+a janela é de sete dias, e um arquivo que sai algumas horas depois do prazo já
+não era servido a ninguém desde o instante em que venceu.
+
+### O que ficou para as telas
+
+Duas coisas da US012 não são desta issue, e vale dizer onde estão:
+
+- **apontar os dias pendentes do período antes de gerar** (CA#3) é da tela de
+  seleção — a função não recusa dia pendente, porque registro parcial é
+  permitido e sai no documento como o formulário em branco naquela refeição;
+- **compartilhar** é da tela do documento gerado. Na web, compartilhar é baixar
+  ([decisão 9](decisoes-tecnicas.md)); a folha de compartilhamento do Android é
+  da E6.
+
+## O modelo é o arquivo da prefeitura como ele vem
 
 **O modelo guardado no sistema é o arquivo da prefeitura como ele vem**, com a
 semana preenchida e o layout torto que ele tiver no dia. Não há versão limpa a

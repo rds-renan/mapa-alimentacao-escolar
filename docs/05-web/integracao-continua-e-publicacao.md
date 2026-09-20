@@ -16,7 +16,7 @@ navegável desde o começo da etapa.
 |---|---|---|
 | [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
-| [`spikes.yml`](../../.github/workflows/spikes.yml) | `supabase/spikes/` | formatação, lint, checagem de tipos e testes dos protótipos de servidor, em Deno |
+| [`funcoes.yml`](../../.github/workflows/funcoes.yml) | `supabase/functions/` | formatação, lint, checagem de tipos e testes das Edge Functions, em Deno |
 
 Os três rodam de novo na `main` depois do merge. Não é zelo excessivo: o
 *squash merge* produz um commit que **não existia** enquanto o PR era
@@ -24,11 +24,11 @@ verificado — é a junção do trabalho com o que entrou na `main` no meio do
 caminho, e é exatamente esse commit que o Cloudflare vai publicar.
 
 **Por que três fluxos e não um.** O filtro de caminho é o que separa: um PR só
-de documentação não paga nada, um PR de tela paga o Node, um PR de spike paga o
-Deno, e só quem mexe no banco paga o minuto de contêiner. Juntá-los num fluxo
-só faria todo PR pagar o preço do mais caro. É também por isso que
-`supabase/spikes/` é **excluído** do fluxo do banco: o que vive ali roda em
-Deno e não toca o schema, e mexer num protótipo não deveria custar uma
+de documentação não paga nada, um PR de tela paga o Node, um PR de Edge
+Function paga o Deno, e só quem mexe no banco paga o minuto de contêiner.
+Juntá-los num fluxo só faria todo PR pagar o preço do mais caro. É também por
+isso que `supabase/functions/` é **excluído** do fluxo do banco: o que vive ali
+roda em Deno e não toca o schema, e mexer numa função não deveria custar uma
 reconstrução do banco.
 
 **Por que as duas verificações do banco vivem no mesmo emprego.** Tanto o
@@ -41,7 +41,7 @@ O mesmo, na sua máquina, antes de abrir o PR:
 cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets && npm run check:size
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
-cd supabase/spikes/template-oficial && deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
+cd supabase/functions && deno task verificar   # fmt, lint, tipos e testes das Edge Functions
 ```
 
 ## As versões são fixas, e isso é a metade do valor da CI
@@ -158,8 +158,11 @@ o segundo vira ruído junto do primeiro.
 - **O teste ponta a ponta em Playwright** entra quando houver caminho crítico
   para percorrer — registrar um dia, sincronizar, gerar o documento. É a
   [decisão 11](decisoes-tecnicas.md), e tem issue própria na etapa.
-- **A Edge Function da geração do documento** nasce depois do *spike* do
-  template oficial; a verificação dela entra junto.
+- **A geração de ponta a ponta contra o Supabase de verdade** não roda na CI. O
+  que `funcoes.yml` verifica é o preenchimento e a tradução do banco para o
+  documento, sem rede; o caminho inteiro — sessão, Storage, bloqueio — foi
+  percorrido à mão contra o Supabase local, e é ele que o Playwright da
+  [decisão 11](decisoes-tecnicas.md) vai cobrir quando a tela existir.
 - **Os testes de componente cobrem hoje a autenticação** — login, sessão
   persistida, saída, rotas por perfil e a senha esquecida, contra um Supabase
   de mentira. O peso previsto pela decisão 11 continua à frente: a fila de
