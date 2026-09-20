@@ -475,14 +475,78 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      complete_document_generation: {
+        Args: { p_document_id: string; p_file_path: string }
+        Returns: {
+          completed_at: string | null
+          document_template_id: string
+          expires_at: string | null
+          file_path: string | null
+          id: string
+          requested_at: string
+          requested_by: string
+          school_id: string
+          status: Database["public"]["Enums"]["document_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "generated_document"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       current_role_is: {
         Args: { wanted: Database["public"]["Enums"]["user_role"] }
         Returns: boolean
       }
       current_school_id: { Args: never; Returns: string }
+      fail_document_generation: {
+        Args: { p_document_id: string }
+        Returns: {
+          completed_at: string | null
+          document_template_id: string
+          expires_at: string | null
+          file_path: string | null
+          id: string
+          requested_at: string
+          requested_by: string
+          school_id: string
+          status: Database["public"]["Enums"]["document_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "generated_document"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       is_service: { Args: never; Returns: boolean }
       meal_map_is_locked: { Args: { map_id: string }; Returns: boolean }
       save_meal_map: { Args: { payload: Json }; Returns: Json }
+      start_document_generation: {
+        Args: {
+          p_meal_map_ids: string[]
+          p_requested_by: string
+          p_school_id: string
+        }
+        Returns: {
+          completed_at: string | null
+          document_template_id: string
+          expires_at: string | null
+          file_path: string | null
+          id: string
+          requested_at: string
+          requested_by: string
+          school_id: string
+          status: Database["public"]["Enums"]["document_status"]
+        }
+        SetofOptions: {
+          from: "*"
+          to: "generated_document"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       unlock_meal_map: {
         Args: { map_id: string; unlock_reason: string }
         Returns: {

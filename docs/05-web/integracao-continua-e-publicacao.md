@@ -16,7 +16,7 @@ navegável desde o começo da etapa.
 |---|---|---|
 | [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
-| [`spikes.yml`](../../.github/workflows/spikes.yml) | `supabase/spikes/` | formatação, lint, checagem de tipos e testes dos protótipos de servidor, em Deno |
+| [`funcoes.yml`](../../.github/workflows/funcoes.yml) | `supabase/functions/` | formatação, lint, checagem de tipos e testes das Edge Functions, em Deno |
 
 Os três rodam de novo na `main` depois do merge. Não é zelo excessivo: o
 *squash merge* produz um commit que **não existia** enquanto o PR era
@@ -24,11 +24,11 @@ verificado — é a junção do trabalho com o que entrou na `main` no meio do
 caminho, e é exatamente esse commit que o Cloudflare vai publicar.
 
 **Por que três fluxos e não um.** O filtro de caminho é o que separa: um PR só
-de documentação não paga nada, um PR de tela paga o Node, um PR de spike paga o
-Deno, e só quem mexe no banco paga o minuto de contêiner. Juntá-los num fluxo
-só faria todo PR pagar o preço do mais caro. É também por isso que
-`supabase/spikes/` é **excluído** do fluxo do banco: o que vive ali roda em
-Deno e não toca o schema, e mexer num protótipo não deveria custar uma
+de documentação não paga nada, um PR de tela paga o Node, um PR de Edge
+Function paga o Deno, e só quem mexe no banco paga o minuto de contêiner.
+Juntá-los num fluxo só faria todo PR pagar o preço do mais caro. É também por
+isso que `supabase/functions/` é **excluído** do fluxo do banco: o que vive ali
+roda em Deno e não toca o schema, e mexer numa função não deveria custar uma
 reconstrução do banco.
 
 **Por que as duas verificações do banco vivem no mesmo emprego.** Tanto o
@@ -41,7 +41,7 @@ O mesmo, na sua máquina, antes de abrir o PR:
 cd web && npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets && npm run check:size
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
-cd supabase/spikes/template-oficial && deno fmt --check && deno lint && deno check *.ts && deno test --allow-read
+cd supabase/functions && deno task verificar   # fmt, lint, tipos e testes das Edge Functions
 ```
 
 ## As versões são fixas, e isso é a metade do valor da CI
@@ -158,8 +158,11 @@ o segundo vira ruído junto do primeiro.
 - **O teste ponta a ponta em Playwright** entra quando houver caminho crítico
   para percorrer — registrar um dia, sincronizar, gerar o documento. É a
   [decisão 11](decisoes-tecnicas.md), e tem issue própria na etapa.
-- **A Edge Function da geração do documento** nasce depois do *spike* do
-  template oficial; a verificação dela entra junto.
+- **A geração de ponta a ponta contra o Supabase de verdade** não roda na CI. O
+  que `funcoes.yml` verifica é o preenchimento e a tradução do banco para o
+  documento, sem rede; o caminho inteiro — sessão, Storage, bloqueio — foi
+  percorrido à mão contra o Supabase local, e é ele que o Playwright da
+  [decisão 11](decisoes-tecnicas.md) vai cobrir quando a tela existir.
 - **Os testes de componente cobrem hoje a autenticação** — login, sessão
   persistida, saída, rotas por perfil e a senha esquecida, contra um Supabase
   de mentira. O peso previsto pela decisão 11 continua à frente: a fila de
@@ -300,6 +303,104 @@ declaradas no painel, que o `config.toml` só resolve no ambiente local: os
 endereços permitidos para o link de senha nova, em *Authentication > URL
 Configuration*, e o texto em português do e-mail de senha nova, em
 *Authentication > Emails*.
+
+## Publicar o banco e as Edge Functions
+
+A web se publica sozinha a cada merge; o Supabase, não. A assimetria é
+proposital em dois pontos e acidental em nenhum: aplicar uma migration é uma
+**decisão**, não uma consequência de mergear — migration é imutável, e um
+`db push` disparado por engano só se corrige escrevendo a próxima —, e a CI não
+tem, nem deve ter, credencial de produção do banco. Quem publica é quem tem a
+máquina ligada, olhando o que vai subir.
+
+Confira primeiro o que está fora de sincronia:
+
+```bash
+supabase migration list        # lado a lado: o que é local e o que já está no remoto
+supabase db push --dry-run     # o que seria aplicado, sem aplicar
+supabase db push               # aplica
+```
+
+As funções vão em seguida, uma a uma:
+
+```bash
+supabase functions deploy generate-document
+supabase functions deploy expire-documents
+```
+
+**Nenhum segredo a configurar.** O runtime injeta o endereço do projeto e a
+chave secreta; `supabase secrets set` não é preciso. O que está em
+`supabase/functions/_shared/` sobe junto, porque é importado — não se publica
+separado.
+
+A ordem é a do bom senso: mergear, depois publicar. As duas coisas podem ir
+antes do merge sem quebrar nada enquanto nenhuma tela chamar a função, mas aí a
+`main` deixa de ser o que está no ar, e é ela que se lê para saber o que está.
+
+### O agendamento da limpeza
+
+Os arquivos vencidos só somem se alguém chamar a `expire-documents`, e quem
+chama é o [Cron do Supabase](https://supabase.com/docs/guides/cron/quickstart)
+— `pg_cron` disparando um `net.http_post` para a função. **Isto não está em
+migration**, e não pode estar: precisa da chave secreta, que não entra em
+código.
+
+Pelo painel, que é o caminho mais curto porque liga `pg_cron` e `pg_net`
+sozinho: *Integrations > Cron > Create job*, nome `expire-documents`,
+agendamento `0 6 * * *` — a hora é **UTC**, então isto é três da manhã aqui —,
+tipo *Supabase Edge Function*, método POST.
+
+Por SQL dá no mesmo, e o segredo vai para o Vault, nunca para dentro do
+`cron.schedule`:
+
+```sql
+select vault.create_secret('https://<ref>.supabase.co', 'project_url');
+select vault.create_secret('<chave secreta>', 'service_key');
+
+select cron.schedule(
+  'expire-documents',
+  '0 6 * * *',
+  $$
+  select net.http_post(
+    url := (select decrypted_secret from vault.decrypted_secrets where name = 'project_url')
+           || '/functions/v1/expire-documents',
+    headers := jsonb_build_object(
+      'Content-Type', 'application/json',
+      'Authorization', 'Bearer ' ||
+        (select decrypted_secret from vault.decrypted_secrets where name = 'service_key')
+    )
+  );
+  $$
+);
+```
+
+Depois, `select * from cron.job;` mostra o agendamento e
+`select * from cron.job_run_details order by start_time desc limit 5;` mostra as
+últimas passagens.
+
+**Qual chave vai no cabeçalho.** O projeto tem duas gerações de chave secreta
+convivendo: a `service_role` antiga, que é um JWT, e a `sb_secret_…` nova, que é
+opaca. A função aceita as duas; quem pode não aceitar é o portão do Supabase,
+que valida o `Authorization` **antes** de a função rodar. Chamar a função à mão
+resolve a dúvida em dez segundos:
+
+```bash
+curl -i -X POST https://<ref>.supabase.co/functions/v1/expire-documents \
+  -H "Authorization: Bearer <a chave que vai no agendamento>"
+```
+
+Uma resposta `{"removed_files":…}` é a chave certa. Um 401 **no formato de erro
+do MAE** chegou à função e a chave está errada; um 401 sem esse corpo foi o
+portão, e aí ou se usa a chave antiga, ou se desliga o `verify_jwt` dessa função
+no [`config.toml`](../../supabase/config.toml) — o que é seguro, porque o guarda
+da chave é da própria função.
+
+### O que vive só no painel
+
+Fora do repositório, e por isso listado aqui: os endereços permitidos do link de
+senha nova, o texto dos e-mails, as variáveis da Cloudflare, os segredos do
+Vault e o agendamento do Cron. É o inventário do que uma máquina nova não
+reconstrói sozinha a partir de um `git clone`.
 
 ## O que nunca entra no pacote publicado
 

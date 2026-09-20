@@ -411,6 +411,16 @@ authorization_url_path = "/oauth/consent"
 # Allow dynamic client registration
 allow_dynamic_registration = false
 
+# As Edge Functions do MAE. As duas verificam o token de quem chamou — a
+# geração espera a sessão da merendeira, a limpeza espera a chave secreta do
+# agendador —, então `verify_jwt` fica ligado nas duas: token torto morre no
+# Kong, antes de gastar um worker.
+[functions.generate-document]
+verify_jwt = true
+
+[functions.expire-documents]
+verify_jwt = true
+
 [edge_runtime]
 enabled = true
 # Supported request policies: `oneshot`, `per_worker`.
