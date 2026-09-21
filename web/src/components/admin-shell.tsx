@@ -1,4 +1,4 @@
-import { LayoutGrid, Users } from 'lucide-react'
+import { CalendarDays, LayoutGrid, Users } from 'lucide-react'
 import { NavLink } from 'react-router'
 
 import { ADMIN_MESSAGES } from '@/admin/messages'
@@ -12,8 +12,12 @@ import { ROUTES } from '@/routes'
  *
  * Ela existe porque o fluxo da direção é outro fluxo, e não um menu a mais no
  * da merendeira (RN#1 da US020): não há caminho de um para o outro em lugar
- * nenhum da interface, e as duas guardas de rota é que o garantem. A
- * navegação de cá tem dois destinos e nada além disso.
+ * nenhum da interface, e as duas guardas de rota é que o garantem.
+ *
+ * Os destinos são três, e nenhum deles registra mapa. O terceiro — Mapas — é o
+ * da issue #69, e é o único que toca em mapa: ele **reabre**, e quem corrige
+ * continua sendo a merendeira (RN#1 da US023). Não é caminho para o registro;
+ * é a saída do beco que o bloqueio cria.
  *
  * Largura: o desenho da E3 é de computador, e é assim que a direção trabalha
  * — a merendeira é que registra de celular. Mas a web abre em qualquer
@@ -30,6 +34,7 @@ interface Destination {
 const DESTINATIONS: Destination[] = [
   { to: ROUTES.adminHome, label: ADMIN_MESSAGES.dashboard, icon: LayoutGrid },
   { to: ROUTES.adminManagement, label: ADMIN_MESSAGES.management, icon: Users },
+  { to: ROUTES.adminMaps, label: ADMIN_MESSAGES.maps, icon: CalendarDays },
 ]
 
 export function AdminShell({

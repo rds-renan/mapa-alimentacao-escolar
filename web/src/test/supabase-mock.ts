@@ -71,6 +71,19 @@ export interface CookRow {
   last_access: string | null
 }
 
+/**
+ * Uma linha de `meal_map_unlock` como a tela Mapas a lê (issue #69). O nome de
+ * quem reabriu entra direto: no banco ele vem do vínculo com `profile`, e é isso
+ * que o mock monta na leitura.
+ */
+export interface MapUnlockRow {
+  id: string
+  map_date: string
+  unlocked_at: string
+  unlocked_by: string
+  reason: string
+}
+
 /** A escola, como o cartão de dados institucionais a lê. */
 export interface SchoolRow {
   id: string
@@ -94,6 +107,11 @@ export interface MealMapRow {
   note: string | null
   meals_served: number | null
   locked: boolean
+  /**
+   * As reaberturas deste mapa (US023). Ausente é nenhuma — é o caso da imensa
+   * maioria dos dias, e os testes que não falam de reabertura não perguntam.
+   */
+  unlocks?: { unlocked_at: string; reason: string; unlocked_by?: string }[]
   meal: {
     type: 'morning_snack' | 'lunch' | 'afternoon_snack'
     description: string | null
@@ -123,6 +141,9 @@ function dayRow(row: MealMapRow) {
   return {
     id: row.id ?? `map-${row.map_date}`,
     map_date: row.map_date,
+    meal_map_unlock: (row.unlocks ?? []).map((unlock) => ({
+      unlocked_at: unlock.unlocked_at,
+    })),
     updated_at: row.updated_at ?? `${row.map_date}T12:00:00.000Z`,
     non_school_day: row.non_school_day,
     note: row.note,
@@ -175,6 +196,11 @@ let signedUrlRequests: {
   seconds: number
   download?: string
 }[] = []
+let unlockRows: MapUnlockRow[] = []
+let unlocksError: { message: string } | null = null
+let unlockRpcError: { code?: string; message: string } | null = null
+let unlockRequests: { mapId: string; reason: string }[] = []
+let nextUnlockId = 1
 let cookRows: CookRow[] = []
 let cooksError: { message: string } | null = null
 let cookWriteError: { message: string } | null = null
@@ -320,6 +346,39 @@ export function givenCookWriteFails(message = 'sem rede') {
   cookWriteError = { message }
 }
 
+/** O histórico de reaberturas que a tela Mapas encontra (issue #69). */
+export function givenMapUnlocks(rows: MapUnlockRow[]) {
+  unlockRows = rows
+  unlocksError = null
+}
+
+export function givenMapUnlocksFail(message = 'sem rede') {
+  unlocksError = { message }
+}
+
+/**
+ * A reabertura é recusada pelo banco. Com código, a frase da função chega à
+ * tela como ela foi escrita; sem código, é rede — e vale a frase da tela.
+ */
+export function givenReopenFails(message: string, code?: string) {
+  unlockRpcError = { code, message }
+}
+
+/** As reaberturas que a tela pediu, na ordem, com a justificativa de cada uma. */
+export function reopenRequests() {
+  return unlockRequests
+}
+
+/** O histórico como ficou depois do que a tela gravou. */
+export function storedMapUnlocks(): MapUnlockRow[] {
+  return unlockRows
+}
+
+/** Os mapas como ficaram: é aqui que se confere o bloqueio que saiu. */
+export function storedMealMaps(): MealMapRow[] {
+  return mealMapRows
+}
+
 /** A escola de quem está logada, que é a única que o RLS devolve. */
 export function givenSchool(row: SchoolRow) {
   schoolRow = row
@@ -420,6 +479,11 @@ export function resetSupabaseMock() {
   generatedDocumentsError = null
   signedUrlError = null
   signedUrlRequests = []
+  unlockRows = []
+  unlocksError = null
+  unlockRpcError = null
+  unlockRequests = []
+  nextUnlockId = 1
   cookRows = []
   cooksError = null
   cookWriteError = null
@@ -518,6 +582,7 @@ export const supabase = {
    *                              continua na fila, que é o estado que interessa
    *   touch_last_access          o carimbo do último acesso, que nunca atrapalha
    *   replace_document_template  a troca do modelo, que é uma operação só
+   *   unlock_meal_map            a reabertura, que desbloqueia e registra junto
    *
    * O retorno é um objeto que se pode esperar **ou** encadear com `single()`,
    * como o construtor da biblioteca de verdade.
@@ -525,6 +590,40 @@ export const supabase = {
   rpc: vi.fn((name: string, args?: Record<string, unknown>) => {
     const result = () => {
       if (name === 'touch_last_access') return { data: null, error: null }
+
+      /*
+       * A reabertura (US023). No banco ela é uma transação só — registra e
+       * desbloqueia —, e o mock guarda as duas coisas de uma vez, para que a
+       * tela seja conferida contra o efeito, e não contra a chamada.
+       */
+      if (name === 'unlock_meal_map') {
+        const mapId = String(args?.map_id ?? '')
+        const reason = String(args?.unlock_reason ?? '')
+        unlockRequests = [...unlockRequests, { mapId, reason }]
+
+        if (unlockRpcError) return { data: null, error: unlockRpcError }
+
+        const reopened = mealMapRows.find(
+          (row) => (row.id ?? `map-${row.map_date}`) === mapId
+        )
+
+        mealMapRows = mealMapRows.map((row) =>
+          row === reopened ? { ...row, locked: false } : row
+        )
+
+        unlockRows = [
+          {
+            id: `unlock-${nextUnlockId++}`,
+            map_date: reopened?.map_date ?? '',
+            unlocked_at: new Date().toISOString(),
+            unlocked_by: 'Direção',
+            reason,
+          },
+          ...unlockRows,
+        ]
+
+        return { data: { id: mapId, locked: false }, error: null }
+      }
 
       if (name === 'replace_document_template') {
         if (templateRpcError) return { data: null, error: templateRpcError }
@@ -680,6 +779,17 @@ export const supabase = {
      * é pedido, e não na hora da chamada.
      */
     let changes: Partial<FoodItemRow & CookRow & SchoolRow> | null = null
+    /*
+     * A ordem e o teto que a consulta pediu. A tela Mapas (issue #69) lê a
+     * mesma tabela do mês em ordem contrária — do dia mais recente para o mais
+     * antigo —, e sem isto as duas leituras chegariam iguais aqui.
+     */
+    let sort: { column: string; ascending: boolean } | null = null
+    let ceiling: number | null = null
+
+    /** O `limit()` da consulta, aplicado onde a lista sai. */
+    const capped = <T>(rows: T[]): T[] =>
+      ceiling === null ? rows : rows.slice(0, ceiling)
 
     const chain = {
       select: () => chain,
@@ -689,8 +799,14 @@ export const supabase = {
       },
       gte: () => chain,
       lte: () => chain,
-      order: () => chain,
-      limit: () => chain,
+      order: (column: string, options?: { ascending?: boolean }) => {
+        sort = { column, ascending: options?.ascending !== false }
+        return chain
+      },
+      limit: (count: number) => {
+        ceiling = count
+        return chain
+      },
 
       /*
        * As duas escritas da tela 4 (issue #64). O catálogo do mock é a fonte:
@@ -779,12 +895,7 @@ export const supabase = {
 
       then: (
         resolve: (result: {
-          data:
-            | MealMapRow[]
-            | FoodItemRow[]
-            | CookRow[]
-            | ReturnType<typeof documentRow>[]
-            | null
+          data: unknown[] | null
           error: { message: string } | null
         }) => unknown
       ) => {
@@ -820,6 +931,23 @@ export const supabase = {
           )
         }
 
+        /* O histórico da tela Mapas, com o dia e o nome de quem reabriu. */
+        if (table === 'meal_map_unlock') {
+          if (unlocksError) {
+            return Promise.resolve(resolve({ data: null, error: unlocksError }))
+          }
+
+          const rows = unlockRows.map((row) => ({
+            id: row.id,
+            unlocked_at: row.unlocked_at,
+            reason: row.reason,
+            meal_map: { map_date: row.map_date },
+            profile: { name: row.unlocked_by },
+          }))
+
+          return Promise.resolve(resolve({ data: capped(rows), error: null }))
+        }
+
         if (table === 'generated_document') {
           return Promise.resolve(
             resolve(
@@ -835,18 +963,45 @@ export const supabase = {
         }
 
         /*
-         * A visão do mês e a seleção de mapas pedem o identificador do mapa
-         * junto: é ele que a geração do documento recebe.
+         * A visão do mês, a seleção de mapas e a tela Mapas leem a mesma tabela.
+         * As duas primeiras pedem o identificador junto — é ele que a geração do
+         * documento recebe —, e a terceira filtra pelos bloqueados e pede o
+         * documento em que cada um saiu. O vínculo com o documento é montado a
+         * partir dos documentos gerados do próprio mock: uma fonte só, como no
+         * banco, onde é `document_meal_map` que sabe quais dias entraram.
          */
         const rows =
           table === 'meal_map'
-            ? mealMapRows.map((row) => ({
-                ...row,
-                id: row.id ?? `map-${row.map_date}`,
-              }))
+            ? mealMapRows
+                .filter(
+                  (row) =>
+                    filters.locked === undefined ||
+                    row.locked === filters.locked
+                )
+                .map((row) => ({
+                  ...row,
+                  id: row.id ?? `map-${row.map_date}`,
+                  meal_map_unlock: (row.unlocks ?? []).map((unlock) => ({
+                    unlocked_at: unlock.unlocked_at,
+                  })),
+                  document_meal_map: generatedDocumentRows
+                    .filter((document) => document.dates.includes(row.map_date))
+                    .map((document) => ({
+                      generated_document: {
+                        id: document.id,
+                        requested_at: document.requested_at,
+                        completed_at: document.completed_at ?? null,
+                      },
+                    })),
+                }))
+                .sort((a, b) =>
+                  sort?.column === 'map_date' && !sort.ascending
+                    ? b.map_date.localeCompare(a.map_date)
+                    : a.map_date.localeCompare(b.map_date)
+                )
             : []
 
-        return Promise.resolve(resolve({ data: rows, error: null }))
+        return Promise.resolve(resolve({ data: capped(rows), error: null }))
       },
     }
 

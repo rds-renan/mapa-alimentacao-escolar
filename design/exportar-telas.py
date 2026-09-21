@@ -58,7 +58,8 @@ VALORES = {
 CONDICOES = {'letivo', 'manha.aberta', 'almoco.fechada'}
 
 # Telas que aparecem por cima de outra: são fotografadas sobre ela.
-SOBREPOSTAS = {'Menu.dc.html': 'VisaoDoMes.dc.html', 'EscolherGenero.dc.html': 'Main.dc.html'}
+SOBREPOSTAS = {'Menu.dc.html': 'VisaoDoMes.dc.html', 'EscolherGenero.dc.html': 'Main.dc.html',
+               'AdminReabrirMapa.dc.html': 'AdminMapas.dc.html'}
 
 # Segundo estado da tela do registro, com o almoço aberto e a troca de cardápio à vista.
 ESTADO_EXTRA = {

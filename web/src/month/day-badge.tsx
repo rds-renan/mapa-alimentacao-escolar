@@ -4,9 +4,10 @@ import {
   CircleDashed,
   Clock,
   Lock,
+  LockOpen,
 } from 'lucide-react'
 
-import { DAY_STATE_LABELS } from './messages'
+import { DAY_STATE_LABELS, REOPENED_LABEL } from './messages'
 import type { DayState } from './month'
 
 /*
@@ -56,6 +57,28 @@ export function DayBadge({ state }: { state: DayState }) {
     >
       <Icon className="size-3.5" />
       {DAY_STATE_LABELS[state]}
+    </span>
+  )
+}
+
+/*
+ * O dia reaberto pela direção (CA#2 da US023).
+ *
+ * Vem ao lado da etiqueta de estado, e não no lugar dela: o dia reaberto
+ * continua completo ou pendente, e o que ele tem de diferente é ser o dia que
+ * voltou para a mão dela. Mesma regra da etiqueta ao lado — cor **e** ícone —,
+ * e o cadeado aberto é de propósito o mesmo cadeado do "no documento", do outro
+ * lado.
+ */
+export function ReopenedBadge() {
+  return (
+    <span
+      data-slot="reopened-badge"
+      aria-hidden="true"
+      className="inline-flex shrink-0 items-center gap-1.5 rounded-full border border-warning-border bg-warning-subtle px-2.5 py-1 text-2xs font-medium whitespace-nowrap text-warning"
+    >
+      <LockOpen className="size-3.5" />
+      {REOPENED_LABEL}
     </span>
   )
 }

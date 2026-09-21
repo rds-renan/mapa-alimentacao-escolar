@@ -109,6 +109,24 @@
       "page": "page-admin"
     },
     {
+      "file": "AdminMapas.dc.html",
+      "x": 0,
+      "y": 2100,
+      "w": 1440,
+      "h": 980,
+      "title": "Admin · Mapas",
+      "page": "page-admin"
+    },
+    {
+      "file": "AdminReabrirMapa.dc.html",
+      "x": 1520,
+      "y": 2100,
+      "w": 1440,
+      "h": 980,
+      "title": "Admin · Reabrir mapa",
+      "page": "page-admin"
+    },
+    {
       "file": "AvisosNaTela.dc.html",
       "x": 0,
       "y": 0,

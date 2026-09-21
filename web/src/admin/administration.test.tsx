@@ -400,14 +400,20 @@ describe('a direção fora do fluxo do mapa', () => {
     renderManagement()
     await cooksLoaded()
 
-    // A navegação da direção tem dois destinos, e nenhum é do mapa.
+    /*
+     * A navegação da direção tem três destinos, e nenhum deles registra mapa.
+     * "Mapas" é o da issue #69: ele reabre um dia bloqueado, e quem corrige
+     * continua sendo a merendeira.
+     */
     expect(
       screen.queryByRole('link', { name: /Documentos gerados/ })
     ).not.toBeInTheDocument()
     expect(
       screen.queryByRole('link', { name: /Gerenciar gêneros/ })
     ).not.toBeInTheDocument()
-    expect(screen.getAllByRole('link')).toHaveLength(2)
+    expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual(
+      ['Painel', 'Gestão', 'Mapas']
+    )
   })
 
   it('devolve a merendeira para a casa dela se ela tentar a gestão', async () => {

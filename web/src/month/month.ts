@@ -51,6 +51,16 @@ export interface DayRecord {
   note: string | null
   mealsServed: number | null
   locked: boolean
+  /**
+   * Já foi reaberto pela direção e ainda não voltou a um documento (US023).
+   *
+   * Não é um estado do dia, e por isso não entra em `dayState`: um dia reaberto
+   * continua sendo completo ou pendente, e continua contando no andamento do
+   * mês como o que ele é. O que ele ganha é um aviso a mais — é o dia que a
+   * direção devolveu para corrigir, e sem um sinal ele ficaria indistinguível
+   * dos outros na lista.
+   */
+  reopened: boolean
   meals: MealRecord[]
   /** Está guardado no aparelho e ainda não foi confirmado pelo servidor. */
   pendingUpload: boolean
@@ -402,6 +412,8 @@ export function recordFromDraft(draft: DayPayload): DayRecord {
      * o mesmo dia, `mergeDays` recupera esse fato da linha do servidor.
      */
     locked: false,
+    /* Pelo mesmo motivo do bloqueio: a reabertura é fato do servidor. */
+    reopened: false,
     meals: draft.meals.map((meal) => ({
       type: meal.type,
       description: meal.description,
@@ -433,6 +445,7 @@ export function mergeDays(
       ...draft,
       id: server?.id ?? null,
       locked: server?.locked ?? false,
+      reopened: server?.reopened ?? false,
     })
   }
 

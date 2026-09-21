@@ -1,3 +1,5 @@
+import { dayAndMonth, weekdayName } from '@/month/month'
+
 /*
  * Os textos da área da direção. Mesmas três regras do catálogo de avisos da
  * E3: nenhuma mensagem culpa quem está lendo, o erro diz primeiro o que não se
@@ -14,11 +16,15 @@ export const ADMIN_MESSAGES = {
   brandSubtitle: 'Mapa da Alimentação Escolar',
   dashboard: 'Painel',
   management: 'Gestão',
+  maps: 'Mapas',
   openMenu: 'Abrir a navegação',
   role: 'Direção',
 
   managementTitle: 'Gestão',
   managementSubtitle: 'Merendeiras, modelo oficial e dados da escola',
+
+  mapsTitle: 'Mapas',
+  mapsSubtitle: 'Dias que saíram em documento e podem ser reabertos',
 } as const
 
 // ---------------------------------------------------------------------------
@@ -199,3 +205,109 @@ export const SCHOOL_MESSAGES = {
   saveFailed:
     'Não deu para salvar agora, quase sempre é a internet. O que você escreveu continua no formulário — é só tentar de novo.',
 } as const
+
+// ---------------------------------------------------------------------------
+// Mapas em documento e reabertura (US023)
+// ---------------------------------------------------------------------------
+
+/*
+ * "Reabrir", e não "desbloquear": o que a direção faz é devolver o dia para a
+ * merendeira corrigir, e é assim que a história descreve o gesto. "Desbloquear"
+ * nomeia a coluna do banco, não a ação de quem está na tela — e diria, de
+ * quebra, que a direção mexe no mapa, que é justamente o que a RN#1 nega.
+ */
+export const LOCKED_MAPS_MESSAGES = {
+  title: 'Dias em documento',
+  subtitle: 'Bloqueados para edição desde a geração do documento',
+
+  loading: 'Carregando os dias…',
+  loadFailed:
+    'Não deu para carregar os dias agora. Nada foi alterado — foi só a lista que não veio.',
+  retry: 'Tentar de novo',
+  empty:
+    'Nenhum dia saiu em documento ainda. Um dia fica bloqueado quando a merendeira gera o documento que o inclui.',
+
+  reopen: 'Reabrir',
+} as const
+
+/** "Sexta, 4 de setembro" — como a direção lê o dia da lista e do diálogo. */
+export function dayLabel(mapDate: string): string {
+  return `${weekdayName(mapDate)}, ${dayAndMonth(mapDate)}`
+}
+
+/** "No documento de 30/09" — onde o dia foi parar, que é o que o bloqueou. */
+export function inDocumentLabel(generatedAt: string | null): string {
+  const when = generatedAt ? new Date(generatedAt) : null
+
+  if (!when || Number.isNaN(when.getTime())) return 'Em documento gerado'
+  return `No documento de ${when.toLocaleDateString('pt-BR')}`
+}
+
+/** O rótulo que o leitor de tela anuncia no botão da linha. */
+export function reopenLabel(dayLabel: string): string {
+  return `Reabrir o mapa de ${dayLabel}`
+}
+
+/**
+ * A lista mostra os mais recentes, e diz isso quando chega ao limite.
+ *
+ * Não é paginação por metade: correção aparece dias depois da geração, não
+ * meses, e uma escola bloqueia cerca de vinte dias por mês. Dizer o corte é
+ * mais honesto do que uma lista que parece completa e não é.
+ */
+export function recentOnlyLabel(count: number): string {
+  return `Aparecem os ${count} dias mais recentes.`
+}
+
+export const REOPEN_MESSAGES = {
+  reasonLabel: 'Justificativa',
+  reasonPlaceholder: 'Ex.: o número de refeições do dia saiu trocado',
+  reasonHint:
+    'Obrigatória. Fica registrada com o seu nome e a data, e não se apaga.',
+  cancel: 'Cancelar',
+  confirm: 'Reabrir o mapa',
+  reopening: 'Reabrindo…',
+  /*
+   * O erro diz primeiro o que não mudou. Aqui isso é informação operacional, e
+   * verificável: a reabertura é uma transação só — ou registra e desbloqueia,
+   * ou não faz nada.
+   */
+  failed:
+    'Não deu para reabrir agora, quase sempre é a internet. O mapa continua bloqueado e o que você escreveu continua no formulário.',
+} as const
+
+/** "Reabrir o mapa de sexta, 4 de setembro?" — o título do diálogo. */
+export function reopenTitle(dayLabel: string): string {
+  return `Reabrir o mapa de ${dayLabel}?`
+}
+
+export const REOPEN_BODY =
+  'A merendeira volta a poder editar este dia. O documento que já saiu continua registrado como foi, e depois da correção ela gera o documento do período de novo.'
+
+export function reopenedLabel(dayLabel: string): string {
+  return `O mapa de ${dayLabel} foi reaberto. A merendeira já pode corrigir o dia.`
+}
+
+export const UNLOCKS_MESSAGES = {
+  title: 'Reaberturas',
+  subtitle: 'Registro permanente: não se apaga nem se edita',
+
+  loading: 'Carregando o histórico…',
+  loadFailed:
+    'Não deu para carregar o histórico agora. Ele não se perde — foi só a leitura que não veio.',
+  retry: 'Tentar de novo',
+  empty: 'Nenhum mapa foi reaberto até agora.',
+} as const
+
+/** "Reaberto por Direção em 02/10/2026, 14h32" — a linha do histórico. */
+export function unlockedByLabel(name: string, unlockedAt: string): string {
+  const when = new Date(unlockedAt)
+
+  if (Number.isNaN(when.getTime())) return `Reaberto por ${name}`
+
+  const time = when
+    .toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    .replace(':', 'h')
+
+  return `Reaberto por ${name} em ${when.toLocaleDateString('pt-BR')}, ${time}`
+}

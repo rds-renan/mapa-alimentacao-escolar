@@ -21,9 +21,17 @@ import {
  * portanto onde a Query entra.
  */
 
-/** O que o servidor precisa devolver para a tela decidir o estado de cada dia. */
+/*
+ * O que o servidor precisa devolver para a tela decidir o estado de cada dia.
+ *
+ * As reaberturas vêm junto, e é a única coisa aqui que não decide estado: um dia
+ * reaberto e ainda fora de documento é o dia que a direção devolveu para
+ * corrigir (US023), e sem esse sinal ele ficaria igual a todos os outros na
+ * lista. Não é uma consulta a mais — é um vínculo da mesma —, e a tabela tem no
+ * máximo uma ou duas linhas por mapa, porque corrigir mapa pronto é raro.
+ */
 const MONTH_COLUMNS =
-  'id, map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance)'
+  'id, map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance), meal_map_unlock (unlocked_at)'
 
 export function monthQueryKey(month: MonthKey) {
   return ['month', month] as const
@@ -53,6 +61,12 @@ async function fetchMonth(month: MonthKey): Promise<DayRecord[]> {
     note: row.note,
     mealsServed: row.meals_served,
     locked: row.locked,
+    /*
+     * Reaberto é o que está fora do bloqueio e já passou por uma reabertura.
+     * Voltando a um documento, o mapa é bloqueado de novo e é o bloqueio que
+     * ela precisa ver — o histórico continua lá, e é da direção.
+     */
+    reopened: !row.locked && row.meal_map_unlock.length > 0,
     meals: row.meal.map((meal) => ({
       type: meal.type,
       description: meal.description,

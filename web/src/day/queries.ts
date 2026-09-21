@@ -35,16 +35,18 @@ import { touch } from './register'
  * inteira perde o tipo e volta como erro genérico.
  */
 const DAY_COLUMNS =
-  'id, map_date, updated_at, non_school_day, note, meals_served, locked, meal (id, type, description, acceptance, meal_food_item (food_item_id, quantity, food_item (name, default_unit)), menu_change (id, reason, menu_change_food_item (food_item_id, quantity, food_item (name, default_unit))))'
+  'id, map_date, updated_at, non_school_day, note, meals_served, locked, meal_map_unlock (unlocked_at), meal (id, type, description, acceptance, meal_food_item (food_item_id, quantity, food_item (name, default_unit)), menu_change (id, reason, menu_change_food_item (food_item_id, quantity, food_item (name, default_unit))))'
 
 export function dayQueryKey(mapDate: string) {
   return ['day', mapDate] as const
 }
 
-/** O dia como o servidor o tem, mais o único estado que só ele conhece. */
+/** O dia como o servidor o tem, mais os dois fatos que só ele conhece. */
 interface ServerDay {
   day: DayPayload
   locked: boolean
+  /** Reaberto pela direção e ainda fora de documento (CA#2 da US023). */
+  reopened: boolean
 }
 
 /** Uma linha de gênero, do jeito que o payload a quer: com nome e unidade. */
@@ -93,6 +95,7 @@ async function fetchDay(mapDate: string): Promise<ServerDay | null> {
 
   return {
     locked: data.locked,
+    reopened: !data.locked && data.meal_map_unlock.length > 0,
     day: {
       id: data.id,
       map_date: data.map_date,
@@ -110,6 +113,15 @@ export interface DayData {
   day: DayPayload | null
   /** Já saiu em documento gerado: a tela abre só para consulta (RN#1 da US007). */
   locked: boolean
+  /**
+   * A direção reabriu este dia para correção (CA#2 da US023).
+   *
+   * É a leitura do servidor que sabe disso, e não o rascunho: a reabertura
+   * acontece em outro navegador, e enquanto a leitura não vier a tela não tem
+   * como saber dela. Não muda o que ela pode fazer — o dia reaberto é um dia
+   * comum, editável —, muda o que ela precisa saber ao abri-lo.
+   */
+  reopened: boolean
   loading: boolean
   /** Nem o servidor respondeu nem há rascunho — não há dia para editar. */
   failed: boolean
@@ -181,6 +193,7 @@ export function useDay(mapDate: string): DayData {
   return {
     day: draft ?? fromServer,
     locked: server.data?.locked ?? false,
+    reopened: server.data?.reopened ?? false,
     loading: draftLoading || (draft === null && server.isPending),
     failed: !draftLoading && draft === null && server.isError,
     status,
