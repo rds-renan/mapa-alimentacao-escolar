@@ -120,12 +120,40 @@ da merendeira continua inteiro na carga inicial, de propósito — ali a espera
 de um pedaço que falta cairia no meio do trabalho dela. O relato está em
 [a administração da escola](administracao.md#o-peso-do-pacote-e-a-divisão-por-rota-que-ele-cobrou).
 
-O momento certo é quando existir tela pesada que ninguém abre todo dia, e na
-prática isso quer dizer a biblioteca de gráficos do painel gerencial, que
-sozinha é da ordem de 100 kB em gzip — e que já nasce dentro do pedaço da
-direção, porque a rota dela agora é carregada sob demanda. O problema é que
-uma issue **lembra, mas não garante** — ela some numa limpeza de milestone ou
-fica esperando uma data que ninguém sabe qual é. Quem garante é a CI:
+### A divisão por rota não cobria as dependências
+
+A #70 achou o buraco que faltava, e ele é o mais importante desta seção. O
+`lazy()` da #68 separava o **nosso** código; as dependências continuavam todas
+juntas, porque o grupo `vendor` do `vite.config.ts` varria todo o
+`node_modules` para um pedaço só — e esse pedaço é carga inicial. Quer dizer:
+uma biblioteca que só a direção usa chegava no celular da merendeira do mesmo
+jeito, e a rota carregada sob demanda não a salvava de nada.
+
+Quem cobrou foi o menu suspenso do painel: **221,0 kB**, 17 kB acima do que a
+`main` tinha, por um controle que a merendeira nunca vê. A primeira tentativa
+de correção — declarar um segundo grupo `vendor-admin` com as dependências do
+painel — piorou o diagnóstico em vez de resolver: o rolldown arrasta as
+dependências do que o grupo captura, e o React inteiro foi junto para o pedaço
+novo, que voltou a ser pré-carregado.
+
+A correção é uma etiqueta:
+
+```js
+{ name: 'vendor', test: /node_modules[\\/]/, tags: ['$initial'] }
+```
+
+`$initial` quer dizer "módulo que está no grafo estático de uma entrada". Com
+ela, o grupo captura só o que a carga inicial de fato precisa, e o que é
+alcançável apenas por uma rota carregada sob demanda cai no pedaço daquela
+rota. Medido: **203,8 kB** de carga inicial com o painel inteiro dentro, contra
+204,0 kB da `main` sem ele — o painel e a sua biblioteca de menu somam 20,6 kB
+e viajam no arquivo que só a direção baixa. Não mexer nessa etiqueta sem medir.
+
+### O teto continua sendo um lembrete
+
+O problema de deixar isso para uma issue é que uma issue **lembra, mas não
+garante** — ela some numa limpeza de milestone ou fica esperando uma data que
+ninguém sabe qual é. Quem garante é a CI:
 [`npm run check:size`](../../web/scripts/conferir-peso-do-pacote.mjs) mede o
 `dist/` depois do build e reprova acima de **205 kB em gzip**, ao lado da
 conferência de segredos, no mesmo lugar e pelo mesmo motivo — as duas olham o

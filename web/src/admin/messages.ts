@@ -20,6 +20,9 @@ export const ADMIN_MESSAGES = {
   openMenu: 'Abrir a navegação',
   role: 'Direção',
 
+  dashboardTitle: 'Painel',
+  dashboardSubtitle: 'Acompanhamento do mês, sem entrar nos mapas',
+
   managementTitle: 'Gestão',
   managementSubtitle: 'Merendeiras, modelo oficial e dados da escola',
 
@@ -310,4 +313,126 @@ export function unlockedByLabel(name: string, unlockedAt: string): string {
     .replace(':', 'h')
 
   return `Reaberto por ${name} em ${when.toLocaleDateString('pt-BR')}, ${time}`
+}
+
+// ---------------------------------------------------------------------------
+// Painel gerencial (US017)
+// ---------------------------------------------------------------------------
+
+/*
+ * O painel fala de números, e número sem unidade não diz nada: cada cartão tem
+ * uma linha embaixo dizendo de que ele é feito. "6.240" sozinho não distingue
+ * refeições de crianças, e "312" não distingue média de meta.
+ */
+export const DASHBOARD_MESSAGES = {
+  monthLabel: 'Mês do painel',
+
+  servedTitle: 'Refeições servidas no mês',
+  servedHint: 'nas 3 refeições do dia',
+  averageTitle: 'Média por dia letivo',
+  averageHint: 'refeições informadas pela direção',
+  daysTitle: 'Dias registrados',
+
+  acceptanceTitle: 'Aceitação por refeição',
+  acceptanceSubtitle: 'Percentual das avaliações do mês',
+  acceptanceHint:
+    'Cada refeição avaliada pela merendeira em um toque: ótimo, bom ou ruim.',
+  acceptanceEmpty:
+    'Nenhuma refeição foi avaliada neste mês ainda. A aceitação aparece assim que a merendeira registrar o primeiro dia.',
+
+  topTitle: 'Merendas mais bem aceitas',
+  topSubtitle: 'Percentual de avaliações "ótimo" no mês',
+  topEmpty:
+    'Nenhuma merenda avaliada neste mês ainda. O ranking se forma com os dias registrados.',
+  topHint:
+    'A merenda é agrupada pelo que foi escrito no cardápio previsto, então grafias diferentes contam separado.',
+
+  great: 'Ótimo',
+  good: 'Bom',
+  poor: 'Ruim',
+
+  loading: 'Carregando o painel…',
+  loadFailed:
+    'Não deu para carregar o painel agora. Nada foi alterado — foi só a leitura que não veio.',
+  retry: 'Tentar de novo',
+  empty:
+    'Nenhum dia foi registrado neste mês. Escolha outro mês no seletor acima.',
+} as const
+
+/** Os números do painel em português: "6.240", e não "6240". */
+export function countLabel(value: number): string {
+  return value.toLocaleString('pt-BR')
+}
+
+/** "20 de 22", o dado do cartão: dias prontos entre os dias letivos do mês. */
+export function registeredDaysLabel(
+  registered: number,
+  schoolDays: number
+): string {
+  return `${registered} de ${schoolDays}`
+}
+
+/**
+ * "1 pendente · 1 não letivo" — o que sobra do mês, dito só quando existe.
+ *
+ * Um mês sem pendência nenhuma não ganha um "0 pendente": a ausência de aviso
+ * já é a notícia boa, e o zero faria a direção procurar o que não há.
+ */
+export function remainingDaysLabel(counts: {
+  pending: number
+  empty: number
+  nonSchoolDays: number
+}): string {
+  const missing = counts.pending + counts.empty
+  const parts: string[] = []
+
+  if (missing > 0) parts.push(`${missing} por registrar`)
+  if (counts.nonSchoolDays > 0) {
+    parts.push(
+      counts.nonSchoolDays === 1
+        ? '1 não letivo'
+        : `${counts.nonSchoolDays} não letivos`
+    )
+  }
+
+  return parts.length === 0 ? 'Mês completo' : parts.join(' · ')
+}
+
+/** "62% ótimo", o número que a barra da refeição carrega ao lado. */
+export function greatShareLabel(share: number): string {
+  return `${Math.round(share)}% ótimo`
+}
+
+/** "92%", o número da merenda no ranking. */
+export function percentLabel(share: number): string {
+  return `${Math.round(share)}%`
+}
+
+/**
+ * "3 vezes no mês" — o que separa uma merenda campeã de um acaso.
+ *
+ * Num mês uma merenda aparece uma ou duas vezes, então 100% de uma vez só é
+ * comum. Em vez de esconder esse caso atrás de um mínimo, o painel diz quantas
+ * vezes foi, e quem lê decide o que o número vale.
+ */
+export function timesServedLabel(times: number): string {
+  return times === 1 ? '1 vez no mês' : `${times} vezes no mês`
+}
+
+/**
+ * O que o leitor de tela anuncia no lugar da barra empilhada.
+ *
+ * A barra é decorativa para quem a enxerga e invisível para quem não a
+ * enxerga; a frase é a mesma informação em palavras — e é ela, não a cor, que
+ * carrega o dado para quem usa leitor de tela.
+ */
+export function acceptanceSummaryLabel(
+  meal: string,
+  counts: { great: number; good: number; poor: number }
+): string {
+  const total = counts.great + counts.good + counts.poor
+
+  if (total === 0) return `${meal}: sem avaliação neste mês`
+
+  return `${meal}: ${counts.great} ótimo, ${counts.good} bom, ${counts.poor} ruim, de ${total} avaliações`
 }

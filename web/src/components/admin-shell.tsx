@@ -40,10 +40,17 @@ const DESTINATIONS: Destination[] = [
 export function AdminShell({
   title,
   subtitle,
+  actions,
   children,
 }: {
   title: string
   subtitle: string
+  /**
+   * O controle da própria tela, à direita do título. Hoje só o painel tem um
+   * — o seletor de mês (US017) —, e ele fica no cabeçalho porque muda a tela
+   * inteira, não um cartão dela.
+   */
+  actions?: React.ReactNode
   children: React.ReactNode
 }) {
   const { profile } = useAuth()
@@ -116,6 +123,8 @@ export function AdminShell({
             <h1 className="text-xl font-semibold tracking-tight">{title}</h1>
             <p className="text-sm text-muted-foreground">{subtitle}</p>
           </hgroup>
+
+          {actions}
 
           {/* No celular a barra de baixo não existe, e a saída fica aqui. */}
           <div className="md:hidden">

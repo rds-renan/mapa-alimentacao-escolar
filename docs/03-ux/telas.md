@@ -80,6 +80,8 @@ O documento pronto e o compartilhamento pela folha do Android. **US012, US014, U
 
 Histórico mensal: aceitação das refeições, refeições servidas e as merendas mais bem aceitas. **US017.**
 
+> O ranking ganhou "N vezes no mês" em cada linha, e o cartão de dias passou a dizer "por registrar" em vez de "pendente" — as duas correções nasceram na codificação, na issue #70, e o porquê está no [painel gerencial](../05-web/painel-gerencial.md).
+
 ### Gestão
 
 ![Gestão](../assets/e3-admin-gestao.png)
