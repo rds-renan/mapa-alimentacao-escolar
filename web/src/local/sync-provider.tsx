@@ -1,6 +1,14 @@
-import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useSyncExternalStore,
+} from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 
 import { useAuth } from '@/auth/useAuth'
+import { FOOD_ITEMS_QUERY_KEY } from '@/food-items/queries'
 
 import type { DayPayload } from './day'
 import { createSyncEngine, EMPTY_SYNC_STATE, type SyncState } from './sync'
@@ -17,6 +25,14 @@ import { SyncContext, type SyncContextValue } from './sync-context'
  * O motor nasce por usuária. As duas merendeiras se revezam no mesmo aparelho,
  * e o rascunho de uma não pode aparecer para a outra: trocando quem está
  * logada, troca o motor, e o anterior para.
+ *
+ * É aqui também que a confirmação da fila avisa o cache do servidor, e é aqui
+ * porque a fila é daqui. O aviso já existiu dentro das telas, e o teste de
+ * ponta a ponta mostrou o buraco: a fila confirma o dia enquanto a tela aberta
+ * é a **do dia**, então o aviso da visão do mês não estava montado para
+ * ouvi-lo — e ela voltava mostrando como vazio o dia que a merendeira acabou
+ * de registrar, até os trinta segundos de `staleTime` vencerem. Quem avisa tem
+ * de viver onde o fato acontece.
  */
 
 const noopSubscribe = () => () => {}
@@ -41,6 +57,8 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
     engine ? engine.subscribe : noopSubscribe,
     engine ? engine.getState : emptyState
   )
+
+  useSettledInvalidation(state.pending)
 
   const save = useCallback(
     async (day: DayPayload) => {
@@ -90,4 +108,30 @@ export function SyncProvider({ children }: { children: React.ReactNode }) {
   )
 
   return <SyncContext value={value}>{children}</SyncContext>
+}
+
+/**
+ * A fila confirmou alguma coisa: o que o servidor tem agora é diferente do que
+ * o cache leu.
+ *
+ * A conta é a fila encolhendo — um dia a menos guardado no aparelho é um dia a
+ * mais gravado lá. Vão junto os três que `save_meal_map` mexe na mesma
+ * operação: o mês, o dia e o catálogo, porque o gênero cadastrado no meio do
+ * registro só nasce quando o dia sobe.
+ *
+ * Invalida todos os meses e todos os dias, e não só o que está aberto: a fila
+ * pode ter subido um dia de outro mês enquanto ela olhava este.
+ */
+function useSettledInvalidation(pending: number) {
+  const queryClient = useQueryClient()
+  const settled = useRef(pending)
+
+  useEffect(() => {
+    if (pending < settled.current) {
+      void queryClient.invalidateQueries({ queryKey: ['month'] })
+      void queryClient.invalidateQueries({ queryKey: ['day'] })
+      void queryClient.invalidateQueries({ queryKey: FOOD_ITEMS_QUERY_KEY })
+    }
+    settled.current = pending
+  }, [pending, queryClient])
 }

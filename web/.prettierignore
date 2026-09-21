@@ -1,4 +1,10 @@
 dist
 node_modules
+
+# Saída de uma rodada do Playwright: relatório, rastros e vídeos.
+playwright-report
+test-results
+blob-report
+
 # Gerado por `npm run types:db` — não formatar à mão.
 src/lib/database.types.ts

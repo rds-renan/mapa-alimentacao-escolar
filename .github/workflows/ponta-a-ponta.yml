@@ -1,0 +1,105 @@
+# O teste de ponta a ponta do caminho crítico (issue #72, decisão 11 da E5).
+#
+# É um teste só, e ele atravessa o sistema inteiro: o navegador com a
+# aplicação construída, o banco com as políticas de acesso, a fila de envio, a
+# Edge Function que preenche o modelo oficial e o balde privado de onde o
+# arquivo sai assinado. Por isso ele tem fluxo próprio e não cabe no da web:
+# aqui sobe um Supabase de verdade no runner, com Docker, e um Pull Request
+# que só mexe numa tela não deveria pagar isso duas vezes — mas um que mexa
+# no banco ou numa função precisa pagar, e por isso o gatilho é mais largo que
+# o dos outros.
+#
+# Nada de dado real: o banco é o local, recriado das migrations com o seed
+# fictício, e o modelo oficial é o modelo de teste que as Edge Functions já
+# usam — construído do zero, sem brasão e sem nome de prefeitura.
+name: Ponta a ponta
+
+on:
+  pull_request:
+    paths:
+      - 'web/**'
+      - 'supabase/**'
+      - '.github/workflows/ponta-a-ponta.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - 'supabase/**'
+      - '.github/workflows/ponta-a-ponta.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ponta-a-ponta-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  caminho-critico:
+    name: O caminho crítico da merendeira
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: web/.node-version
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      # O modelo de teste é construído pelo mesmo arquivo que as Edge
+      # Functions usam, e ele é Deno.
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+
+      # Versão fixa, como no fluxo do banco: a CLI decide o que sobe no runner.
+      - uses: supabase/setup-cli@v3
+        with:
+          version: 2.117.0
+
+      # Sobem os contêineres de que o caminho precisa, e só. O Edge Runtime
+      # entra — é ele que serve a geração do documento —, e ficam de fora o
+      # Studio, o e-mail, a telemetria e o resto, que não participam.
+      - name: Subir o Supabase local
+        run: supabase start -x studio,imgproxy,mailpit,logflare,vector,supavisor,realtime
+
+      - name: Reconstruir das migrations
+        run: supabase db reset
+
+      - name: Instalar dependências
+        run: npm ci
+        working-directory: web
+
+      # Só o Chromium: o que este teste prova é que o caminho fecha, não a
+      # compatibilidade entre navegadores.
+      - name: Instalar o navegador
+        run: npx playwright install --with-deps chromium
+        working-directory: web
+
+      # O `webServer` da configuração constrói a aplicação e serve o `dist/`
+      # antes de o teste começar: o que se exercita é o que vai ao ar.
+      - name: Caminho crítico
+        run: npm run test:e2e
+        working-directory: web
+
+      # Só quando falha, e é aí que ele vale: o relatório traz o passo que
+      # quebrou, com rastro, vídeo e captura da tela naquele instante. Tudo
+      # nele é do ambiente local e fictício — as contas do seed e a chave
+      # publicável que a própria CLI imprime.
+      - name: Guardar o relatório da falha
+        if: failure()
+        uses: actions/upload-artifact@v5
+        with:
+          name: relatorio-ponta-a-ponta
+          path: |
+            web/playwright-report/
+            web/test-results/
+          retention-days: 7
+
+      # O que a Edge Function registrou no caminho. A falha da geração chega à
+      # tela como uma frase só, de propósito; o motivo fica aqui.
+      - name: Registro das Edge Functions
+        if: failure()
+        run: docker logs supabase_edge_runtime_mapa-alimentacao-escolar 2>&1 | tail -100

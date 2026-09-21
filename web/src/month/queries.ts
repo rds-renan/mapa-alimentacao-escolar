@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { useQuery, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 
 import { supabase } from '@/lib/supabase'
 import { useSync } from '@/local/useSync'
@@ -125,27 +125,18 @@ export interface MonthData {
 }
 
 export function useMonth(month: MonthKey): MonthData {
-  const queryClient = useQueryClient()
   const { state } = useSync()
   const drafts = useMonthDrafts(month)
 
+  /*
+   * Quem avisa esta consulta de que a fila confirmou alguma coisa é o
+   * `SyncProvider`, e não esta tela: a fila confirma o dia com a merendeira na
+   * tela **do dia**, onde este código não estaria montado para ouvir.
+   */
   const maps = useQuery({
     queryKey: monthQueryKey(month),
     queryFn: () => fetchMonth(month),
   })
-
-  /*
-   * A fila confirmou alguma coisa: o que o servidor tem agora é diferente do
-   * que esta tela leu. Invalidar todos os meses, e não só o aberto, porque a
-   * fila pode ter subido um dia de outro mês enquanto ela olhava este.
-   */
-  const settled = useRef(state.pending)
-  useEffect(() => {
-    if (state.pending < settled.current) {
-      void queryClient.invalidateQueries({ queryKey: ['month'] })
-    }
-    settled.current = state.pending
-  }, [state.pending, queryClient])
 
   return {
     byDate: mergeDays(maps.data ?? [], drafts),

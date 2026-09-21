@@ -52,6 +52,15 @@ yarn-error.log*
 **/build/
 
 # ==========================================================
+# Playwright (teste de ponta a ponta)
+# ==========================================================
+# Relatório, rastros, vídeos e capturas de uma rodada: saída de execução, e
+# saída de execução do MAE carrega tela com dado do banco — não se versiona.
+web/playwright-report/
+web/test-results/
+web/blob-report/
+
+# ==========================================================
 # Supabase (CLI local)
 # ==========================================================
 supabase/.temp/

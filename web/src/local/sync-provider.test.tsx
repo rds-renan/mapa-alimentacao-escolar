@@ -1,7 +1,9 @@
+import { QueryClientProvider, useQuery } from '@tanstack/react-query'
 import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { Profile } from '@/auth/auth-context'
+import { createQueryClient } from '@/lib/query-client'
 
 import { ConflictNotice } from './conflict-notice'
 import { emptyDay } from './day'
@@ -59,16 +61,50 @@ function DayScreen() {
   )
 }
 
-function renderScreen() {
-  return render(
-    <SyncProvider>
-      <DayScreen />
-    </SyncProvider>
+/*
+ * A tela do mês, reduzida ao que interessa aqui: uma consulta ao servidor que
+ * conta quantas vezes foi lida. Ela entra e sai da árvore, que é o ponto do
+ * último teste deste arquivo.
+ */
+const readMonth = vi.fn(async () => `leitura ${readMonth.mock.calls.length}`)
+
+function MonthScreen() {
+  const { data } = useQuery({
+    queryKey: ['month', '2026-09'],
+    queryFn: readMonth,
+  })
+  return <p>Mês: {data ?? 'carregando'}</p>
+}
+
+/*
+ * O `QueryClientProvider` está aqui porque está no aplicativo: a fila vive
+ * dentro dele (ver `main.tsx`), e é de lá que ela avisa o cache do servidor
+ * quando um dia sobe. E o cliente é o **de verdade**, e não um de teste com os
+ * padrões da biblioteca: o que faz o dia recém-enviado poder aparecer velho na
+ * tela é justamente o `staleTime` de meio minuto que ele configura.
+ */
+function renderScreen(month = false) {
+  const client = createQueryClient()
+
+  const tree = (showMonth: boolean) => (
+    <QueryClientProvider client={client}>
+      <SyncProvider>
+        <DayScreen />
+        {showMonth ? <MonthScreen /> : null}
+      </SyncProvider>
+    </QueryClientProvider>
   )
+
+  const rendered = render(tree(month))
+  return {
+    ...rendered,
+    showMonth: (showMonth: boolean) => rendered.rerender(tree(showMonth)),
+  }
 }
 
 beforeEach(() => {
   rpc.mockReset()
+  readMonth.mockClear()
 })
 
 describe('a fila ligada à tela', () => {
@@ -165,5 +201,46 @@ describe('a fila ligada à tela', () => {
     await waitFor(() => {
       expect(screen.queryByRole('alert')).toBeNull()
     })
+  })
+
+  /*
+   * O defeito que o teste de ponta a ponta do caminho crítico (issue #72)
+   * encontrou: a fila confirma o dia com a merendeira na tela **do dia**, e o
+   * aviso ao cache morava dentro da visão do mês — que não estava montada para
+   * ouvi-lo. Voltando ao mês dentro do meio minuto de `staleTime`, ela via como
+   * vazio o dia que tinha acabado de registrar.
+   */
+  it('avisa a consulta do mês mesmo com a tela do mês fechada', async () => {
+    rpc.mockResolvedValue({
+      data: {
+        status: 'saved',
+        meal_map_id: 'c0000010-0000-4000-8000-000000000010',
+        sent_meal_map_id: null,
+        map_date: DATE,
+        locked: false,
+        updated_at: '2026-09-10T21:30:00+00:00',
+        updated_by: profile.id,
+        food_items: [],
+      },
+      error: null,
+    })
+
+    // Ela abre o mês, que lê do servidor…
+    const { showMonth } = renderScreen(true)
+    await waitFor(() => expect(readMonth).toHaveBeenCalledTimes(1))
+
+    // …entra no dia, registra e o dia sobe.
+    showMonth(false)
+    await waitFor(() => screen.getByText('Rascunho: nenhum'))
+    fireEvent.click(screen.getByText('Registrar 312 refeições'))
+    await waitFor(() => screen.getByRole('status'))
+    fireEvent.click(screen.getByText('Enviar agora'))
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent('Enviado.')
+    })
+
+    // De volta ao mês, a lista é lida de novo: o que está no servidor mudou.
+    showMonth(true)
+    await waitFor(() => expect(readMonth).toHaveBeenCalledTimes(2))
   })
 })

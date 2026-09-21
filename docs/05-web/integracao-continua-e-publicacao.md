@@ -17,19 +17,25 @@ navegável desde o começo da etapa.
 | [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
 | [`funcoes.yml`](../../.github/workflows/funcoes.yml) | `supabase/functions/` | formatação, lint, checagem de tipos e testes das Edge Functions, em Deno |
+| [`ponta-a-ponta.yml`](../../.github/workflows/ponta-a-ponta.yml) | `web/` ou `supabase/` | sobe o Supabase local com o Edge Runtime, constrói a aplicação e percorre o caminho crítico inteiro num navegador — ver [o teste de ponta a ponta](teste-ponta-a-ponta.md) |
 
-Os três rodam de novo na `main` depois do merge. Não é zelo excessivo: o
+Os quatro rodam de novo na `main` depois do merge. Não é zelo excessivo: o
 *squash merge* produz um commit que **não existia** enquanto o PR era
 verificado — é a junção do trabalho com o que entrou na `main` no meio do
 caminho, e é exatamente esse commit que o Cloudflare vai publicar.
 
-**Por que três fluxos e não um.** O filtro de caminho é o que separa: um PR só
+**Por que quatro fluxos e não um.** O filtro de caminho é o que separa: um PR só
 de documentação não paga nada, um PR de tela paga o Node, um PR de Edge
 Function paga o Deno, e só quem mexe no banco paga o minuto de contêiner.
 Juntá-los num fluxo só faria todo PR pagar o preço do mais caro. É também por
 isso que `supabase/functions/` é **excluído** do fluxo do banco: o que vive ali
 roda em Deno e não toca o schema, e mexer numa função não deveria custar uma
 reconstrução do banco.
+
+O de ponta a ponta é a exceção que confirma a regra, e o seu filtro é o mais
+largo de todos — `web/` **e** `supabase/` inteiro. Não é descuido: ele é o
+único que atravessa os dois lados, e um PR que mexa só numa função pode quebrar
+o caminho da merendeira sem que nenhum outro fluxo perceba.
 
 **Por que as duas verificações do banco vivem no mesmo emprego.** Tanto o
 pgTAP quanto a checagem de tipos precisam do banco de pé. Subir o Supabase duas
@@ -42,6 +48,7 @@ cd web && npm run lint && npm run format:check && npm run typecheck && npm test 
 supabase db reset && supabase test db   # na raiz, quando o banco mudou
 cd web && npm run types:db:check
 cd supabase/functions && deno task verificar   # fmt, lint, tipos e testes das Edge Functions
+cd web && npm run test:e2e   # o caminho crítico, com o Supabase local de pé
 ```
 
 ## As versões são fixas, e isso é a metade do valor da CI
@@ -192,20 +199,27 @@ terceiros vive acima dele por natureza: React e Supabase sozinhos passam disso.
 Um alarme que toca sempre e um alarme que toca quando importa não convivem —
 o segundo vira ruído junto do primeiro.
 
-## O que a CI ainda não verifica
+## O que a CI verifica, e o que ela ainda não verifica
 
-- **O teste ponta a ponta em Playwright** entra quando houver caminho crítico
-  para percorrer — registrar um dia, sincronizar, gerar o documento. É a
-  [decisão 11](decisoes-tecnicas.md), e tem issue própria na etapa.
-- **A geração de ponta a ponta contra o Supabase de verdade** não roda na CI. O
-  que `funcoes.yml` verifica é o preenchimento e a tradução do banco para o
-  documento, sem rede; o caminho inteiro — sessão, Storage, bloqueio — foi
-  percorrido à mão contra o Supabase local, e é ele que o Playwright da
-  [decisão 11](decisoes-tecnicas.md) vai cobrir quando a tela existir.
-- **Os testes de componente cobrem hoje a autenticação** — login, sessão
-  persistida, saída, rotas por perfil e a senha esquecida, contra um Supabase
-  de mentira. O peso previsto pela decisão 11 continua à frente: a fila de
-  envio, a convergência e as regras de estado do mapa, que ainda não existem.
+As três lacunas que esta seção listou durante a etapa **fecharam**, e a última
+delas com a issue #72: o caminho crítico é percorrido a cada Pull Request, num
+navegador, contra um Supabase de verdade — sessão, fila, Storage, geração e
+bloqueio —, e o documento gerado é aberto e conferido por dentro. O que os
+testes de componente cobriam só na autenticação hoje alcança a fila, a
+convergência e as regras de estado do mapa.
+
+O que continua de fora, de propósito:
+
+- **Compatibilidade entre navegadores.** O teste de ponta a ponta roda só no
+  Chromium. O que ele prova é que o caminho fecha, não que ele fecha em todo
+  lugar — e a web é o computador da escola e o plano B, não a superfície
+  principal do produto.
+- **O uso.** Nenhuma asserção pega problema de uso, e é isso que a E7 existe
+  para fazer, com merendeira de verdade na frente do produto. Um teste verde
+  não diz que a tela é boa; diz que ela não quebrou.
+- **A publicação.** Quem constrói e publica é a Cloudflare, e o que a CI mede é
+  o pacote na máquina dela, não o que chegou ao ar. O `Cache-Control` das
+  respostas, por exemplo, só se confere na prévia do Pull Request.
 
 ## A publicação
 
