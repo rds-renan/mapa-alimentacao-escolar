@@ -57,5 +57,9 @@ export default defineConfig({
   test: {
     environment: 'jsdom',
     setupFiles: ['./src/test/setup.ts'],
+    // O Vitest cuida de `src/`, e só. O teste de ponta a ponta mora em `e2e/`
+    // e é do Playwright: sem este recorte, o padrão do Vitest varreria a pasta
+    // dele e tentaria rodar um `.spec.ts` que fala com um navegador de verdade.
+    include: ['src/**/*.test.{ts,tsx}'],
   },
 })

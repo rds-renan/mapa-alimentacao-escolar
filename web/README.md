@@ -22,3 +22,14 @@ Antes de abrir o Pull Request, o que a CI vai rodar:
 ```bash
 npm run lint && npm run format:check && npm run typecheck && npm test && npm run build && npm run check:secrets && npm run check:size
 ```
+
+E o caminho crítico inteiro, num navegador, contra o Supabase local — entrar,
+registrar um dia, gerar o documento e conferir o arquivo:
+
+```bash
+supabase db reset     # na raiz: migrations em ordem + seed fictício
+npm run test:e2e      # na primeira vez, npx playwright install chromium
+```
+
+O que ele percorre, o que ele não prova e o defeito que ele achou estão no
+[teste de ponta a ponta](../docs/05-web/teste-ponta-a-ponta.md).

@@ -1,7 +1,6 @@
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 
-import { FOOD_ITEMS_QUERY_KEY } from '@/food-items/queries'
 import { supabase } from '@/lib/supabase'
 import {
   emptyDay,
@@ -142,28 +141,15 @@ export function useDay(mapDate: string): DayData {
     reload,
   } = useDayDraft(mapDate)
 
+  /*
+   * Quem avisa esta consulta — e o catálogo — de que a fila confirmou alguma
+   * coisa é o `SyncProvider`, onde a fila vive: a confirmação chega com a
+   * merendeira nesta tela, mas pode chegar com ela em qualquer outra.
+   */
   const server = useQuery({
     queryKey: dayQueryKey(mapDate),
     queryFn: () => fetchDay(mapDate),
   })
-
-  /*
-   * A fila confirmou alguma coisa: o que o servidor tem agora é diferente do
-   * que esta tela leu. Invalidar todos os dias, e não só o aberto, porque a
-   * fila pode ter subido outro dia enquanto ela olhava este.
-   *
-   * O catálogo vai junto: o gênero cadastrado no meio do registro só nasce
-   * quando o dia sobe (`save_meal_map` cria o que ainda não existir), e sem
-   * isto ele ficaria fora da busca da folha até a próxima meia hora.
-   */
-  const settled = useRef(state.pending)
-  useEffect(() => {
-    if (state.pending < settled.current) {
-      void queryClient.invalidateQueries({ queryKey: ['day'] })
-      void queryClient.invalidateQueries({ queryKey: FOOD_ITEMS_QUERY_KEY })
-    }
-    settled.current = state.pending
-  }, [state.pending, queryClient])
 
   /*
    * A edição dela perdeu a convergência: o rascunho saiu do aparelho e o que

@@ -47,6 +47,14 @@ duas se encontram pela primeira vez, e a fronteira ganhou a regra que faltava:
 quando o mesmo dia existe nas duas origens, vale o rascunho — **menos o
 bloqueio**, que ele não tem como conhecer.
 
+**E ganhou uma segunda regra, que o teste de ponta a ponta cobrou**: quem avisa
+o cache do servidor de que a fila confirmou alguma coisa é **a fila**, e não a
+tela que estiver aberta. O aviso nasceu dentro da visão do mês e do registro do
+dia, e por isso não acontecia no caso mais comum de todos — a fila confirma com
+a merendeira na tela do dia, e a do mês não está lá para ouvir. Hoje ele mora no
+`SyncProvider`, onde a fila vive. O caso está contado no [teste de ponta a
+ponta](teste-ponta-a-ponta.md#o-que-ele-achou-antes-de-fechar).
+
 **Histórias**: US008, US009, US010, US011, US021.
 
 ## 5. Convergência: prevalece a última edição, e o caso é sinalizado
@@ -108,7 +116,9 @@ declarada, na [camada local](camada-local.md).
 
 **Decisão**: testes de unidade e de componente com Vitest e Testing Library, cobrindo prioritariamente a fila de envio, a resolução de convergência e as regras de estado do mapa. Um único teste ponta a ponta em Playwright percorre o caminho crítico: registrar um dia, sincronizar, selecionar mapas e gerar o documento.
 
-**Como ficou, por enquanto**: o entorno — Vitest, jsdom e Testing Library — entrou junto com a CI, com um teste de fumaça, porque um passo de testes que não pode reprovar não verifica nada. O peso previsto aqui chega com a fila e a convergência; o Playwright, com o caminho crítico que ele percorre.
+**Como ficou**: o entorno — Vitest, jsdom e Testing Library — entrou junto com a CI, com um teste de fumaça, porque um passo de testes que não pode reprovar não verifica nada. O peso previsto aqui chegou com a fila e a convergência, e o Playwright chegou por último, com o caminho crítico inteiro de pé: entrar, registrar um dia, esperar ele subir, selecionar o mapa, gerar o documento e **abrir o arquivo** para conferir que o que está dentro é o que ela registrou. O relato está no [teste de ponta a ponta](teste-ponta-a-ponta.md).
+
+**E ele achou um defeito na primeira travessia**, que é o argumento a favor dele escrito pelo próprio: o dia recém-registrado voltava a aparecer como vazio na visão do mês, porque o aviso ao cache do servidor morava dentro de uma tela que não estava montada na hora em que a fila confirmou. Nenhum dos testes de unidade poderia tê-lo pegado — cada um fica de um lado só da fronteira.
 
 **Por quê**: o que quebra em silêncio neste produto não é a tela, é a fila — e fila é exatamente o tipo de lógica que teste de unidade cobre bem e olho humano cobre mal. O E2E é um só de propósito: ele existe para provar que o caminho inteiro fecha, e vira evidência direta no laudo de qualidade da E7. Vale lembrar o que a E7 é e o que ela não é: teste com usuária real, que revela problema de uso, não regressão. As duas coisas não se substituem.
 
