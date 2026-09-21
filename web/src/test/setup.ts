@@ -11,6 +11,14 @@
  */
 import 'fake-indexeddb/auto'
 
+/*
+ * O jsdom também não implementa `scrollIntoView`, e o menu suspenso do painel
+ * (issue #70) o chama ao abrir, para trazer a opção marcada para a vista. Sem
+ * este remendo o componente estoura no meio da montagem e derruba a tela
+ * inteira — e o que o teste veria seria uma página em branco, não o defeito.
+ */
+Element.prototype.scrollIntoView = () => {}
+
 import '@testing-library/jest-dom/vitest'
 import { cleanup } from '@testing-library/react'
 import { IDBFactory } from 'fake-indexeddb'

@@ -37,7 +37,17 @@ export function monthQueryKey(month: MonthKey) {
   return ['month', month] as const
 }
 
-async function fetchMonth(month: MonthKey): Promise<DayRecord[]> {
+/**
+ * Os dias de um mês, como o servidor os tem.
+ *
+ * Exportada porque o painel da direção (US017) lê **este mesmo mês**, e não um
+ * parecido: se ele tivesse a sua própria consulta, a coluna que um dia entrar
+ * aqui teria de entrar lá também, e a primeira vez que alguém esquecesse as
+ * duas telas passariam a discordar sobre o que o mês é. O que o painel não
+ * herda é o resto de `useMonth` — rascunho e fila são do aparelho de quem
+ * registra, e a direção não registra.
+ */
+export async function fetchMonth(month: MonthKey): Promise<DayRecord[]> {
   const { first, last } = monthRange(month)
 
   /*
