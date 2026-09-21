@@ -7,6 +7,7 @@ import App from '@/App'
 import type { Profile } from '@/auth/auth-context'
 import { AuthProvider } from '@/auth/auth-provider'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
 vi.mock('@/lib/local-data', () => ({ clearLocalData: vi.fn(async () => {}) }))
@@ -101,15 +102,17 @@ function renderManagement(at = '/admin/gestao') {
   })
 
   return render(
-    <MemoryRouter initialEntries={[at]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[at]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 
@@ -424,5 +427,27 @@ describe('a direção fora do fluxo do mapa', () => {
     // A visão do mês, que é a casa dela — a guarda de rota a trouxe de volta.
     expect(await screen.findByText('Gerar documento')).toBeVisible()
     expect(screen.queryByText('Merendeiras')).not.toBeInTheDocument()
+  })
+})
+
+describe('o tema na barra da direção (US024)', () => {
+  it('deixa a direção escolher o tema no pé da barra lateral', async () => {
+    // Aparelho sem preferência guardada, que é onde a escolha começa.
+    localStorage.removeItem('mae.theme')
+    document.documentElement.classList.remove('dark')
+
+    renderManagement()
+    await cooksLoaded()
+
+    /*
+     * A direção não tem menu — os dois fluxos são separados (RN#1 da US020) —,
+     * então a barra lateral é o canto onde a escolha cabe.
+     */
+    expect(screen.getByRole('radio', { name: 'Sistema' })).toBeChecked()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Escuro' }))
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
+    expect(localStorage.getItem('mae.theme')).toBe('dark')
   })
 })

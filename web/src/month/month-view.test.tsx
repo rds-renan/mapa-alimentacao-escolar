@@ -7,6 +7,7 @@ import App from '@/App'
 import { AuthProvider } from '@/auth/auth-provider'
 import type { Profile } from '@/auth/auth-context'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 import { dayKey, putStoredDay } from '@/local/store'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
@@ -103,15 +104,17 @@ function renderApp(path = '/') {
   })
 
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 
@@ -316,9 +319,25 @@ describe('menu do aplicativo', () => {
     expect(
       screen.getByRole('link', { name: 'Gerenciar gêneros' })
     ).toBeInTheDocument()
-    expect(screen.getByText('Tema escuro')).toBeInTheDocument()
+    expect(screen.getByText('Tema')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Sair' })).toBeInTheDocument()
     expect(screen.getByText(cook.email)).toBeInTheDocument()
+  })
+
+  it('traz o tema com as três escolhas dentro dele (US024)', async () => {
+    renderApp()
+    await monthLoaded()
+
+    fireEvent.click(screen.getByRole('button', { name: 'Abrir o menu' }))
+    await screen.findByRole('link', { name: 'Documentos gerados' })
+
+    expect(screen.getByRole('radio', { name: 'Claro' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Escuro' })).toBeInTheDocument()
+    expect(screen.getByRole('radio', { name: 'Sistema' })).toBeChecked()
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Escuro' }))
+
+    expect(document.documentElement.classList.contains('dark')).toBe(true)
   })
 
   it('não dá acesso a nada da direção (RN#1 da US020)', async () => {

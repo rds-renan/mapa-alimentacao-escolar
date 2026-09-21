@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { ChevronRight, FileText, List, Menu, Moon } from 'lucide-react'
+import { ChevronRight, FileText, List, Menu } from 'lucide-react'
 import { Link } from 'react-router'
 
 import { SignOutButton } from '@/auth/sign-out-button'
@@ -14,6 +14,7 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet'
 import { ROUTES } from '@/routes'
+import { ThemeChoice } from '@/theme/theme-choice'
 
 /*
  * O menu do aplicativo — tela 2a da E3, decisão 9 da mesma etapa.
@@ -99,19 +100,12 @@ export function AppMenu() {
         </nav>
 
         {/*
-         * O tema escuro é da issue #71, e é preferência do aparelho, não tela:
-         * fica aqui à vista e inerte, porque tirá-lo do desenho e recolocá-lo
-         * depois custaria mais do que deixá-lo explicado.
+         * O tema (US024). É preferência do aparelho e não tela, então mora
+         * aqui dentro do menu e não atrás de um destino: abrir o menu já é ver
+         * qual tema está valendo, e trocar não tira ninguém de onde estava.
          */}
-        <div className="flex flex-col gap-0.5 border-t border-muted p-2.5">
-          <div className="flex min-h-touch items-center gap-3 rounded-lg px-3 opacity-50">
-            <Moon
-              className="size-5 shrink-0 text-muted-foreground"
-              aria-hidden="true"
-            />
-            <span className="flex-1 text-base font-medium">Tema escuro</span>
-            <span className="text-2xs text-muted-foreground">issue #71</span>
-          </div>
+        <div className="border-t border-muted p-2.5">
+          <ThemeChoice />
         </div>
 
         <div className="flex flex-col items-start gap-0.5 border-t border-muted p-2.5">

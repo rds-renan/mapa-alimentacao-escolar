@@ -6,6 +6,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import { AuthProvider } from '@/auth/auth-provider'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 import { dayKey, putStoredDay } from '@/local/store'
 import { AUTH_MESSAGES } from '@/auth/messages'
 import type { Profile } from '@/auth/auth-context'
@@ -59,18 +60,20 @@ const admin: Profile = {
 
 function renderApp(path = '/') {
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      {/* A visão do mês lê o mês do servidor: sem o cliente da Query ela nem
-          chega a montar. O que estes testes verificam continua sendo a
-          sessão — o mês é só o destino de quem entra. */}
-      <QueryClientProvider client={new QueryClient()}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        {/* A visão do mês lê o mês do servidor: sem o cliente da Query ela nem
+            chega a montar. O que estes testes verificam continua sendo a
+            sessão — o mês é só o destino de quem entra. */}
+        <QueryClientProvider client={new QueryClient()}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 

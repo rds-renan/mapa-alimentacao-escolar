@@ -7,6 +7,7 @@ import App from '@/App'
 import type { Profile } from '@/auth/auth-context'
 import { AuthProvider } from '@/auth/auth-provider'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 import { getStoredDay } from '@/local/store'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
@@ -68,15 +69,17 @@ function renderDay(date = DATE) {
   })
 
   return render(
-    <MemoryRouter initialEntries={[`/dia/${date}`]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[`/dia/${date}`]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 

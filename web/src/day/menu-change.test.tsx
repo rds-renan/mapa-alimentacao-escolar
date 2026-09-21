@@ -14,6 +14,7 @@ import type { Profile } from '@/auth/auth-context'
 import { AuthProvider } from '@/auth/auth-provider'
 import { getStoredDay } from '@/local/store'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
 vi.mock('@/lib/local-data', () => ({ clearLocalData: vi.fn(async () => {}) }))
@@ -102,15 +103,17 @@ function renderDay() {
   })
 
   return render(
-    <MemoryRouter initialEntries={[`/dia/${DATE}`]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[`/dia/${DATE}`]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 
