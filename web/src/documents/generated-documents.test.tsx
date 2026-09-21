@@ -7,6 +7,7 @@ import App from '@/App'
 import { AuthProvider } from '@/auth/auth-provider'
 import type { Profile } from '@/auth/auth-context'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
 vi.mock('@/lib/local-data', () => ({ clearLocalData: vi.fn(async () => {}) }))
@@ -65,15 +66,17 @@ function renderApp(path: string | { pathname: string; state?: unknown }) {
   })
 
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 

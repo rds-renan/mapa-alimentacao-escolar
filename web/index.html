@@ -12,6 +12,40 @@
     -->
     <meta name="robots" content="noindex, nofollow" />
     <title>MAE — Mapa da Alimentação Escolar</title>
+    <!--
+      O tema (US024) antes da primeira pintura.
+
+      Este pedaço repete, em oito linhas, o que `src/theme/theme.ts` faz — e a
+      repetição é o ponto. Tudo o que for módulo chega depois do primeiro
+      desenho da tela, então o React só conseguiria escurecer a página **depois**
+      de ela já ter aparecido branca. Para quem preenche o mapa à noite, no
+      escuro do quarto, esse lampejo é justamente o incômodo que a história veio
+      resolver: seria a lanterna na cara a cada abertura do aplicativo.
+
+      Fica inline e não em arquivo próprio pelo mesmo motivo: arquivo é uma ida
+      à rede, e numa internet fraca a ida dura mais do que a pintura.
+
+      Dentro do `try` porque navegador com armazenamento bloqueado estoura ao
+      ler o `localStorage`, e o aplicativo não abrir por causa de uma
+      preferência de cor seria trocar um incômodo por uma parede.
+    -->
+    <script>
+      try {
+        var escolha = localStorage.getItem('mae.theme') || 'system'
+        var escuro =
+          escolha === 'dark' ||
+          (escolha === 'system' &&
+            matchMedia('(prefers-color-scheme: dark)').matches)
+
+        document.documentElement.classList.toggle('dark', escuro)
+        document.documentElement.style.colorScheme = escuro ? 'dark' : 'light'
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute('content', escuro ? '#09090b' : '#397ba1')
+      } catch (erro) {
+        // Sem preferência legível, vale o tema claro que o CSS já traz.
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

@@ -7,6 +7,7 @@ import App from '@/App'
 import { AuthProvider } from '@/auth/auth-provider'
 import type { Profile } from '@/auth/auth-context'
 import { SyncProvider } from '@/local/sync-provider'
+import { ThemeProvider } from '@/theme/theme-provider'
 import { dayKey, putStoredDay } from '@/local/store'
 import { isWeekday } from '@/month/month'
 
@@ -83,15 +84,17 @@ function renderApp(path = '/gerar?mes=2026-09') {
   })
 
   return render(
-    <MemoryRouter initialEntries={[path]}>
-      <QueryClientProvider client={queryClient}>
-        <AuthProvider>
-          <SyncProvider>
-            <App />
-          </SyncProvider>
-        </AuthProvider>
-      </QueryClientProvider>
-    </MemoryRouter>
+    <ThemeProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <QueryClientProvider client={queryClient}>
+          <AuthProvider>
+            <SyncProvider>
+              <App />
+            </SyncProvider>
+          </AuthProvider>
+        </QueryClientProvider>
+      </MemoryRouter>
+    </ThemeProvider>
   )
 }
 

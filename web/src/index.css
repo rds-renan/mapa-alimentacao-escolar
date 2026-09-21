@@ -8,7 +8,7 @@
    O que atravessa web e Flutter são estes valores, não os componentes:
    paleta, escala tipográfica, espaçamento, raios e alvo de toque de 44 px.
    A variante escura é o mesmo conjunto de tokens com outra paleta (US024);
-   quem liga a classe .dark é a issue do tema escuro, não esta fundação.
+   quem liga a classe .dark é src/theme/, não esta fundação.
    ========================================================================== */
 
 @custom-variant dark (&:is(.dark *));

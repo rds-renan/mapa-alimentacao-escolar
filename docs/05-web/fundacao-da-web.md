@@ -104,10 +104,11 @@ produto mexe ali e em mais lugar nenhum.
 
 A **variante escura** (US024) é o mesmo conjunto de tokens com outra paleta,
 já no tema: o azul do logo clareia para `#7fb3d0`, porque `#397ba1` sobre fundo
-escuro não alcança o contraste AA, e passa a levar texto escuro em cima. O que
-ainda não existe é a preferência — gravar a escolha e seguir a do aparelho é a
-issue do tema escuro. Aqui a variante entrou para que nenhuma tela nasça sem
-ela e precise ser revisitada depois.
+escuro não alcança o contraste AA, e passa a levar texto escuro em cima. A
+preferência que a liga — gravar a escolha e seguir a do aparelho — é a issue
+#71, em [o tema escuro](tema-escuro.md). Aqui a variante entrou para que
+nenhuma tela nasça sem ela e precise ser revisitada depois; foi ela que fez a
+issue #71 custar o controle e a preferência, e nenhuma revisão de tela.
 
 ## Os controles são maiores que o padrão da biblioteca
 

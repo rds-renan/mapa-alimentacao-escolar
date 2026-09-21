@@ -5,6 +5,7 @@ import { ADMIN_MESSAGES } from '@/admin/messages'
 import { SignOutButton } from '@/auth/sign-out-button'
 import { useAuth } from '@/auth/useAuth'
 import { ROUTES } from '@/routes'
+import { ThemeChoice } from '@/theme/theme-choice'
 
 /*
  * A casca das telas da direção — a barra lateral das telas Painel e Gestão da
@@ -94,20 +95,32 @@ export function AdminShell({
         </nav>
 
         {/*
-         * Quem está logada e a saída, no pé da barra. Mesmo lugar que a
-         * decisão 9 da E3 deu para o "Sair" da merendeira: fora do cabeçalho
+         * O tema, quem está logada e a saída, no pé da barra. Mesmo lugar que
+         * a decisão 9 da E3 deu para o "Sair" da merendeira: fora do cabeçalho
          * de cada tela, num canto só do aplicativo.
+         *
+         * O tema entra aqui porque a barra lateral é o único canto fixo que a
+         * direção tem — não há menu do lado dela (RN#1 da US020, que separa os
+         * dois fluxos). Sem isto, quem trabalha à noite no computador da
+         * secretaria seria a única do sistema sem escolha de tema.
+         *
+         * O bloco inteiro é de computador, como o resto da barra: no celular a
+         * direção fica com o padrão "Sistema", que já acompanha o aparelho.
          */}
-        <div className="mt-auto hidden items-center gap-2.5 border-t border-muted px-2.5 pt-3 md:flex">
-          <div className="flex min-w-0 flex-1 flex-col">
-            <span className="truncate text-sm font-medium">
-              {profile?.name}
-            </span>
-            <span className="text-2xs text-muted-foreground">
-              {ADMIN_MESSAGES.role}
-            </span>
+        <div className="mt-auto hidden flex-col gap-3 border-t border-muted px-2.5 pt-3 md:flex">
+          <ThemeChoice />
+
+          <div className="flex items-center gap-2.5">
+            <div className="flex min-w-0 flex-1 flex-col">
+              <span className="truncate text-sm font-medium">
+                {profile?.name}
+              </span>
+              <span className="text-2xs text-muted-foreground">
+                {ADMIN_MESSAGES.role}
+              </span>
+            </div>
+            <SignOutButton />
           </div>
-          <SignOutButton />
         </div>
       </header>
 

@@ -142,8 +142,8 @@ passado é o que ela faz antes de gerar.
 É a [decisão 9 da E3](../03-ux/decisoes-de-design.md): a porta do que não é
 fluxo diário. **Um toque a partir da tela inicial** (RNF#1 da US020) — o botão
 está no cabeçalho e o que ele abre já é o menu inteiro, sem nível
-intermediário. Ele reúne **Documentos gerados**, **Gerenciar gêneros**, **Tema
-escuro** e **Sair** (CA#2 da US020).
+intermediário. Ele reúne **Documentos gerados**, **Gerenciar gêneros**, o
+**tema** e **Sair** (CA#2 da US020).
 
 Ele **não interrompe registro em andamento** (CA#1 da US020), e isso não custou
 código: o rascunho do dia mora no aparelho e não depende de tela nenhuma estar
@@ -168,12 +168,15 @@ não leva a lugar nenhum é pior que um que leva a uma tela dizendo de quem ela
 | Registro do dia     | pronto — ver [o registro do dia](registro-do-dia.md) | #62   |
 | Documentos gerados  | pronto — ver [os documentos gerados](documentos-gerados.md) | #67   |
 | Catálogo de gêneros | pronto — ver [o catálogo de gêneros](catalogo-de-generos.md) | #64   |
-| Tema escuro         | item do menu, à vista e inerte          | #71   |
+| Tema escuro         | pronto — ver [o tema escuro](tema-escuro.md) | #71   |
 | Gerar documento     | pronto — ver [a seleção de mapas](selecao-de-mapas.md) | #66   |
 
-O item do tema fica **visível e inerte** porque é parte do desenho desta tela,
-não da seguinte: tirá-lo e recolocá-lo depois custaria mais do que deixá-lo
-explicado. O botão do rodapé esteve assim até a issue #66, e hoje leva à
+O item do tema ficou **visível e inerte** enquanto a issue #71 não chegava,
+porque era parte do desenho desta tela e não da seguinte: tirá-lo e recolocá-lo
+depois custaria mais do que deixá-lo explicado. Hoje ele é o controle de três
+escolhas — e foi ao ligá-lo que a chave de liga/desliga do desenho da E3 deu
+lugar a claro, escuro e sistema. O botão do rodapé esteve assim até a issue
+#66, e hoje leva à
 seleção de mapas, com o mês aberto junto no endereço — a tela 5 não tem
 navegação de mês, então o mês de onde ela veio é o que diz quais dias mostrar.
 
