@@ -16,10 +16,10 @@ O sistema permite que as merendeiras registrem diariamente as refeições servid
 |---|---|
 | Backend (BaaS) | Supabase (PostgreSQL, Auth, Storage, Edge Functions) |
 | Web | React + TypeScript, com Vite, Tailwind e shadcn/ui |
-| Mobile (Android) | Flutter |
+| Mobile (Android) | Flutter, com Material 3, Riverpod e Drift (SQLite) |
 | Hospedagem da web | Cloudflare Workers (assets estáticos), com CI no GitHub Actions |
 
-Estrutura em **monorepo**. As escolhas da web e o porquê de cada uma estão nas [decisões técnicas da E5](docs/05-web/decisoes-tecnicas.md).
+Estrutura em **monorepo**. As escolhas da web e o porquê de cada uma estão nas [decisões técnicas da E5](docs/05-web/decisoes-tecnicas.md); as do aplicativo, nas [decisões técnicas da E6](docs/06-app/decisoes-tecnicas.md).
 
 ## Documentação
 
@@ -37,6 +37,8 @@ A documentação do projeto vive em [`docs/`](docs/), tendo o Markdown como font
 
 **E5 · Web** — [decisões técnicas](docs/05-web/decisoes-tecnicas.md): a stack da aplicação web, a estratégia de funcionamento offline, hospedagem e testes, decididas antes do código. A [gravação do dia](docs/05-web/gravacao-do-dia.md) é o contrato da operação que sobe o dia inteiro de uma vez, a [fundação da web](docs/05-web/fundacao-da-web.md) descreve o projeto em [`web/`](web/) — como rodar, os tokens no tema e os tipos gerados do banco — e a [integração contínua e publicação](docs/05-web/integracao-continua-e-publicacao.md) diz o que cada Pull Request verifica e como a web chega ao ar. A [autenticação, sessão e rotas por perfil](docs/05-web/autenticacao-e-sessao.md) é a porta de entrada: o login, a sessão que sobrevive ao fechar do navegador e a separação entre o fluxo da merendeira e o da direção. A [camada local](docs/05-web/camada-local.md) é o que garante que nada se perde: o rascunho que se escreve a cada tecla, a fila que reenvia sozinha quando a rede volta e a regra de quem ganha quando dois aparelhos registram o mesmo dia. A [visão do mês e o menu](docs/05-web/visao-do-mes.md) é a tela-casa da merendeira: o estado de cada dia derivado na leitura, o que falta antes de gerar e a porta do que não é fluxo diário. O [registro do dia](docs/05-web/registro-do-dia.md) é a tela central do produto: as três refeições em cartões, a aceitação em um toque, o número de refeições do dia e o dia não letivo — tudo gravado a cada tecla, sem botão de salvar. O [catálogo de gêneros](docs/05-web/catalogo-de-generos.md) é o que mantém as quantidades comparáveis: a unidade padrão de cada gênero, a busca por nome e o desativar que tira das sugestões sem apagar o passado. A [geração do documento oficial](docs/05-web/geracao-do-documento.md) é o risco do plano de projeto atacado cedo: o que o modelo da prefeitura realmente é, como preenchê-lo sem perder o formato e o que foi descartado no caminho. A [seleção de mapas](docs/05-web/selecao-de-mapas.md) é a antessala do único passo irreversível do fluxo da merendeira: os atalhos de semana e de mês, a regra de que mapa pendente não vai à prefeitura e a confirmação que existe porque, gerado o documento, os mapas incluídos ficam bloqueados. Os [documentos gerados](docs/05-web/documentos-gerados.md) fecham o beco que a E3 identificou: o documento recém-gerado e a lista dos que ainda estão no ar, com o download, o compartilhamento nativo quando o navegador o oferece e a nota de que os registros continuam guardados depois que o arquivo sai. A [administração da escola](docs/05-web/administracao.md) é o outro fluxo, o da direção: o acesso das merendeiras, que nasce com ela e ganha senha só com quem vai usá-lo, o modelo oficial do documento em área privada e os dados que vão no cabeçalho dele. A [reabertura de um mapa](docs/05-web/desbloqueio-de-mapa.md) abre o beco criado pelo bloqueio: descoberto um erro depois de o documento sair, a direção reabre o dia com justificativa, a merendeira corrige e o documento é gerado de novo — sem apagar o registro do que já foi entregue. O [painel gerencial](docs/05-web/painel-gerencial.md) é a tela-casa da direção: o mês agregado em três números e dois gráficos — aceitação por refeição, refeições servidas e as merendas mais bem aceitas —, sem caminho nenhum para dentro dos mapas. O [teste de ponta a ponta](docs/05-web/teste-ponta-a-ponta.md) é o caminho crítico percorrido inteiro a cada Pull Request, num navegador e contra um Supabase de verdade: entrar, registrar um dia, esperar ele subir, gerar o documento oficial e abrir o arquivo para conferir que o que está dentro é o que foi registrado.
 
+**E6 · Aplicativo** — [decisões técnicas](docs/06-app/decisoes-tecnicas.md): o aplicativo Android da merendeira, decidido antes do código — a biblioteca de interface sobre os tokens da E3, o estado, o banco local que abre o mês sem rede, o que exige conexão e o que não, a senha resolvida por código sem sair do aplicativo, o aviso de documento pronto ao abrir e a distribuição por releases com trava de versão mínima. O código fica em `app/`, que nasce com a fundação do aplicativo.
+
 ### Diagramas e telas
 
 Os diagramas são escritos em Mermaid dentro dos próprios Markdown — o GitHub os renderiza, e assim eles continuam sendo texto versionado, com histórico e diff. As imagens de `docs/assets/` são apenas exportações, para o documento da faculdade, e se regeram por comando:
@@ -50,7 +52,7 @@ A exportação dos diagramas usa o ELK para posicionar as caixas, e não o layou
 
 ## Status
 
-🚧 Em desenvolvimento — etapa atual: **E5 (desenvolvimento web)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog), E3 (UX) e E4 (modelagem de dados).
+🚧 Em desenvolvimento — etapa atual: **E6 (aplicativo Android)**. Concluídas: E0 (fundação), E1 (Design Thinking), E2 (requisitos e backlog), E3 (UX), E4 (modelagem de dados) e E5 (desenvolvimento web).
 
 ## Direitos
 

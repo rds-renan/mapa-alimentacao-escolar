@@ -107,7 +107,7 @@ Registrar o item substituído seria defensável em auditoria, mas seria trabalho
 - **Cardápio oficial** — referência externa; a ingestão é pós-MVP (US019) e mesmo lá o mapa não dependerá dela.
 - **Preferências do aparelho** — o tema escuro é escolha de cada usuária, no aparelho dela (RN#1 da US024).
 - **Credenciais, sessões e redefinição de senha** — do serviço de autenticação (decisão 2).
-- **Tokens de notificação** — a única notificação do MVP ("documento pronto") exige guardar o identificador do aparelho; isso entra com o app Android, na E6, como migration própria, porque só lá existe aparelho para registrar.
+- **Tokens de notificação** — a única notificação do MVP ("documento pronto") exige guardar o identificador do aparelho; isso entra com o app Android, na E6, como migration própria, porque só lá existe aparelho para registrar. **Não nasceu**: a E6 trocou a notificação por um aviso ao abrir o aplicativo, sem push e sem aparelho registrado — ver a [decisão 10 das decisões técnicas da E6](../06-app/decisoes-tecnicas.md#10-documento-pronto-é-aviso-ao-abrir-não-notificação-por-push).
 - **Cópia permanente dos documentos** — o arquivo expira; o que fica é o registro (decisão 10).
 
 ## 13. O domínio fala português; o schema fala inglês
