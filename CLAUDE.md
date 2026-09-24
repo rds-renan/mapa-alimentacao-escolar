@@ -21,7 +21,7 @@ Tudo em **português brasileiro**: documentação, commits, issues, PRs e coment
 
 O projeto avança em etapas sequenciais, cada uma com milestone e issues próprias:
 
-E0 fundação ✅ → E1 Design Thinking ✅ → E2 requisitos/backlog ✅ → E3 UX ✅ → E4 modelagem de dados ✅ → **E5 web MVP (atual)** → E6 Flutter → E7 testes/laudo → E8 entrega.
+E0 fundação ✅ → E1 Design Thinking ✅ → E2 requisitos/backlog ✅ → E3 UX ✅ → E4 modelagem de dados ✅ → E5 web MVP ✅ → **E6 Flutter (atual)** → E7 testes/laudo → E8 entrega.
 
 **Trabalhar apenas na etapa atual** — não antecipar entregáveis de etapas futuras, mesmo que pareça eficiente.
 
@@ -50,5 +50,7 @@ E0 fundação ✅ → E1 Design Thinking ✅ → E2 requisitos/backlog ✅ → E
 Monorepo: Supabase (Postgres, Auth, Storage, Edge Functions) em `supabase/`, web React em `web/`, Android Flutter em `app/`.
 
 A stack da web foi fechada no início da E5 e está em [decisões técnicas](docs/05-web/decisoes-tecnicas.md): Vite + React + TypeScript, Tailwind + shadcn/ui sobre os tokens da E3, React Router, TanStack Query sobre `supabase-js`, rascunho e fila de envio em IndexedDB, Cloudflare (Workers com assets estáticos) com CI no GitHub Actions, Vitest + Testing Library e um E2E em Playwright. **A web garante que nada se perde; o offline integral é do aplicativo, na E6.**
+
+A stack do app foi fechada no início da E6 e está em [decisões técnicas](docs/06-app/decisoes-tecnicas.md): Flutter só Android, Material 3 sobre os tokens da E3, Riverpod, go_router, `supabase_flutter` e banco local em Drift (SQLite, um arquivo por usuária), com a mesma `save_meal_map` da web. **O app é só da merendeira** — a direção fica na web, que também é o plano B de quem ficar sem celular. Registro e mapa funcionam sem rede; manutenção do catálogo e geração do documento exigem rede. A fila sobe com o app aberto, nada roda em segundo plano; senha por código de 6 dígitos, sem navegador; documento pronto avisado ao abrir, sem push. Distribuição por GitHub Releases (tag `app-v*`) com trava de versão mínima desde a primeira versão. Unidade e widget na CI; o caminho crítico é percorrido à mão no aparelho.
 
 O resto dos detalhes de libs continua sendo decidido quando a necessidade surge — não adicionar dependências por antecipação.
