@@ -1,0 +1,74 @@
+# Verificação do aplicativo Android (decisão 13 da E6, issue #100): formatação,
+# análise estática, testes de unidade e de widget, e a compilação do APK — a
+# prova de que o app compila, do mesmo jeito que a web prova desde a #57.
+#
+# Não há ponta a ponta com emulador aqui, de propósito: a decisão 13 explica
+# por quê, e o caminho crítico continua sendo percorrido à mão, num aparelho
+# de verdade, antes de cada release.
+#
+# O APK sai em modo debug e não é anexado a lugar nenhum: o que ele prova é
+# que compila, não é o que chega às merendeiras — essa é a release por tag,
+# na issue #112 (decisão 11 da E6).
+name: App
+
+on:
+  pull_request:
+    paths:
+      - 'app/**'
+      - '.github/workflows/app.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'app/**'
+      - '.github/workflows/app.yml'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: app-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verificar:
+    name: Formatação, análise, testes e compilação
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v7
+
+      # O Gradle do módulo Android exige o JDK 17 (compileOptions e jvmTarget
+      # em android/app/build.gradle.kts).
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Versão fixa, como a CLI do Supabase em banco.yml: o app não tem
+      # arquivo de versão próprio (não há FVM), então a versão vive aqui, e
+      # atualizá-la é mudar esta linha e ver a CI passar.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.5'
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Formatação
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Testes
+        run: flutter test
+
+      # Debug: assina com a chave de debug (build.gradle.kts) e não exige
+      # segredo nenhum. O que se prova aqui é que compila — a release
+      # assinada de verdade é outro fluxo, disparado por tag (issue #112).
+      - name: Compilação do APK
+        run: flutter build apk --debug
