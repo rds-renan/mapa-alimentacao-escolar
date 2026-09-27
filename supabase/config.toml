@@ -162,9 +162,17 @@ site_url = "http://localhost:5173"
 # O que não estiver aqui é recusado — é esta lista que impede que um link do
 # MAE leve para fora do MAE. Isto vale só para o Supabase local; no projeto da
 # nuvem, os mesmos endereços se declaram em Authentication > URL Configuration.
+#
+# O aplicativo nunca abre este link — o dele é o código de 6 dígitos do mesmo
+# e-mail (issue #101) —, mas ele é quem PEDE o e-mail quando é a merendeira que
+# esqueceu a senha, e o `redirectTo` que ele manda aponta para a web mesmo
+# assim (para quem abrir o link sem querer, ou pela web como plano B). O
+# `10.0.2.2` é o emulador Android alcançando o `npm run dev` do host.
 additional_redirect_urls = [
   "http://localhost:5173/**",
   "http://127.0.0.1:5173/**",
+  "http://10.0.2.2:5173/**",
+  "http://192.168.0.164:5173/**",
 ]
 # How long tokens are valid for, in seconds. Defaults to 3600 (1 hour), maximum 604,800 (1 week).
 jwt_expiry = 3600
@@ -261,6 +269,9 @@ secure_password_change = false
 # Controls the minimum amount of time that must pass before sending another signup confirmation or password reset email.
 max_frequency = "1s"
 # Number of characters used in the email OTP.
+#
+# É o código de 6 dígitos que o aplicativo digita na recuperação de senha
+# (issue #101) — o mesmo `{{ .Token }}` que o modelo de e-mail já carrega.
 otp_length = 6
 # Number of seconds before the email OTP expires (defaults to 1 hour).
 otp_expiry = 3600
@@ -275,10 +286,13 @@ otp_expiry = 3600
 # admin_email = "admin@email.com"
 # sender_name = "Admin"
 
-# O e-mail de senha nova, em português (issue #59). O assunto e o texto que a
-# merendeira lê são interface como qualquer outra — o padrão do Supabase vem em
-# inglês. Vale para o ambiente local; no projeto da nuvem, o mesmo conteúdo se
-# declara em Authentication > Emails.
+# O e-mail de senha nova, em português (issue #59), com o código de 6 dígitos
+# do aplicativo somado por cima (issue #101) — o mesmo modelo serve a web (o
+# link) e o aplicativo (o código), porque os dois disparam a mesma chamada
+# (`resetPasswordForEmail`). O assunto e o texto que a merendeira lê são
+# interface como qualquer outra — o padrão do Supabase vem em inglês. Vale
+# para o ambiente local; no projeto da nuvem, o mesmo conteúdo se declara em
+# Authentication > Emails.
 [auth.email.template.recovery]
 subject = "Criar uma senha nova no MAE"
 content_path = "./supabase/templates/senha-nova.html"
