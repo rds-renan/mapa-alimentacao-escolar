@@ -126,9 +126,11 @@ class AuthController extends Notifier<AppAuthState> {
   Future<void> signOut() async {
     /*
      * Sair encerra a sessão. Sair NÃO apaga o que está esperando envio
-     * (decisão da issue #60 na web) — o aplicativo ainda não tem fila local
-     * (issues #102 e #103), então não há nada aqui para apagar, e é assim
-     * que deve continuar: nenhuma limpeza de dado entra neste método.
+     * (RN#1 da US011, mesmo espírito da issue #60 na web) — e aqui isso já
+     * é garantido de graça: o banco local e a fila (issues #102 e #103)
+     * vivem num arquivo por perfil, e este método nunca abriu esse arquivo.
+     * Deslogar só para de usá-lo; o que não subiu continua lá. Nenhuma
+     * limpeza de dado entra neste método, e é assim que deve continuar.
      */
     await _gateway.signOut();
     state = state.copyWith(clearNotice: true);

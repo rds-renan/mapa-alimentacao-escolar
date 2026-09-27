@@ -1160,12 +1160,466 @@ class MealsCompanion extends UpdateCompanion<Meal> {
   }
 }
 
+class $PendingMealMapsTable extends PendingMealMaps
+    with TableInfo<$PendingMealMapsTable, PendingMealMap> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PendingMealMapsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _mapDateMeta = const VerificationMeta(
+    'mapDate',
+  );
+  @override
+  late final GeneratedColumn<DateTime> mapDate = GeneratedColumn<DateTime>(
+    'map_date',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _payloadMeta = const VerificationMeta(
+    'payload',
+  );
+  @override
+  late final GeneratedColumn<String> payload = GeneratedColumn<String>(
+    'payload',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _attemptsMeta = const VerificationMeta(
+    'attempts',
+  );
+  @override
+  late final GeneratedColumn<int> attempts = GeneratedColumn<int>(
+    'attempts',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _rejectionCodeMeta = const VerificationMeta(
+    'rejectionCode',
+  );
+  @override
+  late final GeneratedColumn<String> rejectionCode = GeneratedColumn<String>(
+    'rejection_code',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _rejectionMessageMeta = const VerificationMeta(
+    'rejectionMessage',
+  );
+  @override
+  late final GeneratedColumn<String> rejectionMessage = GeneratedColumn<String>(
+    'rejection_message',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _queuedAtMicrosMeta = const VerificationMeta(
+    'queuedAtMicros',
+  );
+  @override
+  late final GeneratedColumn<int> queuedAtMicros = GeneratedColumn<int>(
+    'queued_at_micros',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    mapDate,
+    payload,
+    attempts,
+    rejectionCode,
+    rejectionMessage,
+    queuedAtMicros,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'pending_meal_maps';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PendingMealMap> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('map_date')) {
+      context.handle(
+        _mapDateMeta,
+        mapDate.isAcceptableOrUnknown(data['map_date']!, _mapDateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mapDateMeta);
+    }
+    if (data.containsKey('payload')) {
+      context.handle(
+        _payloadMeta,
+        payload.isAcceptableOrUnknown(data['payload']!, _payloadMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_payloadMeta);
+    }
+    if (data.containsKey('attempts')) {
+      context.handle(
+        _attemptsMeta,
+        attempts.isAcceptableOrUnknown(data['attempts']!, _attemptsMeta),
+      );
+    }
+    if (data.containsKey('rejection_code')) {
+      context.handle(
+        _rejectionCodeMeta,
+        rejectionCode.isAcceptableOrUnknown(
+          data['rejection_code']!,
+          _rejectionCodeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('rejection_message')) {
+      context.handle(
+        _rejectionMessageMeta,
+        rejectionMessage.isAcceptableOrUnknown(
+          data['rejection_message']!,
+          _rejectionMessageMeta,
+        ),
+      );
+    }
+    if (data.containsKey('queued_at_micros')) {
+      context.handle(
+        _queuedAtMicrosMeta,
+        queuedAtMicros.isAcceptableOrUnknown(
+          data['queued_at_micros']!,
+          _queuedAtMicrosMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_queuedAtMicrosMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {mapDate};
+  @override
+  PendingMealMap map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PendingMealMap(
+      mapDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}map_date'],
+      )!,
+      payload: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}payload'],
+      )!,
+      attempts: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}attempts'],
+      )!,
+      rejectionCode: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rejection_code'],
+      ),
+      rejectionMessage: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}rejection_message'],
+      ),
+      queuedAtMicros: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}queued_at_micros'],
+      )!,
+    );
+  }
+
+  @override
+  $PendingMealMapsTable createAlias(String alias) {
+    return $PendingMealMapsTable(attachedDatabase, alias);
+  }
+}
+
+class PendingMealMap extends DataClass implements Insertable<PendingMealMap> {
+  final DateTime mapDate;
+  final String payload;
+
+  /// Tentativas de envio seguidas sem sucesso. Comanda a espera até a
+  /// próxima.
+  final int attempts;
+
+  /// Recusa que não se resolve reenviando. Enquanto existir, a fila não
+  /// insiste — mas o dia continua aqui.
+  final String? rejectionCode;
+  final String? rejectionMessage;
+
+  /// Quando entrou na fila, em microssegundos desde a época — um `int`, não
+  /// um [DateTimeColumn], porque o armazenamento padrão do Drift trunca para
+  /// o segundo, e dois dias diferentes gravados na mesma rodada de teste (ou
+  /// no mesmo segundo de uso) empatariam e perderiam a ordem de envio.
+  final int queuedAtMicros;
+  const PendingMealMap({
+    required this.mapDate,
+    required this.payload,
+    required this.attempts,
+    this.rejectionCode,
+    this.rejectionMessage,
+    required this.queuedAtMicros,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['map_date'] = Variable<DateTime>(mapDate);
+    map['payload'] = Variable<String>(payload);
+    map['attempts'] = Variable<int>(attempts);
+    if (!nullToAbsent || rejectionCode != null) {
+      map['rejection_code'] = Variable<String>(rejectionCode);
+    }
+    if (!nullToAbsent || rejectionMessage != null) {
+      map['rejection_message'] = Variable<String>(rejectionMessage);
+    }
+    map['queued_at_micros'] = Variable<int>(queuedAtMicros);
+    return map;
+  }
+
+  PendingMealMapsCompanion toCompanion(bool nullToAbsent) {
+    return PendingMealMapsCompanion(
+      mapDate: Value(mapDate),
+      payload: Value(payload),
+      attempts: Value(attempts),
+      rejectionCode: rejectionCode == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rejectionCode),
+      rejectionMessage: rejectionMessage == null && nullToAbsent
+          ? const Value.absent()
+          : Value(rejectionMessage),
+      queuedAtMicros: Value(queuedAtMicros),
+    );
+  }
+
+  factory PendingMealMap.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PendingMealMap(
+      mapDate: serializer.fromJson<DateTime>(json['mapDate']),
+      payload: serializer.fromJson<String>(json['payload']),
+      attempts: serializer.fromJson<int>(json['attempts']),
+      rejectionCode: serializer.fromJson<String?>(json['rejectionCode']),
+      rejectionMessage: serializer.fromJson<String?>(json['rejectionMessage']),
+      queuedAtMicros: serializer.fromJson<int>(json['queuedAtMicros']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'mapDate': serializer.toJson<DateTime>(mapDate),
+      'payload': serializer.toJson<String>(payload),
+      'attempts': serializer.toJson<int>(attempts),
+      'rejectionCode': serializer.toJson<String?>(rejectionCode),
+      'rejectionMessage': serializer.toJson<String?>(rejectionMessage),
+      'queuedAtMicros': serializer.toJson<int>(queuedAtMicros),
+    };
+  }
+
+  PendingMealMap copyWith({
+    DateTime? mapDate,
+    String? payload,
+    int? attempts,
+    Value<String?> rejectionCode = const Value.absent(),
+    Value<String?> rejectionMessage = const Value.absent(),
+    int? queuedAtMicros,
+  }) => PendingMealMap(
+    mapDate: mapDate ?? this.mapDate,
+    payload: payload ?? this.payload,
+    attempts: attempts ?? this.attempts,
+    rejectionCode: rejectionCode.present
+        ? rejectionCode.value
+        : this.rejectionCode,
+    rejectionMessage: rejectionMessage.present
+        ? rejectionMessage.value
+        : this.rejectionMessage,
+    queuedAtMicros: queuedAtMicros ?? this.queuedAtMicros,
+  );
+  PendingMealMap copyWithCompanion(PendingMealMapsCompanion data) {
+    return PendingMealMap(
+      mapDate: data.mapDate.present ? data.mapDate.value : this.mapDate,
+      payload: data.payload.present ? data.payload.value : this.payload,
+      attempts: data.attempts.present ? data.attempts.value : this.attempts,
+      rejectionCode: data.rejectionCode.present
+          ? data.rejectionCode.value
+          : this.rejectionCode,
+      rejectionMessage: data.rejectionMessage.present
+          ? data.rejectionMessage.value
+          : this.rejectionMessage,
+      queuedAtMicros: data.queuedAtMicros.present
+          ? data.queuedAtMicros.value
+          : this.queuedAtMicros,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingMealMap(')
+          ..write('mapDate: $mapDate, ')
+          ..write('payload: $payload, ')
+          ..write('attempts: $attempts, ')
+          ..write('rejectionCode: $rejectionCode, ')
+          ..write('rejectionMessage: $rejectionMessage, ')
+          ..write('queuedAtMicros: $queuedAtMicros')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    mapDate,
+    payload,
+    attempts,
+    rejectionCode,
+    rejectionMessage,
+    queuedAtMicros,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PendingMealMap &&
+          other.mapDate == this.mapDate &&
+          other.payload == this.payload &&
+          other.attempts == this.attempts &&
+          other.rejectionCode == this.rejectionCode &&
+          other.rejectionMessage == this.rejectionMessage &&
+          other.queuedAtMicros == this.queuedAtMicros);
+}
+
+class PendingMealMapsCompanion extends UpdateCompanion<PendingMealMap> {
+  final Value<DateTime> mapDate;
+  final Value<String> payload;
+  final Value<int> attempts;
+  final Value<String?> rejectionCode;
+  final Value<String?> rejectionMessage;
+  final Value<int> queuedAtMicros;
+  final Value<int> rowid;
+  const PendingMealMapsCompanion({
+    this.mapDate = const Value.absent(),
+    this.payload = const Value.absent(),
+    this.attempts = const Value.absent(),
+    this.rejectionCode = const Value.absent(),
+    this.rejectionMessage = const Value.absent(),
+    this.queuedAtMicros = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PendingMealMapsCompanion.insert({
+    required DateTime mapDate,
+    required String payload,
+    this.attempts = const Value.absent(),
+    this.rejectionCode = const Value.absent(),
+    this.rejectionMessage = const Value.absent(),
+    required int queuedAtMicros,
+    this.rowid = const Value.absent(),
+  }) : mapDate = Value(mapDate),
+       payload = Value(payload),
+       queuedAtMicros = Value(queuedAtMicros);
+  static Insertable<PendingMealMap> custom({
+    Expression<DateTime>? mapDate,
+    Expression<String>? payload,
+    Expression<int>? attempts,
+    Expression<String>? rejectionCode,
+    Expression<String>? rejectionMessage,
+    Expression<int>? queuedAtMicros,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (mapDate != null) 'map_date': mapDate,
+      if (payload != null) 'payload': payload,
+      if (attempts != null) 'attempts': attempts,
+      if (rejectionCode != null) 'rejection_code': rejectionCode,
+      if (rejectionMessage != null) 'rejection_message': rejectionMessage,
+      if (queuedAtMicros != null) 'queued_at_micros': queuedAtMicros,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PendingMealMapsCompanion copyWith({
+    Value<DateTime>? mapDate,
+    Value<String>? payload,
+    Value<int>? attempts,
+    Value<String?>? rejectionCode,
+    Value<String?>? rejectionMessage,
+    Value<int>? queuedAtMicros,
+    Value<int>? rowid,
+  }) {
+    return PendingMealMapsCompanion(
+      mapDate: mapDate ?? this.mapDate,
+      payload: payload ?? this.payload,
+      attempts: attempts ?? this.attempts,
+      rejectionCode: rejectionCode ?? this.rejectionCode,
+      rejectionMessage: rejectionMessage ?? this.rejectionMessage,
+      queuedAtMicros: queuedAtMicros ?? this.queuedAtMicros,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (mapDate.present) {
+      map['map_date'] = Variable<DateTime>(mapDate.value);
+    }
+    if (payload.present) {
+      map['payload'] = Variable<String>(payload.value);
+    }
+    if (attempts.present) {
+      map['attempts'] = Variable<int>(attempts.value);
+    }
+    if (rejectionCode.present) {
+      map['rejection_code'] = Variable<String>(rejectionCode.value);
+    }
+    if (rejectionMessage.present) {
+      map['rejection_message'] = Variable<String>(rejectionMessage.value);
+    }
+    if (queuedAtMicros.present) {
+      map['queued_at_micros'] = Variable<int>(queuedAtMicros.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PendingMealMapsCompanion(')
+          ..write('mapDate: $mapDate, ')
+          ..write('payload: $payload, ')
+          ..write('attempts: $attempts, ')
+          ..write('rejectionCode: $rejectionCode, ')
+          ..write('rejectionMessage: $rejectionMessage, ')
+          ..write('queuedAtMicros: $queuedAtMicros, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
   late final $FoodItemsTable foodItems = $FoodItemsTable(this);
   late final $MealMapsTable mealMaps = $MealMapsTable(this);
   late final $MealsTable meals = $MealsTable(this);
+  late final $PendingMealMapsTable pendingMealMaps = $PendingMealMapsTable(
+    this,
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -1174,6 +1628,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     foodItems,
     mealMaps,
     meals,
+    pendingMealMaps,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -2020,6 +2475,246 @@ typedef $$MealsTableProcessedTableManager =
       Meal,
       PrefetchHooks Function({bool mealMapId})
     >;
+typedef $$PendingMealMapsTableCreateCompanionBuilder =
+    PendingMealMapsCompanion Function({
+      required DateTime mapDate,
+      required String payload,
+      Value<int> attempts,
+      Value<String?> rejectionCode,
+      Value<String?> rejectionMessage,
+      required int queuedAtMicros,
+      Value<int> rowid,
+    });
+typedef $$PendingMealMapsTableUpdateCompanionBuilder =
+    PendingMealMapsCompanion Function({
+      Value<DateTime> mapDate,
+      Value<String> payload,
+      Value<int> attempts,
+      Value<String?> rejectionCode,
+      Value<String?> rejectionMessage,
+      Value<int> queuedAtMicros,
+      Value<int> rowid,
+    });
+
+class $$PendingMealMapsTableFilterComposer
+    extends Composer<_$AppDatabase, $PendingMealMapsTable> {
+  $$PendingMealMapsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<DateTime> get mapDate => $composableBuilder(
+    column: $table.mapDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rejectionCode => $composableBuilder(
+    column: $table.rejectionCode,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get rejectionMessage => $composableBuilder(
+    column: $table.rejectionMessage,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get queuedAtMicros => $composableBuilder(
+    column: $table.queuedAtMicros,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$PendingMealMapsTableOrderingComposer
+    extends Composer<_$AppDatabase, $PendingMealMapsTable> {
+  $$PendingMealMapsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<DateTime> get mapDate => $composableBuilder(
+    column: $table.mapDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get payload => $composableBuilder(
+    column: $table.payload,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get attempts => $composableBuilder(
+    column: $table.attempts,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rejectionCode => $composableBuilder(
+    column: $table.rejectionCode,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get rejectionMessage => $composableBuilder(
+    column: $table.rejectionMessage,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get queuedAtMicros => $composableBuilder(
+    column: $table.queuedAtMicros,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PendingMealMapsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $PendingMealMapsTable> {
+  $$PendingMealMapsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<DateTime> get mapDate =>
+      $composableBuilder(column: $table.mapDate, builder: (column) => column);
+
+  GeneratedColumn<String> get payload =>
+      $composableBuilder(column: $table.payload, builder: (column) => column);
+
+  GeneratedColumn<int> get attempts =>
+      $composableBuilder(column: $table.attempts, builder: (column) => column);
+
+  GeneratedColumn<String> get rejectionCode => $composableBuilder(
+    column: $table.rejectionCode,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get rejectionMessage => $composableBuilder(
+    column: $table.rejectionMessage,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get queuedAtMicros => $composableBuilder(
+    column: $table.queuedAtMicros,
+    builder: (column) => column,
+  );
+}
+
+class $$PendingMealMapsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $PendingMealMapsTable,
+          PendingMealMap,
+          $$PendingMealMapsTableFilterComposer,
+          $$PendingMealMapsTableOrderingComposer,
+          $$PendingMealMapsTableAnnotationComposer,
+          $$PendingMealMapsTableCreateCompanionBuilder,
+          $$PendingMealMapsTableUpdateCompanionBuilder,
+          (
+            PendingMealMap,
+            BaseReferences<
+              _$AppDatabase,
+              $PendingMealMapsTable,
+              PendingMealMap
+            >,
+          ),
+          PendingMealMap,
+          PrefetchHooks Function()
+        > {
+  $$PendingMealMapsTableTableManager(
+    _$AppDatabase db,
+    $PendingMealMapsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PendingMealMapsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PendingMealMapsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PendingMealMapsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<DateTime> mapDate = const Value.absent(),
+                Value<String> payload = const Value.absent(),
+                Value<int> attempts = const Value.absent(),
+                Value<String?> rejectionCode = const Value.absent(),
+                Value<String?> rejectionMessage = const Value.absent(),
+                Value<int> queuedAtMicros = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PendingMealMapsCompanion(
+                mapDate: mapDate,
+                payload: payload,
+                attempts: attempts,
+                rejectionCode: rejectionCode,
+                rejectionMessage: rejectionMessage,
+                queuedAtMicros: queuedAtMicros,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required DateTime mapDate,
+                required String payload,
+                Value<int> attempts = const Value.absent(),
+                Value<String?> rejectionCode = const Value.absent(),
+                Value<String?> rejectionMessage = const Value.absent(),
+                required int queuedAtMicros,
+                Value<int> rowid = const Value.absent(),
+              }) => PendingMealMapsCompanion.insert(
+                mapDate: mapDate,
+                payload: payload,
+                attempts: attempts,
+                rejectionCode: rejectionCode,
+                rejectionMessage: rejectionMessage,
+                queuedAtMicros: queuedAtMicros,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PendingMealMapsTable, PendingMealMap>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $PendingMealMapsTable,
+                    PendingMealMap
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$PendingMealMapsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $PendingMealMapsTable,
+      PendingMealMap,
+      $$PendingMealMapsTableFilterComposer,
+      $$PendingMealMapsTableOrderingComposer,
+      $$PendingMealMapsTableAnnotationComposer,
+      $$PendingMealMapsTableCreateCompanionBuilder,
+      $$PendingMealMapsTableUpdateCompanionBuilder,
+      (
+        PendingMealMap,
+        BaseReferences<_$AppDatabase, $PendingMealMapsTable, PendingMealMap>,
+      ),
+      PendingMealMap,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -2030,4 +2725,6 @@ class $AppDatabaseManager {
       $$MealMapsTableTableManager(_db, _db.mealMaps);
   $$MealsTableTableManager get meals =>
       $$MealsTableTableManager(_db, _db.meals);
+  $$PendingMealMapsTableTableManager get pendingMealMaps =>
+      $$PendingMealMapsTableTableManager(_db, _db.pendingMealMaps);
 }

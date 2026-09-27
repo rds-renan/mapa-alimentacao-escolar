@@ -57,12 +57,52 @@ class Meals extends Table {
   ];
 }
 
-@DriftDatabase(tables: [FoodItems, MealMaps, Meals])
+/// O dia por enviar, ainda não confirmado pelo servidor (issue #103) —
+/// rascunho e fila de envio são a mesma coisa, como na
+/// [camada local](../../../docs/06-app/fila-de-envio-e-convergencia.md) da
+/// web: **estar guardado aqui é ser dia que o servidor ainda não confirmou**
+/// (RN#1 da US011). `payload` é o próprio [DayPayload] serializado, campo por
+/// campo o payload de `save_meal_map` — sem tradução no meio.
+///
+/// Ao contrário do IndexedDB da web, não há coluna de usuária: o arquivo já é
+/// de uma só (decisão 6 da E6), então a chave é só a data do dia.
+class PendingMealMaps extends Table {
+  DateTimeColumn get mapDate => dateTime()();
+  TextColumn get payload => text()();
+
+  /// Tentativas de envio seguidas sem sucesso. Comanda a espera até a
+  /// próxima.
+  IntColumn get attempts => integer().withDefault(const Constant(0))();
+
+  /// Recusa que não se resolve reenviando. Enquanto existir, a fila não
+  /// insiste — mas o dia continua aqui.
+  TextColumn get rejectionCode => text().nullable()();
+  TextColumn get rejectionMessage => text().nullable()();
+
+  /// Quando entrou na fila, em microssegundos desde a época — um `int`, não
+  /// um [DateTimeColumn], porque o armazenamento padrão do Drift trunca para
+  /// o segundo, e dois dias diferentes gravados na mesma rodada de teste (ou
+  /// no mesmo segundo de uso) empatariam e perderiam a ordem de envio.
+  IntColumn get queuedAtMicros => integer()();
+
+  @override
+  Set<Column> get primaryKey => {mapDate};
+}
+
+@DriftDatabase(tables: [FoodItems, MealMaps, Meals, PendingMealMaps])
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+    // A #103 só acrescentou uma tabela; `createAll()` cria o que falta e
+    // ignora o que já existe, então não há dado de nenhum arquivo local de
+    // desenvolvimento para migrar de verdade.
+    onUpgrade: (m, from, to) async => m.createAll(),
+  );
 }
 
 /// Um arquivo por usuária (decisão 6 da E6): o identificador do perfil, que
