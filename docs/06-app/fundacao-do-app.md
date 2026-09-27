@@ -115,10 +115,11 @@ Os dois ambientes (decisão 2 da E6) são arquivos em [`app/env/`](../../app/env
 - **`local.json`**: contra o `supabase start`. O modelo já vem com
   `http://10.0.2.2:54321` na URL — **não** `127.0.0.1`: o emulador Android
   roda numa máquina virtual própria, e `10.0.2.2` é o endereço fixo que ela
-  usa para alcançar o `localhost` de quem a hospeda. Num aparelho físico na
-  mesma rede, o endereço é o IP da máquina de desenvolvimento na rede local,
-  não `10.0.2.2`. A chave publicável sai do que `supabase start` imprime,
-  como na web.
+  usa para alcançar o `localhost` de quem a hospeda. **Num aparelho físico**,
+  esse endereço não existe — trocar `SUPABASE_URL` **e** `WEB_URL` pelo IP da
+  máquina de desenvolvimento na rede local (`ip addr` / `hostname -I`), com o
+  aparelho na mesma rede. A chave publicável sai do que `supabase start`
+  imprime, como na web.
 - **`production.json`**: contra o projeto na nuvem, os mesmos valores que a
   web usa em produção — URL e chave publicável do painel do projeto
   Supabase, em Project Settings > API Keys.
@@ -130,6 +131,22 @@ adaptada ao formato que o Flutter lê.
 **Qual par de chaves o app usa**: o mesmo da web, o formato novo
 `sb_publishable_…` — não é JWT, não expira, e quem decide o que ele alcança
 é a RLS.
+
+**`WEB_URL` entrou na issue #101**: o endereço da web, sem barra no fim —
+`http://10.0.2.2:5173` local, o endereço de produção na nuvem. A merendeira
+nunca abre o navegador a partir do aplicativo, mas o e-mail de senha nova é
+o mesmo dos dois lugares (decisão 9 da E6), e o link nele precisa apontar
+para algum lugar que funcione — ver [autenticação e
+sessão](autenticacao-e-sessao.md).
+
+**Tráfego sem cifra, só em depuração**: o Supabase local fala HTTP, e o
+Android recusa esse tráfego por padrão desde a API 28 — sem exceção, o
+aplicativo não fala nem com o emulador nem com a máquina de desenvolvimento
+na rede local, e a falha não aparece como erro de rede, aparece como se
+nada respondesse.
+[`android/app/src/debug/AndroidManifest.xml`](../../app/android/app/src/debug/AndroidManifest.xml)
+liga `usesCleartextTraffic` **só no build de depuração** — o manifesto
+principal não tem essa linha, e o projeto de produção é HTTPS.
 
 ## Testado num aparelho de verdade
 

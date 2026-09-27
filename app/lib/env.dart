@@ -8,6 +8,14 @@ abstract final class Env {
     'SUPABASE_PUBLISHABLE_KEY',
   );
 
+  /// O endereço da web, sem barra no fim. Usado só para montar o link de
+  /// volta do e-mail de senha nova (issue #101): a merendeira nunca abre o
+  /// navegador a partir do aplicativo, mas o e-mail é o mesmo dos dois
+  /// lugares, e o link nele precisa apontar para algum lugar que funcione.
+  static const String webUrl = String.fromEnvironment('WEB_URL');
+
   static bool get isConfigured =>
-      supabaseUrl.isNotEmpty && supabasePublishableKey.isNotEmpty;
+      supabaseUrl.isNotEmpty &&
+      supabasePublishableKey.isNotEmpty &&
+      webUrl.isNotEmpty;
 }

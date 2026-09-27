@@ -4,4 +4,13 @@
          to allow setting breakpoints, to provide hot reload, etc.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!--
+      Só no build de depuração (issue #101): o Supabase local fala HTTP, não
+      HTTPS, e o Android bloqueia tráfego sem cifra por padrão desde a API 28
+      — o app não conseguiria falar nem com o emulador (10.0.2.2) nem com a
+      máquina de desenvolvimento na rede local. Em produção o projeto é
+      HTTPS, e esta permissão nem existe no manifesto principal.
+    -->
+    <application android:usesCleartextTraffic="true" />
 </manifest>
