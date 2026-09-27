@@ -54,12 +54,16 @@ específico dele:
 ## Sair apaga o que é do aparelho, não o que é da pessoa
 
 Mesma distinção da web (issue #60): sair não pode apagar o dia que ainda não
-subiu. Hoje isso é simples de cumprir porque **não há o que apagar** — o
-banco local (issue #102) e a fila (issue #103) ainda não existem —, mas a
-regra já está escrita em
+subiu. O banco local (issue #102) e a fila (issue #103) já existem, e a
+resposta ficou mais simples do que a da web: como cada perfil tem o próprio
+arquivo Drift (decisão 6 da E6), deslogar não abre nem toca esse arquivo —
+só para de usá-lo. O que não subiu continua lá até o próximo login confirmar,
+sem precisar de um passo de limpeza que decida o que preservar. A regra
+segue escrita em
 [`AuthController.signOut`](../../app/lib/auth/auth_controller.dart): nenhuma
 limpeza de dado entra ali. É a cerca que impede a próxima issue de somar um
-`clearLocalData()` sem perceber que a decisão já foi tomada.
+`clearLocalData()` sem perceber que a decisão já foi tomada — ver
+[fila de envio e convergência](fila-de-envio-e-convergencia.md).
 
 ## `touch_last_access()` a cada abertura
 

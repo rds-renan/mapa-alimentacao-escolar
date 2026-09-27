@@ -105,3 +105,6 @@ ainda que exercite o banco fora do teste de unidade. Fica para a #104, que
 segue a lição da própria E6
 ([autenticação e sessão](autenticacao-e-sessao.md)): compilar não é o
 mesmo que abrir contra o Supabase de verdade.
+
+O rascunho e a fila de envio, que este documento deixou para a #103, estão em
+[fila de envio e convergência](fila-de-envio-e-convergencia.md).
