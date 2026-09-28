@@ -120,15 +120,32 @@ jobs:
       # `versions upload`, não `deploy`: sobe uma versão nova sem mandar
       # tráfego de produção para ela — o mesmo comando que a Cloudflare
       # rodava para toda branch antes desta correção.
+      #
+      # `--preview-alias` é explícito de propósito: dentro do build da
+      # própria Cloudflare o Wrangler sabia o nome da branch sozinho, mas
+      # rodando aqui, num checkout comum, não há como ele adivinhar — sem o
+      # `--preview-alias`, a saída não tem "Version Preview Alias URL"
+      # nenhuma, só a URL pelo identificador da versão.
       - name: Publicar a versão de prévia
         id: previa
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          saida="$(npx wrangler versions upload)"
+          alias=$(echo "${{ github.head_ref }}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | tr -c 'a-z0-9-' '-' \
+            | sed -E 's/-+/-/g; s/^-|-$//g')
+
+          saida="$(npx wrangler versions upload --preview-alias "$alias")"
           echo "$saida"
-          url=$(echo "$saida" | grep -oP 'Version Preview Alias URL:\s*\K\S+')
+
+          # Se o formato da saída mudar num Wrangler futuro, cair para a URL
+          # pelo identificador da versão é melhor que quebrar o job inteiro.
+          url=$(echo "$saida" | grep -oP 'Version Preview Alias URL:\s*\K\S+' || true)
+          if [ -z "$url" ]; then
+            url=$(echo "$saida" | grep -oP 'Version Preview URL:\s*\K\S+' || true)
+          fi
           echo "url=$url" >> "$GITHUB_OUTPUT"
 
       # Um comentário só por Pull Request, atualizado a cada push — o mesmo
