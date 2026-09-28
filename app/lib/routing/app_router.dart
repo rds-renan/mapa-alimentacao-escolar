@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import '../pages/day_register_page.dart';
+import '../pages/food_items_page.dart';
 import '../pages/forgot_password_page.dart';
+import '../pages/generated_documents_page.dart';
 import '../pages/home_page.dart';
 import '../pages/sign_in_page.dart';
 
@@ -49,6 +52,19 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: ForgotPasswordPage.path,
         builder: (_, _) => const ForgotPasswordPage(),
+      ),
+      GoRoute(
+        path: DayRegisterPage.path,
+        builder: (_, state) =>
+            DayRegisterPage(mapDate: state.pathParameters['mapDate']!),
+      ),
+      GoRoute(
+        path: FoodItemsPage.path,
+        builder: (_, _) => const FoodItemsPage(),
+      ),
+      GoRoute(
+        path: GeneratedDocumentsPage.path,
+        builder: (_, _) => const GeneratedDocumentsPage(),
       ),
     ],
   );

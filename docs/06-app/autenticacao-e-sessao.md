@@ -20,8 +20,8 @@ aplicativo instalado é, se alguma coisa, mais fácil de inspecionar que uma
 página. O `redirect` do `go_router`
 ([`app/lib/routing/app_router.dart`](../../app/lib/routing/app_router.dart))
 cumpre o que a decisão 5 pede: sem sessão, toda rota leva ao login; com
-sessão de merendeira, a casa é `/` — a visão do mês, ainda tela-marco da
-issue #104.
+sessão de merendeira, a casa é `/` — a [visão do mês e o
+menu](visao-do-mes-e-menu.md), issue #104.
 
 ## A sessão sobrevive ao aplicativo, em cofre — não em preferências comuns
 

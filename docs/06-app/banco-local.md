@@ -61,23 +61,20 @@ quem recorta é o RLS da E4, como sempre (decisão 6 da E6).
   chamada lança e a cópia local não é tocada: quem chama decide se tenta de
   novo, e quem está lendo nem percebe.
 
-Nenhum dos dois é acionado a partir de uma tela ainda — não há uma para
-acionar. A tela-casa (#104) é quem vai chamar `refresh`/`refreshMonth` ao
-abrir e ao trocar de mês, e observar o `Stream` para desenhar a lista.
+`refreshMonth` entrou em uso com a tela-casa
+([visão do mês e menu](visao-do-mes-e-menu.md), issue #104): ela chama
+`watchMonth` para desenhar a lista e `refreshMonth` ao abrir e a cada troca de
+mês. `CatalogRepository.refresh` continua sem uma tela que o acione — fica
+para quando o catálogo (issue #107) precisar dele.
 
 ## O que fica para depois
 
-- **Abrir e fechar o arquivo certo a cada login/logout.** `AuthController`
-  ainda não conhece o banco local — a issue #101 já registrou isso
-  ([autenticação e sessão](autenticacao-e-sessao.md#sair-apaga-o-que-é-do-aparelho-não-o-que-é-da-pessoa)).
-  Quem abre `AppDatabase(openLocalDatabaseConnection(profile.id))` pela
-  primeira vez é a tela que precisar dele.
-- **Apagar ao sair, ou não.** A web apaga tudo ao sair porque é uso raro; o
-  aplicativo guarda "uma cópia do que ela consulta" (decisão 6) — se
-  apagar ao sair também vale aqui é decisão de quem ligar a sessão ao
-  banco, não desta issue.
 - **Gêneros usados e alteração do cardápio.** Entram com a #105, que também
   decide se abrir um dia para editar lê deste banco ou pede rede.
+
+A tela-casa (#104) resolveu as outras duas pendências que este documento
+deixava em aberto — ver
+[abrir o arquivo certo, e o que fica sem tocar nele](visao-do-mes-e-menu.md#o-banco-abre-com-o-perfil-e-não-fecha-com-a-sessão).
 
 ## Testado
 
@@ -100,11 +97,11 @@ um gateway falso de cada:
 `flutter build apk --debug` compila com o Drift ligado ao SQLite nativo do
 Android.
 
-**Não testado**: leitura/escrita num aparelho de verdade — não há tela
-ainda que exercite o banco fora do teste de unidade. Fica para a #104, que
-segue a lição da própria E6
-([autenticação e sessão](autenticacao-e-sessao.md)): compilar não é o
-mesmo que abrir contra o Supabase de verdade.
+**Não testado**: leitura/escrita num aparelho de verdade — a #104 abriu a
+primeira tela sobre este banco, mas só em teste de widget, com um banco em
+memória e um gateway falso, como sempre. Compilar não é o mesmo que abrir
+contra o Supabase de verdade, e essa verificação continua manual, aparelho
+físico, a cada issue que mexer aqui.
 
 O rascunho e a fila de envio, que este documento deixou para a #103, estão em
 [fila de envio e convergência](fila-de-envio-e-convergencia.md).
