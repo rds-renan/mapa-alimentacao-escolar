@@ -12,6 +12,12 @@
 /// não o Dart.
 library;
 
+import 'package:uuid/uuid.dart';
+
+const _uuid = Uuid();
+
+String newId() => _uuid.v4();
+
 class FoodItemPayload {
   const FoodItemPayload({
     required this.foodItemId,
@@ -170,6 +176,18 @@ class DayPayload {
     'meals': meals.map((meal) => meal.toJson()).toList(),
   };
 }
+
+/// Um dia em branco, pronto para a primeira tecla — a versão em Dart de
+/// `emptyDay` (`web/src/local/day.ts`).
+DayPayload emptyDay(String mapDate) => DayPayload(
+  id: newId(),
+  mapDate: mapDate,
+  updatedAt: DateTime.now().toIso8601String(),
+  nonSchoolDay: false,
+  note: null,
+  mealsServed: null,
+  meals: const [],
+);
 
 class SaveResponseFoodItem {
   const SaveResponseFoodItem({

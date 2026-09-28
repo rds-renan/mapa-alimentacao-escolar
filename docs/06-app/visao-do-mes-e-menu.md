@@ -34,16 +34,19 @@ Na web, a visão do mês é onde a TanStack Query (o servidor) e a camada local
 (o rascunho por enviar) se encontram pela primeira vez, e o rascunho vence
 — menos o bloqueio, que só o servidor sabe.
 
-O aplicativo não tem esse encontro ainda. `DayRecord` nasce só do banco
-local (`meal_maps`/`meals`, issue #102), que já é a cópia convergida do
-servidor via `refreshMonth`. O rascunho por enviar mora em `pending_meal_maps`
-(issue #103), numa tabela separada que ninguém lê para desenhar a lista —
-ler as duas fontes juntas, fundindo o rascunho por cima do que já convergiu,
-é decisão da #105, como a
-[documentação da fila](fila-de-envio-e-convergencia.md#o-que-fica-para-a-105)
-já registra. Até lá, um dia editado e ainda na fila apareceria **vazio** na
-lista — a mesma lacuna que a web teve até a própria visão do mês entrar (veja
-o histórico do PR #83).
+Esta tela ainda não tem esse encontro: `DayRecord` nasce só do banco local
+(`meal_maps`/`meals`, issue #102), que já é a cópia convergida do servidor
+via `refreshMonth`. O rascunho por enviar mora em `pending_meal_maps` (issue
+#103), numa tabela separada que ninguém aqui lê — um dia editado e ainda na
+fila aparece **vazio** nesta lista, a mesma lacuna que a web teve até a
+própria visão do mês entrar (veja o histórico do PR #83).
+
+A tela do [registro do dia](registro-do-dia.md#uma-origem-só-e-o-encontro-que-a-visão-do-mês-esperava)
+já faz esse encontro, para o dia que ela abre — é lá que `DayRepository` e
+`SyncEngine` se juntam. Trazê-lo também para **esta** lista (para o mês
+inteiro, não um dia por vez) continua em aberto, e a mesma página do
+registro do dia explica por que não foi resolvido junto: escrever a
+confirmação da fila nas tabelas de leitura duplicaria o caminho de gravação.
 
 ## O banco abre com o perfil e não fecha com a sessão
 
@@ -81,8 +84,10 @@ leitura: uma falha (`catchError((_) {})`) é silenciosa de propósito, porque a
 lista já mostra o que está no aparelho e a rede só melhora o que já apareceu,
 nunca condiciona a tela a aparecer. Não há faixa de erro, nem contagem de
 "dias salvos esperando envio" como a web tem para a falha de carga — esse
-aviso é sobre o **rascunho** que ainda não subiu (issue #103), e ainda não há
-tela que o leia (#105).
+aviso é sobre o **rascunho** que ainda não subiu (issue #103). A tela do
+[registro do dia](registro-do-dia.md) já o mostra, mas só para o dia que
+está aberta nela; esta lista continua sem um resumo do que está pendente no
+mês inteiro.
 
 ## `package:clock`, para "hoje" ser um dado e não uma chamada global
 
