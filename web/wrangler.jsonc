@@ -9,10 +9,11 @@
   // `routes`, logo abaixo. Mudar isto muda as duas coisas.
   "name": "mae",
 
-  // Congela o comportamento da plataforma na data em que o projeto foi escrito:
-  // atualização futura do runtime não muda o que já está no ar sem que alguém
-  // mude esta linha de propósito.
-  "compatibility_date": "2026-09-14",
+  // Congela o comportamento da plataforma nesta data: atualização futura do
+  // runtime não muda o que já está no ar sem que alguém mude esta linha de
+  // propósito. Atualizada periodicamente, sem pressa — não é uma trava que
+  // se define uma vez só.
+  "compatibility_date": "2026-09-28",
 
   // O endereço de produção. O domínio já vive na Cloudflare, e por isso ela
   // cria o registro de DNS e o certificado sozinha — não há nada a fazer no
