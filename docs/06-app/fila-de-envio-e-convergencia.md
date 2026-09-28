@@ -89,28 +89,24 @@ equivalente aqui — não existe o "sair apaga" que ela avisaria.
 
 [`SyncBanner`](../../app/lib/widgets/sync_banner.dart) e
 [`ConflictNotice`](../../app/lib/widgets/conflict_notice.dart) são as
-versões em Dart de `sync-banner.tsx` e `conflict-notice.tsx` — prontos, mas
-sem tela que os monte ainda. Como o banco local da #102, a peça nasce antes de
-quem a consome: a tela de registro do dia (#105) é quem vai chamar
-`engine.save()` a cada campo e desenhar `SyncBanner`/`ConflictNotice` por
-cima do formulário.
+versões em Dart de `sync-banner.tsx` e `conflict-notice.tsx` — a tela de
+[registro do dia](registro-do-dia.md) (#105) é quem as monta, chamando
+`engine.save()` a cada campo e desenhando as duas por cima do formulário.
 
-## O que fica para a #105
+## O que a #105 resolveu, e o que continua em aberto
 
-- **Gerar o `DayPayload`.** Esta issue não cria dia nenhum — os testes usam
-  literais fixos. Montar o payload a partir do formulário, incluindo os UUIDs
-  gerados no aparelho, é da tela de registro.
-- **Ligar a fila à tela.** Nada em `main.dart` ou no `AuthController` conhece
-  o `SyncEngine` ainda — mesma situação do `CatalogRepository`/
-  `MonthRepository` depois da #102.
-- **Invalidar a leitura do mês quando a fila confirma.** A web faz isso no
-  `SyncProvider`, avisando a TanStack Query. Aqui a "consulta que avisa
-  quando o resultado muda" do Drift (decisão 6 da E6) cumpre o mesmo papel
-  sozinha, contanto que quem escreve a confirmação escreva também nas tabelas
-  que a visão do mês lê (`meal_maps`/`meals`) — o que ainda não é o caso: por
-  ora, o dia confirmado sai da fila e o mês só volta a mostrá-lo depois de um
-  `refreshMonth()`. Decidir se isso basta, ou se a fila precisa escrever
-  também no banco de leitura, é da #105.
+- **Gerar o `DayPayload`.** Feito em
+  [`day/register.dart`](../../app/lib/day/register.dart) — os campos que a
+  #105 cobre (descrição, aceitação, número de refeições, dia não letivo);
+  os gêneros e a alteração do cardápio, que também moram no payload, ficam
+  vazios/nulos até a #106.
+- **Ligar a fila à tela.** `syncEngineProvider`, em
+  [`local_providers.dart`](../../app/lib/local/local_providers.dart), mesmo
+  raciocínio do `appDatabaseProvider` da #102.
+- **Invalidar a leitura do mês quando a fila confirma** continua em aberto,
+  e por decisão, não por esquecimento: ver
+  [o que ainda não está resolvido](registro-do-dia.md#o-que-ainda-não-está-resolvido-o-mês-só-atualiza-no-próximo-refreshmonth)
+  na doc do registro do dia.
 
 ## Testado
 
@@ -136,6 +132,7 @@ cima do formulário.
 | As três frases e o conflito | comparados palavra por palavra com a tabela da E3 e com a mensagem da web |
 | `insertOnConflictUpdate` sem colunas explícitas | pegou uma recusa antiga sobrevivendo a uma gravação nova — corrigido gravando `rejectionCode`/`rejectionMessage` sempre, mesmo nulos |
 
-**Não testado**: leitura/escrita num aparelho de verdade — não há tela ainda
-que exercite a fila fora do teste de unidade, mesma situação da #102. Fica
-para a #105.
+**Não testado nesta issue**: leitura/escrita num aparelho de verdade. A
+[tela de registro do dia](registro-do-dia.md) (#105) passou a exercitar a
+fila fora do teste de unidade, mas só em testes de widget (banco em memória,
+`FakeSyncGateway`) — o aparelho físico continua de fora.

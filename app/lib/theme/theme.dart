@@ -249,6 +249,22 @@ ThemeData _buildTheme({
     ),
     iconTheme: IconThemeData(color: colorScheme.onSurface, size: 24),
     dividerTheme: DividerThemeData(color: colorScheme.outline, thickness: 1),
+    switchTheme: SwitchThemeData(
+      // O padrão do Material 3 pinta a bolinha desligada com
+      // `colorScheme.outline` — que no tema escuro é a MESMA cor da trilha
+      // (`surfaceContainerHighest`), e no claro é quase a mesma: a bolinha
+      // some de vista, e só um toque (que a acende com `onPrimary`) mostra
+      // que ela sempre esteve lá. `onSurfaceVariant` já é usado no app
+      // inteiro para texto de apoio sobre essas mesmas superfícies, e por
+      // isso já é a cor certa de contraste.
+      thumbColor: WidgetStateProperty.resolveWith((states) {
+        if (states.contains(WidgetState.disabled)) {
+          return colorScheme.onSurface.withValues(alpha: 0.38);
+        }
+        if (states.contains(WidgetState.selected)) return colorScheme.onPrimary;
+        return colorScheme.onSurfaceVariant;
+      }),
+    ),
   );
 }
 

@@ -2,9 +2,14 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../supabase.dart';
 import 'app_database.dart';
+import 'day_repository.dart';
 import 'month_gateway.dart';
 import 'month_repository.dart';
 import 'supabase_month_gateway.dart';
+import 'supabase_sync_gateway.dart';
+import 'sync_engine.dart';
+import 'sync_gateway.dart';
+import 'sync_queue_store.dart';
 
 /// O banco local, um por perfil (decisão 6 da E6).
 ///
@@ -40,4 +45,34 @@ final monthRepositoryProvider = Provider.family<MonthRepository, String>((
     ref.watch(appDatabaseProvider(profileId)),
     ref.watch(monthGatewayProvider),
   );
+});
+
+final dayRepositoryProvider = Provider.family<DayRepository, String>((
+  ref,
+  profileId,
+) {
+  return DayRepository(ref.watch(appDatabaseProvider(profileId)));
+});
+
+/// O portão do envio, substituível por um falso nos testes (decisão 4 da
+/// E6), como [monthGatewayProvider].
+final syncGatewayProvider = Provider<SyncGateway>((ref) {
+  return SupabaseSyncGateway(supabase);
+});
+
+/// A fila de envio (issue #103), viva enquanto o [ProviderContainer] existir
+/// — mesmo raciocínio do [appDatabaseProvider]: não é `autoDispose`, porque
+/// sair da tela do registro não pode parar um envio em andamento, e quem
+/// fecha é `ref.onDispose`, ao encerrar o aplicativo (ou o teste).
+final syncEngineProvider = Provider.family<SyncEngine, String>((
+  ref,
+  profileId,
+) {
+  final engine = SyncEngine(
+    SyncQueueStore(ref.watch(appDatabaseProvider(profileId))),
+    ref.watch(syncGatewayProvider),
+  );
+  engine.start();
+  ref.onDispose(engine.stop);
+  return engine;
 });

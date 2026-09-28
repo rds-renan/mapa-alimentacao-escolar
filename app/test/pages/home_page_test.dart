@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/auth/auth_controller.dart';
 import 'package:mae/auth/profile.dart';
+import 'package:mae/day/messages.dart' show dayTitle;
 import 'package:mae/local/app_database.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
@@ -14,6 +15,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
 import '../local/fake_month_gateway.dart';
+import '../local/fake_sync_gateway.dart';
 
 /// A visão do mês e o menu (issue #104), com o relógio fixado em 9 de
 /// setembro de 2026 (uma quarta-feira) — o mês que a tela abre, o destaque de
@@ -38,6 +40,10 @@ void main() {
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         monthGatewayProvider.overrideWithValue(monthGateway),
+        // O toque num dia empurra para o registro (issue #105), que já liga
+        // a fila de envio — sem este falso, o provedor de verdade tentaria
+        // o Supabase que este teste nunca inicializa.
+        syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
         appDatabaseProvider.overrideWith(
           (ref, profileId) => AppDatabase(NativeDatabase.memory()),
         ),
@@ -190,7 +196,7 @@ void main() {
       await tester.tap(find.text('1').first);
       await tester.pumpAndSettle();
 
-      expect(find.textContaining('este é o dia 2026-09-01'), findsOneWidget);
+      expect(find.text(dayTitle('2026-09-01')), findsOneWidget);
 
       await dispose(tester);
     });
@@ -208,7 +214,7 @@ void main() {
         await tester.tap(find.text('3').first);
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('este é o dia 2026-09-03'), findsOneWidget);
+        expect(find.text(dayTitle('2026-09-03')), findsOneWidget);
 
         await dispose(tester);
       });
