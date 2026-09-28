@@ -1,6 +1,10 @@
 # Verificação da aplicação web (decisão 10 da E5): a CI é o lugar onde o erro
-# aparece, e a publicação é outro assunto — ela sai da própria Cloudflare,
-# ligada ao repositório, e não deste arquivo.
+# aparece, e a publicação de produção é outro assunto — ela sai da própria
+# Cloudflare, ligada ao repositório, e não deste arquivo. A prévia por Pull
+# Request é a exceção: mora aqui desde a correção registrada em
+# docs/05-web/integracao-continua-e-publicacao.md#a-prévia-passou-a-ser-daqui,
+# porque a integração da Cloudflare builda toda branch, tocando `web/` ou não,
+# e não tinha como filtrar por caminho — só a produção respeita o filtro.
 #
 # Roda em todo Pull Request que toca `web/`, e de novo na `main` depois do
 # merge, porque o squash merge produz um commit que ninguém verificou ainda.
@@ -77,3 +81,80 @@ jobs:
       # precisa vir na carga inicial ou se carrega sob demanda, na rota.
       - name: Peso do pacote
         run: npm run check:size
+
+  # A prévia do Pull Request. Só depois de `verificar` passar — não faz
+  # sentido publicar o que já reprovou — e só em Pull Request: o push na
+  # `main` já é produção, que a Cloudflare publica sozinha.
+  previa:
+    name: Prévia no Cloudflare Workers
+    needs: verificar
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: web/.node-version
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+
+      - name: Instalar dependências
+        run: npm ci
+
+      # As mesmas duas variáveis que o painel da Cloudflare injetava no
+      # ambiente de prévia — públicas por construção (CA#6 da issue #59),
+      # por isso vivem em `vars`, não em `secrets`.
+      - name: Build
+        run: npm run build
+        env:
+          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          VITE_SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+
+      # `versions upload`, não `deploy`: sobe uma versão nova sem mandar
+      # tráfego de produção para ela — o mesmo comando que a Cloudflare
+      # rodava para toda branch antes desta correção.
+      #
+      # `--preview-alias` é explícito de propósito: dentro do build da
+      # própria Cloudflare o Wrangler sabia o nome da branch sozinho, mas
+      # rodando aqui, num checkout comum, não há como ele adivinhar — sem o
+      # `--preview-alias`, a saída não tem "Version Preview Alias URL"
+      # nenhuma, só a URL pelo identificador da versão.
+      - name: Publicar a versão de prévia
+        id: previa
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          alias=$(echo "${{ github.head_ref }}" \
+            | tr '[:upper:]' '[:lower:]' \
+            | tr -c 'a-z0-9-' '-' \
+            | sed -E 's/-+/-/g; s/^-|-$//g')
+
+          saida="$(npx wrangler versions upload --preview-alias "$alias")"
+          echo "$saida"
+
+          # Se o formato da saída mudar num Wrangler futuro, cair para a URL
+          # pelo identificador da versão é melhor que quebrar o job inteiro.
+          url=$(echo "$saida" | grep -oP 'Version Preview Alias URL:\s*\K\S+' || true)
+          if [ -z "$url" ]; then
+            url=$(echo "$saida" | grep -oP 'Version Preview URL:\s*\K\S+' || true)
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+
+      # Um comentário só por Pull Request, atualizado a cada push — o mesmo
+      # endereço da branch, sempre no mesmo lugar, sem repetir a cada tentativa.
+      - name: Comentar a prévia no Pull Request
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh pr comment "${{ github.event.pull_request.number }}" \
+            --repo "${{ github.repository }}" \
+            --edit-last --create-if-none \
+            --body "🔎 Prévia desta branch: ${{ steps.previa.outputs.url }}"

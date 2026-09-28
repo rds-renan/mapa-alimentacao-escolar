@@ -3,8 +3,11 @@
 O que verifica cada Pull Request e como a web chega ao ar. É a
 [decisão 10](decisoes-tecnicas.md) implementada, e ela separa duas coisas de
 propósito: **a CI é o lugar onde o erro aparece, e a publicação é o lugar onde
-o produto aparece**. Quem publica é a Cloudflare, ligada ao repositório;
-quem verifica são as GitHub Actions, em [`.github/workflows/`](../../.github/workflows/).
+o produto aparece**. Quem publica a produção é a Cloudflare, ligada ao
+repositório; quem verifica, e desde a correção descrita em
+["a prévia passou a ser daqui"](#a-prévia-passou-a-ser-daqui) também quem
+publica a prévia do Pull Request, são as GitHub Actions, em
+[`.github/workflows/`](../../.github/workflows/).
 
 Isto entrou antes das telas de propósito: quanto mais cedo a verificação
 existe, menos retrabalho acumula, e cada Pull Request passa a ter um endereço
@@ -14,7 +17,7 @@ navegável desde o começo da etapa.
 
 | Fluxo | Dispara quando o PR toca | O que faz |
 |---|---|---|
-| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto |
+| [`web.yml`](../../.github/workflows/web.yml) | `web/` | ESLint, Prettier conferindo, checagem de tipos, testes, build e, sobre o pacote pronto, duas conferências: que nenhum segredo entrou dentro dele e que o peso não passou do teto; e, só em Pull Request e só se tudo isso passar, publica a prévia (ver a seção da correção, abaixo) |
 | [`banco.yml`](../../.github/workflows/banco.yml) | `supabase/`, o arquivo de tipos ou o script que o gera | sobe o Supabase local, reconstrói o banco das migrations, roda os cenários em pgTAP e confere se os tipos versionados continuam iguais aos do schema |
 | [`funcoes.yml`](../../.github/workflows/funcoes.yml) | `supabase/functions/` | formatação, lint, checagem de tipos e testes das Edge Functions, em Deno |
 | [`ponta-a-ponta.yml`](../../.github/workflows/ponta-a-ponta.yml) | `web/` ou `supabase/` | sobe o Supabase local com o Edge Runtime, constrói a aplicação e percorre o caminho crítico inteiro num navegador — ver [o teste de ponta a ponta](teste-ponta-a-ponta.md) |
@@ -224,9 +227,10 @@ O que continua de fora, de propósito:
 ## A publicação
 
 A web é publicada como um **Worker da Cloudflare servindo assets estáticos**,
-ligado ao repositório: cada commit que entra na `main` é construído e publicado,
-e cada branch ganha uma **prévia** com endereço próprio, que a Cloudflare posta
-como comentário no Pull Request.
+ligado ao repositório: cada commit que entra na `main` é construído e publicado
+por lá. A prévia por branch **não é mais publicada pela mesma integração** —
+ver [a correção logo abaixo](#a-prévia-passou-a-ser-daqui) — mas o endereço
+onde ela vive não mudou.
 
 O endereço de produção é **<https://mae.rds.dev.br>**, declarado como *custom
 domain* em [`web/wrangler.jsonc`](../../web/wrangler.jsonc). Fica no arquivo, e
@@ -245,12 +249,6 @@ novos devem começar por lá. O porquê da troca está na
 [decisão 10](decisoes-tecnicas.md); aqui interessa o efeito prático, que é
 quase nenhum — a aplicação é estática e as duas serviriam.
 
-**Por que pelo painel, e não por um fluxo do GitHub Actions.** Publicar pelas
-Actions exigiria guardar um token da Cloudflare nos segredos do GitHub e
-reescrever à mão o comentário de prévia que a integração já faz. A integração
-direta entrega o mesmo resultado sem mover credencial de lugar nenhum — e
-credencial que não existe não vaza.
-
 O que é publicado e como as rotas se comportam **não** mora no painel: está em
 [`web/wrangler.jsonc`](../../web/wrangler.jsonc), versionado, revisável em Pull
 Request. São três coisas: o nome, que define o endereço; a data de
@@ -262,7 +260,7 @@ rota do React Router aberta direto na barra de endereço ou recarregada com F5 �
 sem ele, tudo que não fosse a raiz daria 404, e **só em produção**, onde o
 servidor de desenvolvimento não está lá para disfarçar.
 
-No painel ficam apenas as ligações com o repositório:
+No painel ficam as ligações com o repositório que ainda decidem a produção:
 
 | Campo | Valor |
 |---|---|
@@ -270,10 +268,54 @@ No painel ficam apenas as ligações com o repositório:
 | Diretório raiz | `web` |
 | Comando de build | `npm run build` |
 | Comando de deploy | `npx wrangler deploy` |
+| Caminhos observados (`Build watch paths`) | incluir `web/*`; excluir `node_modules/**`, `.git/` |
 | Versão do Node | lida de `web/.node-version` |
 
-As prévias por branch exigem ligar as **build branches** de não-produção em
-Settings → Build → Branch control; sem isso, só a `main` é construída.
+### A prévia passou a ser daqui
+
+**O que quebrou.** A integração da Cloudflare builda e publica **toda branch**
+que recebe um push, sem olhar se o Pull Request toca `web/` — todo PR do
+aplicativo Android (E6) vinha ganhando um build e uma prévia da web, à toa.
+`Build watch paths` (`web/*`) existe no painel e parecia resolver, mas só
+filtra o build da **produção**; a aba de prévia mostra os mesmos caminhos,
+mas não os aplica — é uma limitação da própria Cloudflare, não uma
+configuração errada nossa. Achado em 27/09/2026, ao investigar por que a
+integração aparecia em Pull Requests do app; confirmado comparando o
+histórico de builds do Worker (`main` pula builds que não tocam `web/`; toda
+branch buildava, sempre) com o que o painel mostra em Settings → Builds →
+aba **Previews**.
+
+**A correção.** Desligado o toggle **"Builds for Preview branches"** nessa
+aba — a integração para de construir e publicar qualquer branch que não seja
+a de produção. A prévia por Pull Request passou para um job próprio,
+[`previa`, em `web.yml`](../../.github/workflows/web.yml), que herda o mesmo
+filtro de caminho que já protege o `verificar` (`paths: web/**`) e só roda
+depois dele passar — não se publica o que já reprovou.
+
+O job builda, sobe com `npx wrangler versions upload` — não `wrangler deploy`:
+cria uma versão nova sem mandar tráfego de produção para ela, o mesmo comando
+que a Cloudflare já rodava para toda branch — e comenta o endereço no Pull
+Request com `gh pr comment --edit-last --create-if-none`, um comentário só,
+atualizado a cada push.
+
+**O custo que isto troca.** A razão original de publicar só pelo painel era
+não mover credencial de lugar nenhum: "credencial que não existe não vaza".
+Ela continua verdadeira, e o preço por ignorá-la é agora um token da
+Cloudflare nos segredos do GitHub — mas o outro lado da balança mudou: sem
+caminho de filtrar a prévia pela própria Cloudflare, o custo de não mover a
+credencial passou a ser um build e um comentário por PR do aplicativo,
+recorrente, à toa. Entre as duas, o token vencido.
+
+O que isso pede, fora do repositório:
+
+| Onde | Nome | Valor |
+|---|---|---|
+| Segredo do GitHub | `CLOUDFLARE_API_TOKEN` | token com `Workers Scripts: Edit`, escopo da conta usada pelo `mae` |
+| Variável do GitHub | `CLOUDFLARE_ACCOUNT_ID` | o identificador da conta (não é segredo — está na própria URL do painel) |
+| Variável do GitHub | `VITE_SUPABASE_URL`, `VITE_SUPABASE_PUBLISHABLE_KEY` | as mesmas duas do painel da Cloudflare — públicas por construção (CA#6 da issue #59) |
+
+O token é escopo mínimo de propósito: só o que `versions upload` precisa,
+nada de DNS, zona ou outro Worker.
 
 ### Os cabeçalhos das respostas
 
@@ -335,21 +377,27 @@ surpresa.
 
 ### As variáveis de ambiente
 
-Ficam no painel, nos dois ambientes (produção e prévia): `VITE_SUPABASE_URL` e
-`VITE_SUPABASE_PUBLISHABLE_KEY`. São as mesmas de
+`VITE_SUPABASE_URL` e `VITE_SUPABASE_PUBLISHABLE_KEY` — as mesmas de
 [`web/.env.example`](../../web/.env.example), e a explicação de por que são
-públicas está na [fundação da web](fundacao-da-web.md#as-chaves).
+públicas está na [fundação da web](fundacao-da-web.md#as-chaves). A produção
+as tem no painel da Cloudflare; a prévia as tem como variáveis do repositório
+no GitHub, desde a correção acima — dois lugares agora, porque são dois
+ambientes que publicam por caminhos diferentes.
 
 **O dia previsto aqui chegou com a autenticação.** A web publicada agora abre
 no login e fala com o Supabase desde a primeira tela, então as duas variáveis
-passaram a ser obrigatórias nos dois ambientes do painel — sem elas, o
-aplicativo carrega e não sobe, porque o cliente recusa a configuração ausente
-em vez de tentar falar com endereço nenhum.
+passaram a ser obrigatórias nos dois ambientes — sem elas, o aplicativo carrega
+e não sobe, porque o cliente recusa a configuração ausente em vez de tentar
+falar com endereço nenhum.
 
-A CI continua sem segredo nenhum configurado, e isso não mudou: o build não
-precisa das variáveis para compilar, só o navegador precisa delas para
-funcionar. O que a CI ganhou foi o passo inverso — conferir que **nada além**
-delas entrou no pacote (ver [autenticação, sessão e rotas por perfil](autenticacao-e-sessao.md)).
+O job `verificar` continua sem segredo nenhum configurado, e isso não mudou:
+o build que ele faz é só para provar que compila, e nem essas duas variáveis
+ele recebe. O que ele ganhou foi o passo inverso — conferir que **nada além**
+delas entraria no pacote publicado (ver [autenticação, sessão e rotas por
+perfil](autenticacao-e-sessao.md)). Já o job `previa` **tem** segredo — é
+justamente o `CLOUDFLARE_API_TOKEN` da correção acima, porque ele publica de
+verdade, e publicar sem variável nenhuma derrubaria a prévia com o mesmo erro
+de configuração ausente que o parágrafo anterior descreve.
 
 Junto com as variáveis, o projeto do Supabase na nuvem precisa de duas coisas
 declaradas no painel, que o `config.toml` só resolve no ambiente local: os
