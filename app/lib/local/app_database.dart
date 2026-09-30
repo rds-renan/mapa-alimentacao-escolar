@@ -16,9 +16,9 @@ class FoodItems extends Table {
   Set<Column> get primaryKey => {id};
 }
 
-/// O mapa de um dia, espelhando `public.meal_map` — só os campos que a
-/// visão do mês (US008) precisa para calcular os cinco estados; gêneros
-/// usados e alteração do cardápio ficam para quando a #105 abrir o dia.
+/// O mapa de um dia, espelhando `public.meal_map` — os campos que a visão do
+/// mês (US008) precisa para calcular os cinco estados. Os gêneros e a
+/// alteração de cada refeição moram nas tabelas abaixo (issue #106).
 class MealMaps extends Table {
   TextColumn get id => text()();
   DateTimeColumn get mapDate => dateTime()();
@@ -57,6 +57,54 @@ class Meals extends Table {
   ];
 }
 
+/// Um gênero utilizado numa refeição, espelhando `public.meal_food_item`.
+///
+/// Guarda o nome e a unidade junto, e não só o identificador: é a forma em
+/// que o gênero sobe (`FoodItemPayload`), e o catálogo do aparelho pode ainda
+/// não conhecer um gênero que a colega cadastrou pela web — ler pela junção
+/// com [FoodItems] deixaria esse gênero sem nome até o catálogo atualizar.
+/// `position` guarda a ordem em que o servidor os devolveu.
+class MealFoodItems extends Table {
+  TextColumn get mealId =>
+      text().references(Meals, #id, onDelete: KeyAction.cascade)();
+  IntColumn get position => integer()();
+  TextColumn get foodItemId => text()();
+  TextColumn get name => text()();
+  TextColumn get unit => text().nullable()();
+  IntColumn get quantity => integer()();
+
+  @override
+  Set<Column> get primaryKey => {mealId, foodItemId};
+}
+
+/// A alteração do cardápio, espelhando `public.menu_change` — no máximo uma
+/// por refeição (RN#2 da US002), daí a refeição ser única aqui também.
+class MenuChanges extends Table {
+  TextColumn get id => text()();
+  TextColumn get mealId =>
+      text().unique().references(Meals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get reason => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
+/// Os gêneros que entraram na troca, espelhando
+/// `public.menu_change_food_item` — a mesma forma de [MealFoodItems], porque
+/// é a mesma lista, só que para outra coluna do documento (decisão 7 da E4).
+class MenuChangeFoodItems extends Table {
+  TextColumn get menuChangeId =>
+      text().references(MenuChanges, #id, onDelete: KeyAction.cascade)();
+  IntColumn get position => integer()();
+  TextColumn get foodItemId => text()();
+  TextColumn get name => text()();
+  TextColumn get unit => text().nullable()();
+  IntColumn get quantity => integer()();
+
+  @override
+  Set<Column> get primaryKey => {menuChangeId, foodItemId};
+}
+
 /// O dia por enviar, ainda não confirmado pelo servidor (issue #103) —
 /// rascunho e fila de envio são a mesma coisa, como na
 /// [camada local](../../../docs/06-app/fila-de-envio-e-convergencia.md) da
@@ -89,18 +137,30 @@ class PendingMealMaps extends Table {
   Set<Column> get primaryKey => {mapDate};
 }
 
-@DriftDatabase(tables: [FoodItems, MealMaps, Meals, PendingMealMaps])
+@DriftDatabase(
+  tables: [
+    FoodItems,
+    MealMaps,
+    Meals,
+    MealFoodItems,
+    MenuChanges,
+    MenuChangeFoodItems,
+    PendingMealMaps,
+  ],
+)
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    // A #103 só acrescentou uma tabela; `createAll()` cria o que falta e
-    // ignora o que já existe, então não há dado de nenhum arquivo local de
-    // desenvolvimento para migrar de verdade.
+    // A #103 e a #106 só acrescentaram tabelas; `createAll()` cria o que
+    // falta e ignora o que já existe, então não há dado de nenhum arquivo
+    // local de desenvolvimento para migrar de verdade. Os dias baixados antes
+    // da #106 ficam sem gêneros até o próximo `refreshMonth` do mês deles —
+    // que é a primeira coisa que a visão do mês faz ao abrir.
     onUpgrade: (m, from, to) async => m.createAll(),
   );
 }

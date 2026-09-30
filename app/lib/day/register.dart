@@ -1,5 +1,5 @@
 /// O dia sendo preenchido, em funções puras — porto de
-/// `web/src/day/register.ts` para o aplicativo (issue #105).
+/// `web/src/day/register.ts` para o aplicativo (issues #105 e #106).
 ///
 /// Cada função recebe o dia e devolve outro; nada aqui grava, envia ou
 /// desenha. É de propósito: a tela do registro é um formulário grande, e a
@@ -8,12 +8,6 @@
 /// atravessa intacto, e quem grava (a fila, issue #103) recebe sempre o dia
 /// completo — o que o contrato de `save_meal_map` exige, já que a lista que
 /// sobe é o dia todo e não um acréscimo.
-///
-/// Os gêneros utilizados e a alteração do cardápio (US002, US003) ficam para
-/// a issue #106: o que esta tela lê e grava por enquanto é só a descrição, a
-/// aceitação, o número de refeições e o dia não letivo — os campos que as
-/// `MealPayload`/`DayPayload` já carregam continuam vazios/nulos até a #106
-/// ganhar a interface que os preenche.
 library;
 
 import '../local/day.dart';
@@ -184,8 +178,8 @@ DayPayload setMealsServed(DayPayload day, int? mealsServed) => DayPayload(
   meals: day.meals,
 );
 
-/// O teto de tudo que é contado neste dia: `meals_served` é `smallint` no
-/// banco. Cortar aqui evita o dia que ela preencheu voltar recusado por um
+/// O teto de tudo que é contado neste dia: `meals_served` e as quantidades
+/// dos gêneros são `smallint` no banco. Cortar aqui evita o dia que ela preencheu voltar recusado por um
 /// dedo que ficou preso na tecla.
 const _maxCount = 32767;
 
@@ -274,3 +268,236 @@ DayPayload setNonSchoolDay(
     meals: restored.meals,
   );
 }
+
+MealPayload _copyMeal(
+  MealPayload meal, {
+  List<FoodItemPayload>? foodItems,
+  MenuChangePayload? Function()? menuChange,
+}) => MealPayload(
+  id: meal.id,
+  type: meal.type,
+  description: meal.description,
+  acceptance: meal.acceptance,
+  foodItems: foodItems ?? meal.foodItems,
+  menuChange: menuChange == null ? meal.menuChange : menuChange(),
+);
+
+// ---------------------------------------------------------------------------
+// Os gêneros utilizados, e a alteração do cardápio (issue #106)
+// ---------------------------------------------------------------------------
+
+/// Onde a lista de gêneros mora. São duas listas com a mesma forma, e não
+/// uma: elas alimentam **colunas diferentes** do documento oficial — os
+/// gêneros da refeição e os gêneros da troca (decisão 7 da E4).
+enum FoodItemList { meal, menuChange }
+
+/// O gênero que a folha 3b entrega: do catálogo (com identificador) ou
+/// cadastrado ali mesmo (sem identificador, com a unidade com que vai
+/// nascer). A quantidade não vem junto — quem põe na lista começa em 1.
+typedef FoodItemChoice = ({String? foodItemId, String name, String? unit});
+
+/// Como um gênero é achado dentro da lista.
+///
+/// É o nome normalizado, e não o identificador, porque é assim que o
+/// servidor decide se dois gêneros são o mesmo: o catálogo é único por nome
+/// normalizado dentro da escola, e dois nomes que normalizam igual viram uma
+/// linha só na gravação. Fosse a chave o identificador, "Arroz" do catálogo e
+/// um "arroz " recém-digitado conviveriam aqui e desapareceriam um no outro
+/// lá.
+String foodItemKey(String name) => normalizedName(name);
+
+List<FoodItemPayload> foodItemsOf(MealPayload? meal, FoodItemList list) {
+  if (meal == null) return const [];
+  return list == FoodItemList.meal
+      ? meal.foodItems
+      : (meal.menuChange?.foodItems ?? const []);
+}
+
+/// Devolve a refeição com a lista trocada. Mexer nos gêneros da troca quando
+/// ainda não há alteração **cria** a alteração, sem motivo: é a ordem em que
+/// a tela 3a acontece — primeiro ela escolhe o que usou, depois escreve por
+/// quê. Enquanto faltar o motivo, `canBeSent` segura o dia no aparelho.
+MealPayload _withList(
+  MealPayload meal,
+  FoodItemList list,
+  List<FoodItemPayload> items,
+) {
+  if (list == FoodItemList.meal) return _copyMeal(meal, foodItems: items);
+
+  final change = meal.menuChange;
+  return _copyMeal(
+    meal,
+    menuChange: () => MenuChangePayload(
+      id: change?.id ?? newId(),
+      reason: change?.reason ?? '',
+      foodItems: items,
+    ),
+  );
+}
+
+DayPayload _changeList(
+  DayPayload day,
+  String type,
+  FoodItemList list,
+  List<FoodItemPayload> Function(List<FoodItemPayload> items) change,
+) {
+  return _withMeal(
+    day,
+    type,
+    (meal) => _withList(meal, list, change(foodItemsOf(meal, list))),
+  );
+}
+
+FoodItemPayload _withQuantity(FoodItemPayload item, int quantity) =>
+    FoodItemPayload(
+      foodItemId: item.foodItemId,
+      name: item.name,
+      unit: item.unit,
+      quantity: quantity,
+    );
+
+/// Põe um gênero na lista, com a quantidade em 1 (decisão 7 da E3: escolhido
+/// o item, ele entra na refeição já com o stepper em 1).
+///
+/// Um gênero que já está na lista não entra de novo nem volta para 1: a
+/// gravação funde os dois pelo nome e ficaria valendo a última quantidade, o
+/// que apagaria em silêncio o número que ela já tinha ajustado.
+DayPayload addFoodItem(
+  DayPayload day,
+  String type,
+  FoodItemList list,
+  FoodItemChoice item,
+) {
+  return _changeList(
+    day,
+    type,
+    list,
+    (items) =>
+        items.any((one) => foodItemKey(one.name) == foodItemKey(item.name))
+        ? items
+        : [
+            ...items,
+            FoodItemPayload(
+              foodItemId: item.foodItemId,
+              name: item.name,
+              unit: item.unit,
+              quantity: 1,
+            ),
+          ],
+  );
+}
+
+DayPayload setFoodItemQuantity(
+  DayPayload day,
+  String type,
+  FoodItemList list,
+  String key,
+  int quantity,
+) {
+  final bounded = quantity < 1
+      ? 1
+      : (quantity > _maxCount ? _maxCount : quantity);
+
+  return _changeList(
+    day,
+    type,
+    list,
+    (items) => [
+      for (final item in items)
+        foodItemKey(item.name) == key ? _withQuantity(item, bounded) : item,
+    ],
+  );
+}
+
+DayPayload removeFoodItem(
+  DayPayload day,
+  String type,
+  FoodItemList list,
+  String key,
+) {
+  return _changeList(
+    day,
+    type,
+    list,
+    (items) => [
+      for (final item in items)
+        if (foodItemKey(item.name) != key) item,
+    ],
+  );
+}
+
+/// Um a mais, um a menos — e, no "−" de quem está em 1, o gênero sai da
+/// lista.
+///
+/// Quantidade zero não existe no banco (RN#1 da US003), então o botão
+/// precisava parar em 1 ou tirar o item. Tirar é o que ela quer: o gênero foi
+/// posto ali por engano, e um cesto de lixo a mais em cada linha encheria o
+/// cartão de ícone para um gesto que o "−" já nomeia.
+DayPayload stepFoodItemQuantity(
+  DayPayload day,
+  String type,
+  FoodItemList list,
+  String key,
+  int delta,
+) {
+  final matches = foodItemsOf(
+    mealOf(day, type),
+    list,
+  ).where((one) => foodItemKey(one.name) == key);
+  if (matches.isEmpty) return day;
+
+  final next = matches.first.quantity + delta;
+  if (next < 1) return removeFoodItem(day, type, list, key);
+
+  return setFoodItemQuantity(day, type, list, key, next);
+}
+
+/// A quantidade que ela digitou, virando número.
+///
+/// Só dígitos entram, como no número de refeições (CA#2 da US003). O vazio
+/// volta nulo para o campo poder ficar vazio enquanto ela troca o número — a
+/// lista só aceita inteiro maior que zero, e quem comete o valor é quem
+/// chama.
+int? parseQuantity(String text) => parseMealsServed(text);
+
+DayPayload setMenuChangeReason(DayPayload day, String type, String reason) {
+  return _withMeal(
+    day,
+    type,
+    (meal) => _copyMeal(
+      meal,
+      menuChange: () => MenuChangePayload(
+        id: meal.menuChange?.id ?? newId(),
+        reason: reason,
+        foodItems: meal.menuChange?.foodItems ?? const [],
+      ),
+    ),
+  );
+}
+
+/// Põe a alteração de volta como estava, ou tira-a. É o "Cancelar" da tela
+/// 3a, e é também a limpeza do que ficou vazio: alteração sem gênero e sem
+/// motivo não é alteração — é a tela 3a aberta e fechada sem nada.
+DayPayload setMenuChange(
+  DayPayload day,
+  String type,
+  MenuChangePayload? change,
+) {
+  return _withMeal(
+    day,
+    type,
+    (meal) => _copyMeal(meal, menuChange: () => change),
+  );
+}
+
+bool menuChangeIsEmpty(MenuChangePayload? change) {
+  if (change == null) return true;
+  return !_filled(change.reason) && change.foodItems.isEmpty;
+}
+
+/// A alteração está inteira? São as duas exigências do servidor: a
+/// justificativa (CA#2 da US002) e ao menos um gênero — sem os gêneros que
+/// entraram, a troca não descreve nada. Enquanto faltar uma delas, o dia
+/// fica guardado no aparelho e a tela diz o que falta.
+bool menuChangeIsComplete(MenuChangePayload? change) =>
+    change != null && _filled(change.reason) && change.foodItems.isNotEmpty;

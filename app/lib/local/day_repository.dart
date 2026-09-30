@@ -1,3 +1,5 @@
+import 'package:drift/drift.dart';
+
 import 'app_database.dart';
 import 'day.dart';
 
@@ -5,11 +7,10 @@ import 'day.dart';
 /// [MonthRepository.refreshMonth] — mais o único fato que só ele conhece:
 /// se o mapa está bloqueado.
 ///
-/// Os gêneros utilizados e a alteração do cardápio não entram aqui: o banco
-/// local ainda não os guarda (ficam para a #106 estender o esquema, mesmo
-/// raciocínio que adiou as tabelas na #102), e por isso [day] sempre traz
-/// essas duas listas vazias. É por isso que a tela do registro (#105) só lê e
-/// grava a descrição, a aceitação, o número de refeições e o dia não letivo.
+/// O dia vem inteiro, com os gêneros utilizados e a alteração do cardápio de
+/// cada refeição (issue #106): é isto que a tela reenvia a cada tecla, e o
+/// contrato de `save_meal_map` substitui a lista inteira — ler o dia sem os
+/// gêneros e reenviá-lo os apagaria do servidor.
 class ConfirmedDay {
   const ConfirmedDay({required this.day, required this.locked});
 
@@ -35,6 +36,44 @@ class DayRepository {
       final meals = await (_db.select(
         _db.meals,
       )..where((t) => t.mealMapId.equals(map.id))).get();
+      final mealIds = meals.map((meal) => meal.id).toList();
+
+      final mealItems =
+          await (_db.select(_db.mealFoodItems)
+                ..where((t) => t.mealId.isIn(mealIds))
+                ..orderBy([(t) => OrderingTerm(expression: t.position)]))
+              .get();
+      final changes = await (_db.select(
+        _db.menuChanges,
+      )..where((t) => t.mealId.isIn(mealIds))).get();
+      final changeItems =
+          await (_db.select(_db.menuChangeFoodItems)
+                ..where(
+                  (t) => t.menuChangeId.isIn(changes.map((one) => one.id)),
+                )
+                ..orderBy([(t) => OrderingTerm(expression: t.position)]))
+              .get();
+
+      MenuChangePayload? changeOf(String mealId) {
+        for (final change in changes) {
+          if (change.mealId != mealId) continue;
+          return MenuChangePayload(
+            id: change.id,
+            reason: change.reason,
+            foodItems: [
+              for (final item in changeItems)
+                if (item.menuChangeId == change.id)
+                  FoodItemPayload(
+                    foodItemId: item.foodItemId,
+                    name: item.name,
+                    unit: item.unit,
+                    quantity: item.quantity,
+                  ),
+            ],
+          );
+        }
+        return null;
+      }
 
       return ConfirmedDay(
         locked: map.locked,
@@ -52,8 +91,17 @@ class DayRepository {
                 type: meal.type,
                 description: meal.description,
                 acceptance: meal.acceptance,
-                foodItems: const [],
-                menuChange: null,
+                foodItems: [
+                  for (final item in mealItems)
+                    if (item.mealId == meal.id)
+                      FoodItemPayload(
+                        foodItemId: item.foodItemId,
+                        name: item.name,
+                        unit: item.unit,
+                        quantity: item.quantity,
+                      ),
+                ],
+                menuChange: changeOf(meal.id),
               ),
           ],
         ),

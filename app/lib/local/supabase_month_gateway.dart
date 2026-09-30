@@ -19,7 +19,10 @@ class SupabaseMonthGateway implements MonthGateway {
         .from('meal_map')
         .select(
           'id, map_date, non_school_day, note, meals_served, locked, '
-          'updated_at, meal(id, type, description, acceptance)',
+          'updated_at, meal(id, type, description, acceptance, '
+          'meal_food_item(food_item_id, quantity, food_item(name, default_unit)), '
+          'menu_change(id, reason, menu_change_food_item(food_item_id, '
+          'quantity, food_item(name, default_unit))))',
         )
         .gte('map_date', _isoDate(firstDay))
         .lte('map_date', _isoDate(lastDay));

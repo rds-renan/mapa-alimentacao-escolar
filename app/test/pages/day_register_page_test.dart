@@ -6,6 +6,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/auth/auth_controller.dart';
 import 'package:mae/auth/profile.dart';
 import 'package:mae/local/app_database.dart';
+import 'package:mae/local/day.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
 import 'package:mae/routing/app_router.dart';
@@ -13,17 +14,21 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../local/fake_catalog_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
 
-/// A tela central do produto (issue #105), critério por critério: as três
-/// refeições com cardápio previsto e aceitação em três botões, o número de
-/// refeições com teclado numérico, o dia não letivo só com observação, o
-/// mapa bloqueado sem edição, e o botão voltar do Android de volta ao mês.
+/// A tela central do produto (issues #105 e #106), critério por critério: as
+/// três refeições com cardápio previsto e aceitação em três botões, o número
+/// de refeições com teclado numérico, o dia não letivo só com observação, o
+/// mapa bloqueado sem edição, o botão voltar do Android de volta ao mês — e
+/// os gêneros com stepper, a folha de escolher gênero e a alteração do
+/// cardápio.
 void main() {
   late FakeAuthGateway gateway;
   late FakeMonthGateway monthGateway;
   late FakeSyncGateway syncGateway;
+  late FakeCatalogGateway catalogGateway;
   late ProviderContainer container;
 
   const cook = Profile(
@@ -38,11 +43,13 @@ void main() {
     gateway = FakeAuthGateway()..profileForUser = (_) => cook;
     monthGateway = FakeMonthGateway();
     syncGateway = FakeSyncGateway();
+    catalogGateway = FakeCatalogGateway();
     container = ProviderContainer(
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         monthGatewayProvider.overrideWithValue(monthGateway),
         syncGatewayProvider.overrideWithValue(syncGateway),
+        catalogGatewayProvider.overrideWithValue(catalogGateway),
         appDatabaseProvider.overrideWith(
           (ref, profileId) => AppDatabase(NativeDatabase.memory()),
         ),
@@ -97,6 +104,48 @@ void main() {
     await tester.pumpWidget(const SizedBox());
     await tester.pump(Duration.zero);
   }
+
+  /// O catálogo já no aparelho, como se tivesse sido baixado antes. A folha
+  /// pede atualização ao abrir, e o gateway falso devolve lista vazia — o
+  /// que não apaga nada, como na vida real.
+  Future<void> seedCatalog() async {
+    final db = container.read(appDatabaseProvider(cook.id));
+    await db.batch((batch) {
+      batch.insertAll(db.foodItems, [
+        FoodItemsCompanion.insert(
+          id: 'rice',
+          name: 'Arroz',
+          unit: 'quilo',
+          active: true,
+        ),
+        FoodItemsCompanion.insert(
+          id: 'beans',
+          name: 'Feijão',
+          unit: 'quilo',
+          active: true,
+        ),
+        FoodItemsCompanion.insert(
+          id: 'egg',
+          name: 'Ovo',
+          unit: 'bandeja',
+          active: true,
+        ),
+        FoodItemsCompanion.insert(
+          id: 'salt',
+          name: 'Sal',
+          unit: 'pacote',
+          active: false,
+        ),
+      ]);
+    });
+  }
+
+  /// O botão da alteração, enquanto ela não existe — o rótulo também é o
+  /// título da seção quando ela existe, então o botão é achado pelo tipo.
+  final menuChangeButton = find.widgetWithText(
+    OutlinedButton,
+    'Alteração do cardápio',
+  );
 
   testWidgets(
     'as três refeições abrem, cada uma com o cardápio previsto e três '
@@ -279,6 +328,320 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Gerar documento'), findsOneWidget);
+
+      await dispose(tester);
+    });
+  });
+
+  testWidgets(
+    'gêneros entram pela folha com busca, em 1, e o stepper anda em inteiros',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await seedCatalog();
+        await openDay(tester, 1);
+
+        expect(find.text('Gêneros utilizados'), findsOneWidget);
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Escolher gênero'), findsOneWidget);
+        expect(find.text('Arroz'), findsOneWidget);
+        // Desativado some das sugestões (CA#3 da US009).
+        expect(find.text('Sal'), findsNothing);
+
+        // A busca ignora acento.
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Buscar gênero'),
+          'feijao',
+        );
+        await tester.pumpAndSettle();
+        expect(find.text('Arroz'), findsNothing);
+
+        await tester.tap(find.text('Feijão'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Escolher gênero'), findsNothing);
+        expect(find.text('Feijão'), findsOneWidget);
+        expect(find.widgetWithText(TextField, '1'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Um a mais de Feijão'));
+        await tester.pump();
+        expect(find.widgetWithText(TextField, '2'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Um a menos de Feijão'));
+        await tester.pump();
+        await tester.tap(find.byTooltip('Tirar Feijão da lista'));
+        await tester.pump();
+        expect(find.text('Feijão'), findsNothing);
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets(
+    'o gênero que já está na refeição aparece marcado e não entra de novo',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await seedCatalog();
+        await openDay(tester, 1);
+
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Arroz'));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+        expect(find.text('já está aqui'), findsOneWidget);
+
+        await tester.tap(find.byTooltip('Fechar a escolha de gênero'));
+        await tester.pumpAndSettle();
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets('sem rede, cadastra o gênero novo na folha e ele entra na '
+      'refeição', (tester) async {
+    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+      catalogGateway.fetchError = Exception('sem rede');
+      await openDay(tester, 1);
+
+      await tester.tap(find.text('Adicionar gênero'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.textContaining('O catálogo ainda não foi baixado'),
+        findsOneWidget,
+      );
+
+      // O que ela buscou já vira o nome do cadastro.
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Buscar gênero'),
+        'Farinha de mandioca',
+      );
+      await tester.pumpAndSettle();
+
+      final add = find.widgetWithText(FilledButton, 'Adicionar à refeição');
+      expect(tester.widget<FilledButton>(add).onPressed, isNull);
+
+      await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
+      await tester.pumpAndSettle();
+      await tester.tap(add);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Farinha de mandioca'), findsOneWidget);
+      expect(find.text('quilo'), findsOneWidget);
+
+      final draft = await container
+          .read(syncEngineProvider(cook.id))
+          .load('2026-09-01');
+      final item = draft!.meals.single.foodItems.single;
+      expect(item.foodItemId, isNull);
+      expect(item.name, 'Farinha de mandioca');
+      expect(item.unit, 'quilo');
+      expect(item.quantity, 1);
+
+      await dispose(tester);
+    });
+  });
+
+  testWidgets(
+    'a alteração do cardápio guarda gêneros e motivo, e vira resumo no '
+    'cartão — uma só por refeição',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await seedCatalog();
+        await openDay(tester, 1);
+
+        await tester.tap(menuChangeButton);
+        await tester.pumpAndSettle();
+
+        expect(
+          find.textContaining('continua registrado como o cardápio previsto'),
+          findsOneWidget,
+        );
+        expect(find.text('Gêneros utilizados na troca'), findsOneWidget);
+
+        // A folha 3b sobe por cima da tela 3a.
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Ovo'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Ovo'), findsOneWidget);
+        expect(
+          find.text('Escreva o motivo para esta alteração entrar no mapa.'),
+          findsOneWidget,
+        );
+
+        await tester.tap(find.text('Falta de entrega do fornecedor'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text('Escreva o motivo para esta alteração entrar no mapa.'),
+          findsNothing,
+        );
+
+        await tester.tap(find.text('Confirmar alteração'));
+        await tester.pumpAndSettle();
+
+        // De volta ao cartão: o resumo no lugar do botão, e sem botão para
+        // uma segunda alteração (RN#2 da US002).
+        expect(find.text('1 bandeja de ovo'), findsOneWidget);
+        expect(find.text('Falta de entrega do fornecedor'), findsOneWidget);
+        expect(menuChangeButton, findsNothing);
+
+        final draft = await container
+            .read(syncEngineProvider(cook.id))
+            .load('2026-09-01');
+        final change = draft!.meals.single.menuChange!;
+        expect(change.reason, 'Falta de entrega do fornecedor');
+        expect(change.foodItems.single.foodItemId, 'egg');
+        // A troca não mexe nos gêneros da refeição (decisão 7 da E4).
+        expect(draft.meals.single.foodItems, isEmpty);
+
+        // Tocar no resumo reabre a mesma alteração para editar.
+        await tester.tap(find.text('1 bandeja de ovo'));
+        await tester.pumpAndSettle();
+        expect(find.text('Ovo'), findsOneWidget);
+        await tester.tap(find.text('Confirmar alteração'));
+        await tester.pumpAndSettle();
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets('cancelar a alteração devolve o que havia antes de abrir', (
+    tester,
+  ) async {
+    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+      await seedCatalog();
+      await openDay(tester, 1);
+
+      await tester.tap(menuChangeButton);
+      await tester.pumpAndSettle();
+      await tester.enterText(
+        find.widgetWithText(TextField, 'Toque para escrever o motivo da troca'),
+        'Item impróprio',
+      );
+      await tester.pump();
+
+      await tester.tap(find.text('Cancelar'));
+      await tester.pumpAndSettle();
+
+      expect(menuChangeButton, findsOneWidget);
+      expect(find.text('Item impróprio'), findsNothing);
+
+      final draft = await container
+          .read(syncEngineProvider(cook.id))
+          .load('2026-09-01');
+      expect(draft!.meals.single.menuChange, isNull);
+
+      await dispose(tester);
+    });
+  });
+
+  testWidgets('fechar a alteração sem nada dentro não deixa alteração vazia', (
+    tester,
+  ) async {
+    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+      await openDay(tester, 1);
+
+      await tester.tap(menuChangeButton);
+      await tester.pumpAndSettle();
+      final reason = find.widgetWithText(
+        TextField,
+        'Toque para escrever o motivo da troca',
+      );
+      await tester.enterText(reason, 'Item');
+      await tester.pump();
+      await tester.enterText(find.byType(TextField).last, '');
+      await tester.pump();
+
+      // O botão voltar do Android, que é confirmar.
+      await tester.binding.handlePopRoute();
+      await tester.pumpAndSettle();
+
+      expect(menuChangeButton, findsOneWidget);
+      final draft = await container
+          .read(syncEngineProvider(cook.id))
+          .load('2026-09-01');
+      expect(draft!.meals.single.menuChange, isNull);
+
+      await dispose(tester);
+    });
+  });
+
+  testWidgets('mapa bloqueado mostra gêneros e alteração só para consulta', (
+    tester,
+  ) async {
+    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+      monthGateway.maps = [
+        RemoteMealMap(
+          id: 'map-1',
+          mapDate: DateTime(2026, 9, 3),
+          nonSchoolDay: false,
+          note: null,
+          mealsServed: 300,
+          locked: true,
+          updatedAt: DateTime(2026, 9, 3, 18),
+          meals: const [
+            RemoteMeal(
+              id: 'meal-1',
+              type: 'lunch',
+              description: 'Arroz e feijão',
+              acceptance: 'great',
+              foodItems: [
+                FoodItemPayload(
+                  foodItemId: 'rice',
+                  name: 'Arroz',
+                  unit: 'quilo',
+                  quantity: 4,
+                ),
+              ],
+              menuChange: MenuChangePayload(
+                id: 'change-1',
+                reason: 'Item impróprio',
+                foodItems: [
+                  FoodItemPayload(
+                    foodItemId: 'egg',
+                    name: 'Ovo',
+                    unit: 'bandeja',
+                    quantity: 3,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ];
+
+      await openDay(tester, 3);
+      await tester.tap(find.text('Almoço'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Arroz'), findsOneWidget);
+      expect(find.text('Adicionar gênero'), findsNothing);
+      expect(
+        tester
+            .widget<IconButton>(
+              find.widgetWithIcon(IconButton, Icons.add).first,
+            )
+            .onPressed,
+        isNull,
+      );
+      expect(find.text('3 bandejas de ovo'), findsOneWidget);
+
+      await tester.tap(find.text('3 bandejas de ovo'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Cancelar'), findsNothing);
+      expect(find.text('Remover a alteração'), findsNothing);
+      await tester.tap(find.widgetWithText(FilledButton, 'Fechar'));
+      await tester.pumpAndSettle();
 
       await dispose(tester);
     });

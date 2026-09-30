@@ -1,12 +1,13 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/day/register.dart';
+import 'package:mae/food_items/catalog.dart';
 import 'package:mae/local/day.dart';
 
 /*
  * As regras do registro, sem tela no meio — o mesmo raciocínio de
- * `web/src/day/register.test.ts`, mas só para o que a issue #105 cobre: a
- * descrição, a aceitação, o número de refeições e o dia não letivo. Os
- * gêneros utilizados e a alteração do cardápio ficam para a #106.
+ * `web/src/day/register.test.ts`: a descrição, a aceitação, o número de
+ * refeições e o dia não letivo (issue #105), os gêneros utilizados e a
+ * alteração do cardápio (issue #106).
  */
 
 const _date = '2026-09-10';
@@ -136,6 +137,180 @@ void main() {
       expect(stepMealsServed(312, 1), 313);
       expect(stepMealsServed(1, -1), isNull);
       expect(stepMealsServed(null, -1), isNull);
+    });
+  });
+
+  group('os gêneros de uma refeição (US003)', () {
+    const rice = (foodItemId: 'rice', name: 'Arroz', unit: 'quilo');
+    const egg = (foodItemId: null, name: 'Ovo', unit: 'bandeja');
+
+    test('entram com a quantidade em 1', () {
+      final day = addFoodItem(
+        emptyDay(_date),
+        'lunch',
+        FoodItemList.meal,
+        rice,
+      );
+      final item = mealOf(day, 'lunch')!.foodItems.single;
+
+      expect(item.foodItemId, 'rice');
+      expect(item.unit, 'quilo');
+      expect(item.quantity, 1);
+    });
+
+    test('o mesmo gênero não entra duas vezes nem volta para 1', () {
+      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
+      day = setFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 4);
+      // O mesmo gênero, com a caixa e o espaço que o servidor normalizaria.
+      day = addFoodItem(day, 'lunch', FoodItemList.meal, (
+        foodItemId: null,
+        name: ' ARROZ ',
+        unit: 'quilo',
+      ));
+
+      final items = mealOf(day, 'lunch')!.foodItems;
+      expect(items, hasLength(1));
+      expect(items.single.quantity, 4);
+    });
+
+    test('andam de um em um, e o "−" de quem está em 1 tira o gênero', () {
+      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
+      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 1);
+      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 2);
+
+      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', -1);
+      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 1);
+
+      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', -1);
+      expect(mealOf(day, 'lunch')!.foodItems, isEmpty);
+    });
+
+    test('a quantidade digitada é inteira, maior que zero e cabe no banco', () {
+      expect(parseQuantity('1,5'), 15);
+      expect(parseQuantity('-3'), 3);
+      expect(parseQuantity('0'), isNull);
+      expect(parseQuantity(''), isNull);
+
+      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
+      day = setFoodItemQuantity(
+        day,
+        'lunch',
+        FoodItemList.meal,
+        'arroz',
+        99999,
+      );
+      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 32767);
+
+      day = setFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 0);
+      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 1);
+    });
+
+    test('as duas listas não se misturam (decisão 7 da E4)', () {
+      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
+      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, egg);
+
+      final lunch = mealOf(day, 'lunch')!;
+      expect(lunch.foodItems.single.name, 'Arroz');
+      expect(lunch.menuChange!.foodItems.single.name, 'Ovo');
+    });
+
+    test('o gênero cadastrado na folha sobe com a unidade e sem id, e o dia '
+        'pode subir', () {
+      final day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, egg);
+      final item = mealOf(day, 'lunch')!.foodItems.single;
+
+      expect(item.foodItemId, isNull);
+      expect(item.unit, 'bandeja');
+      expect(canBeSent(day), isTrue);
+    });
+  });
+
+  group('a alteração do cardápio (US002)', () {
+    const egg = (foodItemId: null, name: 'Ovo', unit: 'bandeja');
+    const rice = (foodItemId: 'rice', name: 'Arroz', unit: 'quilo');
+
+    test('nasce do primeiro gênero da troca, sem motivo ainda', () {
+      final day = addFoodItem(
+        emptyDay(_date),
+        'lunch',
+        FoodItemList.menuChange,
+        egg,
+      );
+      final change = mealOf(day, 'lunch')!.menuChange!;
+
+      expect(change.reason, '');
+      expect(change.foodItems.single.quantity, 1);
+    });
+
+    test('é uma só por refeição: o segundo gênero entra na mesma', () {
+      var day = addFoodItem(
+        emptyDay(_date),
+        'lunch',
+        FoodItemList.menuChange,
+        egg,
+      );
+      final born = mealOf(day, 'lunch')!.menuChange!.id;
+      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, rice);
+      day = setMenuChangeReason(day, 'lunch', 'Falta de entrega');
+
+      final change = mealOf(day, 'lunch')!.menuChange!;
+      expect(change.id, born);
+      expect(change.foodItems, hasLength(2));
+      expect(change.reason, 'Falta de entrega');
+    });
+
+    test('só está inteira com gênero e motivo, e só então o dia sobe', () {
+      var day = addFoodItem(
+        emptyDay(_date),
+        'lunch',
+        FoodItemList.menuChange,
+        egg,
+      );
+      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+      expect(canBeSent(day), isFalse);
+
+      day = setMenuChangeReason(day, 'lunch', '   ');
+      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+
+      day = setMenuChangeReason(day, 'lunch', 'Item impróprio');
+      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isTrue);
+      expect(canBeSent(day), isTrue);
+
+      day = removeFoodItem(day, 'lunch', FoodItemList.menuChange, 'ovo');
+      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+    });
+
+    test('vazia é vazia, e tirá-la deixa a refeição sem alteração', () {
+      var day = setMenuChangeReason(emptyDay(_date), 'lunch', '');
+      expect(menuChangeIsEmpty(mealOf(day, 'lunch')!.menuChange), isTrue);
+
+      day = setMenuChange(day, 'lunch', null);
+      expect(mealOf(day, 'lunch')!.menuChange, isNull);
+    });
+
+    test('mexer na alteração não mexe no cardápio previsto', () {
+      var day = _dayWithMeals();
+      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, egg);
+      day = setMenuChangeReason(day, 'lunch', 'Item impróprio');
+
+      expect(mealOf(day, 'lunch')!.description, 'Arroz, feijão e frango');
+      expect(mealOf(day, 'morning_snack')!.menuChange, isNull);
+    });
+  });
+
+  group('o catálogo na folha 3b', () {
+    test('a busca ignora acento e caixa', () {
+      expect(matchesSearch('Feijão', 'feijao'), isTrue);
+      expect(matchesSearch('Maçã', 'MACA'), isTrue);
+      expect(matchesSearch('Arroz', 'feij'), isFalse);
+      expect(matchesSearch('Arroz', ''), isTrue);
+    });
+
+    test('a quantidade resumida no cartão leva o plural simples', () {
+      expect(quantityLabel(1, 'quilo'), '1 quilo');
+      expect(quantityLabel(3, 'bandeja'), '3 bandejas');
+      expect(quantityLabel(2, 'latas'), '2 latas');
+      expect(quantityLabel(2, null), '2');
     });
   });
 }

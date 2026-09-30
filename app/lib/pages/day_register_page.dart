@@ -4,8 +4,11 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../auth/auth_controller.dart';
+import '../day/food_item_list.dart';
+import '../day/food_item_sheet.dart';
 import '../day/meal_card.dart';
 import '../day/meals_served_card.dart';
+import '../day/menu_change_page.dart';
 import '../day/messages.dart';
 import '../day/non_school_day_card.dart';
 import '../day/register.dart';
@@ -18,11 +21,9 @@ import '../theme/theme.dart';
 import '../widgets/conflict_notice.dart';
 import '../widgets/sync_banner.dart';
 
-/// O registro do dia (issue #105) — a tela central do produto (US001, com a
-/// US004 a US007 dentro dela). É a versão em Flutter de
-/// `web/src/pages/DayRegister.tsx`, sem os gêneros utilizados e a alteração
-/// do cardápio (US002, US003): esses dois blocos são da issue #106, que
-/// estende tanto o banco local quanto esta tela.
+/// O registro do dia (issues #105 e #106) — a tela central do produto
+/// (US001, com a US002 a US007 dentro dela). É a versão em Flutter de
+/// `web/src/pages/DayRegister.tsx`.
 ///
 /// Não há botão de salvar (decisão 3 da E3): cada tecla vira rascunho no
 /// aparelho na hora — [SyncEngine.save] —, e quem leva ao servidor é a fila
@@ -64,6 +65,17 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
   /// devolve (CA#3 da US006).
   SchoolDayContent? _preserved;
 
+  /// O dia que está na tela, atualizado já no gesto — e não só no próximo
+  /// `build` — para dois toques seguidos no stepper não partirem do mesmo
+  /// dia velho.
+  DayPayload? _shown;
+
+  /// O mesmo dia, para a tela 3a, que é outra rota e não se reconstrói com
+  /// esta: cada tecla dela passa por [_change] e volta por aqui.
+  final _live = ValueNotifier<DayPayload?>(null);
+
+  String? _profileId;
+
   /// A última data de conflito já tratada (recarregada), para não relê-la a
   /// cada notificação da fila enquanto ela continuar visível.
   String? _handledConflictAt;
@@ -92,6 +104,10 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
       _draft = stored;
       _draftLoaded = true;
     });
+    if (stored != null) {
+      _shown = stored;
+      _live.value = stored;
+    }
   }
 
   /// A convergência nunca se resolve em silêncio (CA#3 da US011): perdido o
@@ -117,13 +133,95 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
   @override
   void dispose() {
     _engine?.stateListenable.removeListener(_onSyncChange);
+    _live.dispose();
     super.dispose();
   }
 
   void _change(DayPayload day) {
     final touched = touch(day);
+    _shown = touched;
+    _live.value = touched;
     setState(() => _draft = touched);
     unawaited(_engine!.save(touched));
+  }
+
+  /// O que os steppers de uma lista fazem. O mesmo trio serve às duas listas
+  /// da refeição — os gêneros dela e os da troca —, e é o [list] que diz
+  /// qual.
+  FoodItemActions _foodItemActions(String type, FoodItemList list) {
+    return FoodItemActions(
+      add: () => unawaited(_addFoodItem(type, list)),
+      step: (key, delta) =>
+          _change(stepFoodItemQuantity(_shown!, type, list, key, delta)),
+      setQuantity: (key, quantity) =>
+          _change(setFoodItemQuantity(_shown!, type, list, key, quantity)),
+    );
+  }
+
+  /// Abre a folha 3b e põe o gênero escolhido na lista. Aberta de dentro da
+  /// tela 3a, a folha sobe por cima dela: as duas estão no mesmo
+  /// `Navigator`.
+  Future<void> _addFoodItem(String type, FoodItemList list) async {
+    final day = _shown;
+    final profileId = _profileId;
+    if (day == null || profileId == null) return;
+
+    final choice = await showFoodItemSheet(
+      context,
+      type: type,
+      mapDate: widget.mapDate,
+      chosen: [
+        for (final item in foodItemsOf(mealOf(day, type), list))
+          foodItemKey(item.name),
+      ],
+      catalog: ref.read(catalogRepositoryProvider(profileId)),
+    );
+    if (choice == null || !mounted) return;
+
+    _change(addFoodItem(_shown!, type, list, choice));
+  }
+
+  /// A tela 3a. A alteração como estava ao abrir é o que o "Cancelar"
+  /// devolve — sem isso ele não teria como desfazer, porque o que ela digita
+  /// lá já foi para o aparelho na hora.
+  Future<void> _openMenuChange(String type, {required bool readOnly}) async {
+    final day = _shown;
+    if (day == null) return;
+
+    final before = mealOf(day, type)?.menuChange;
+    _live.value = day;
+
+    final exit = await showMenuChangePage(
+      context,
+      type: type,
+      mapDate: widget.mapDate,
+      day: _live,
+      readOnly: readOnly,
+      actions: _foodItemActions(type, FoodItemList.menuChange),
+      onReasonChange: (reason) =>
+          _change(setMenuChangeReason(_shown!, type, reason)),
+    );
+    if (!mounted) return;
+
+    final now = _shown!;
+    final current = mealOf(now, type)?.menuChange;
+
+    switch (exit) {
+      case MenuChangeExit.cancel:
+        if (!identical(current, before)) {
+          _change(setMenuChange(now, type, before));
+        }
+      case MenuChangeExit.remove:
+        _change(setMenuChange(now, type, null));
+      // Confirmar é fechar — o que está escrito já está gravado. O que ele
+      // decide é o que fica: a alteração aberta e fechada sem nada dentro
+      // sai do dia, em vez de virar um registro vazio que o servidor
+      // recusaria para sempre.
+      case null:
+        if (current != null && menuChangeIsEmpty(current)) {
+          _change(setMenuChange(now, type, null));
+        }
+    }
   }
 
   void _toggleNonSchoolDay(DayPayload day, bool on) {
@@ -150,6 +248,7 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    _profileId = profile.id;
     _attachEngine(ref.watch(syncEngineProvider(profile.id)));
     _ensureDayStream(ref.watch(dayRepositoryProvider(profile.id)));
     final engine = _engine!;
@@ -169,6 +268,7 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
             snapshot.connectionState != ConnectionState.waiting) {
           day = emptyDay(widget.mapDate);
         }
+        if (day != null && !identical(day, _shown)) _shown = day;
 
         return Scaffold(
           appBar: AppBar(title: Text(dayTitle(widget.mapDate))),
@@ -205,6 +305,10 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
                             _change(setAcceptance(day!, type, acceptance)),
                         onMealsServedChange: (value) =>
                             _change(setMealsServed(day!, value)),
+                        foodItemActions: (type) =>
+                            _foodItemActions(type, FoodItemList.meal),
+                        onOpenMenuChange: (type) =>
+                            _openMenuChange(type, readOnly: locked),
                         onReady: () => _chooseOpenMealOnce(day!),
                       ),
               ),
@@ -279,6 +383,8 @@ class _DayForm extends StatelessWidget {
     required this.onDescriptionChange,
     required this.onAcceptanceChange,
     required this.onMealsServedChange,
+    required this.foodItemActions,
+    required this.onOpenMenuChange,
     required this.onReady,
   });
 
@@ -291,6 +397,8 @@ class _DayForm extends StatelessWidget {
   final void Function(String type, String description) onDescriptionChange;
   final void Function(String type, String acceptance) onAcceptanceChange;
   final void Function(int? value) onMealsServedChange;
+  final FoodItemActions Function(String type) foodItemActions;
+  final void Function(String type) onOpenMenuChange;
   final VoidCallback onReady;
 
   @override
@@ -326,6 +434,8 @@ class _DayForm extends StatelessWidget {
                   onDescriptionChange(type, description),
               onAcceptanceChange: (acceptance) =>
                   onAcceptanceChange(type, acceptance),
+              foodItems: foodItemActions(type),
+              onOpenMenuChange: () => onOpenMenuChange(type),
             ),
           ],
           const SizedBox(height: kSpacingUnit * 3),
