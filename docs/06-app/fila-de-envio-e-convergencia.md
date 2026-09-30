@@ -98,8 +98,7 @@ versões em Dart de `sync-banner.tsx` e `conflict-notice.tsx` — a tela de
 - **Gerar o `DayPayload`.** Feito em
   [`day/register.dart`](../../app/lib/day/register.dart) — os campos que a
   #105 cobre (descrição, aceitação, número de refeições, dia não letivo);
-  os gêneros e a alteração do cardápio, que também moram no payload, ficam
-  vazios/nulos até a #106.
+  os gêneros e a alteração do cardápio vieram com a #106.
 - **Ligar a fila à tela.** `syncEngineProvider`, em
   [`local_providers.dart`](../../app/lib/local/local_providers.dart), mesmo
   raciocínio do `appDatabaseProvider` da #102.

@@ -2,9 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../supabase.dart';
 import 'app_database.dart';
+import 'catalog_gateway.dart';
+import 'catalog_repository.dart';
 import 'day_repository.dart';
 import 'month_gateway.dart';
 import 'month_repository.dart';
+import 'supabase_catalog_gateway.dart';
 import 'supabase_month_gateway.dart';
 import 'supabase_sync_gateway.dart';
 import 'sync_engine.dart';
@@ -44,6 +47,22 @@ final monthRepositoryProvider = Provider.family<MonthRepository, String>((
   return MonthRepository(
     ref.watch(appDatabaseProvider(profileId)),
     ref.watch(monthGatewayProvider),
+  );
+});
+
+/// O catálogo de gêneros. Quem o lê primeiro é a folha de escolher gênero
+/// (issue #106); a manutenção dele (issue #107) lê pela mesma porta.
+final catalogGatewayProvider = Provider<CatalogGateway>((ref) {
+  return SupabaseCatalogGateway(supabase);
+});
+
+final catalogRepositoryProvider = Provider.family<CatalogRepository, String>((
+  ref,
+  profileId,
+) {
+  return CatalogRepository(
+    ref.watch(appDatabaseProvider(profileId)),
+    ref.watch(catalogGatewayProvider),
   );
 });
 

@@ -9,25 +9,22 @@ memória o que já está escrito. O código está em
 [`app/lib/pages/day_register_page.dart`](../../app/lib/pages/day_register_page.dart)
 (a tela).
 
-## O que esta issue cobre, e o que fica para a #106
+## O que esta issue cobre, e o que ficou para a #106
 
 A issue #105 e a #106 nasceram separadas: esta cobre a descrição ("Cardápio
 previsto"), a aceitação em três botões, o número de refeições e o dia não
 letivo — as três primeiras seções da tela 3. Os gêneros utilizados e a
-alteração do cardápio (US002, US003 — a tela 3a e a folha 3b da E3) são da
-#106, que também estende o esquema local para guardá-los.
+alteração do cardápio (US002, US003 — a tela 3a e a folha 3b da E3) vieram
+com a #106, que também estendeu o esquema local para guardá-los: ver
+[gêneros utilizados e alteração do cardápio](generos-e-alteracao-do-cardapio.md).
 
-[`day/register.dart`](../../app/lib/day/register.dart) é o porto do que
-`web/src/day/register.ts` tem para esses campos — `mealState`,
-`firstUnfinishedMeal`, `dayProgress`, `touch`, `setDescription`,
-`setAcceptance`, `setMealsServed`/`parseMealsServed`/`stepMealsServed`,
-`setNote`, `setNonSchoolDay` — mesma regra, mesmo raciocínio. As funções dos
-gêneros e da alteração (`addFoodItem`, `setMenuChangeReason`, etc.) não estão
-aqui: portá-las agora, sem tela que as consumisse, seria antecipar a #106 do
-mesmo jeito que a #102/#103 evitaram antecipar tabela antes de quem a lê.
-`MealPayload.foodItems`/`menuChange` continuam existindo no payload (o
-contrato de `save_meal_map` exige o dia inteiro), só que sempre vazios/nulos
-enquanto a #106 não os alimenta.
+[`day/register.dart`](../../app/lib/day/register.dart) é o porto de
+`web/src/day/register.ts` — mesma regra, mesmo raciocínio. Nesta issue
+entraram `mealState`, `firstUnfinishedMeal`, `dayProgress`, `touch`,
+`setDescription`, `setAcceptance`,
+`setMealsServed`/`parseMealsServed`/`stepMealsServed`, `setNote` e
+`setNonSchoolDay`; as funções dos gêneros e da alteração (`addFoodItem`,
+`setMenuChangeReason`, etc.) entraram com a #106, junto da tela que as usa.
 
 ## Uma origem só, e o encontro que a visão do mês esperava
 
@@ -39,9 +36,8 @@ combina duas fontes, a mesma fronteira da web (decisão 4 da E5).
 - **[`DayRepository`](../../app/lib/local/day_repository.dart)** lê o banco
   já convergido (`meal_maps`/`meals`, issue #102) para um dia só, em
   `Stream<ConfirmedDay?>` — ao lado de `MonthRepository`, que lê o mês
-  inteiro para a visão dele. `ConfirmedDay.day` sempre traz `foodItems`
-  vazios e `menuChange` nulo: são os únicos campos que o banco local ainda
-  não guarda (ver acima).
+  inteiro para a visão dele. Desde a #106, `ConfirmedDay.day` vem inteiro,
+  com os gêneros e a alteração de cada refeição.
 - **`SyncEngine.load`/`SyncEngine.save`** (issue #103) são o rascunho —
   `syncEngineProvider`, novo em
   [`local_providers.dart`](../../app/lib/local/local_providers.dart), nasce
@@ -105,9 +101,9 @@ mais de um. A escolha do cartão aberto ao entrar na tela é feita uma vez só �
 `firstUnfinishedMeal` num `WidgetsBinding.instance.addPostFrameCallback` para
 não chamar `setState` no meio da construção da árvore.
 
-`MealCard` (issue #105) é o `web/src/day/meal-card.tsx` sem os dois blocos
-que ficam para a #106: só o campo do cardápio previsto e a
-`AcceptanceChoice`. O campo de texto e o campo numérico das refeições
+`MealCard` (issue #105) era o `web/src/day/meal-card.tsx` sem os dois blocos
+da #106: só o campo do cardápio previsto e a `AcceptanceChoice`; a #106
+acrescentou os gêneros e a alteração. O campo de texto e o campo numérico das refeições
 servidas guardam o próprio `TextEditingController`, e só o reescrevem quando
 o valor vem de fora (o "−"/"+", a devolução do dia não letivo) — sem essa
 distinção, o autosave (que reconstrói a tela a cada tecla) empurraria o
@@ -157,7 +153,7 @@ a leitura de um dia só:
 | Cenário | O que se afirma |
 | --- | --- |
 | Dia sem linha no banco | devolve nulo, e a tela cai para `emptyDay` |
-| Mapa e refeições convergidos | reconstrói o `DayPayload`, com `foodItems`/`menuChange` sempre vazios |
+| Mapa e refeições convergidos | reconstrói o `DayPayload` (os gêneros e a alteração, desde a #106) |
 | Mapa bloqueado | `locked` chega marcado |
 | Mudança por baixo | quem está com o `Stream` aberto é avisado sem reabrir nada |
 

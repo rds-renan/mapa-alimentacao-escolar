@@ -7,8 +7,8 @@ que já foi baixado. É a issue #102, decisão 6 da E6, e o código mora em
 
 **O que esta issue não é**: nem rascunho, nem fila de envio — isso é a #103.
 Nem o detalhe de um dia aberto para editar — gêneros usados na refeição e
-alteração do cardápio ficam para a #105 estender o esquema quando a tela de
-registro existir. O que está aqui é só o que a visão do mês (US008) e a
+alteração do cardápio ficaram para quando a tela que os lê existisse (entraram
+com a #106). O que está aqui é só o que a visão do mês (US008) e a
 leitura do catálogo pedem: a mesma consulta que a
 [visão do mês da web](../05-web/visao-do-mes.md#duas-origens-que-não-se-misturam)
 já faz — por `map_date`, trazendo o mapa e as suas refeições —, e o
@@ -24,13 +24,17 @@ arquivo nasce do identificador do perfil —
 existe depois do login (decisão 6 da E6): duas merendeiras no mesmo aparelho
 não dividem arquivo, mesmo dividindo a mesma escola e o mesmo mapa.
 
-Três tabelas, hoje:
+As tabelas que espelham o servidor, hoje (a fila de envio, #103, tem a sua
+própria):
 
 | Tabela | Espelha | O que fica de fora, e por quê |
 |---|---|---|
 | `food_items` | `public.food_item` | nome normalizado e escola — o arquivo já é de uma escola só |
 | `meal_maps` | `public.meal_map` | `updated_by`: não entra no cálculo dos cinco estados |
-| `meals` | `public.meal` | gêneros usados e alteração do cardápio — ficam para a #105 |
+| `meals` | `public.meal` | — |
+| `meal_food_items` | `public.meal_food_item` | nada: guarda nome e unidade junto, na forma em que o gênero sobe (#106) |
+| `menu_changes` | `public.menu_change` | — (#106) |
+| `menu_change_food_items` | `public.menu_change_food_item` | nada: mesma forma de `meal_food_items` (#106) |
 
 `type` e `acceptance` guardam o mesmo texto do banco (`morning_snack`,
 `great`, …), sem tradução no meio — o mesmo raciocínio da
@@ -64,13 +68,15 @@ quem recorta é o RLS da E4, como sempre (decisão 6 da E6).
 `refreshMonth` entrou em uso com a tela-casa
 ([visão do mês e menu](visao-do-mes-e-menu.md), issue #104): ela chama
 `watchMonth` para desenhar a lista e `refreshMonth` ao abrir e a cada troca de
-mês. `CatalogRepository.refresh` continua sem uma tela que o acione — fica
-para quando o catálogo (issue #107) precisar dele.
+mês. `CatalogRepository.refresh` entrou em uso com a folha de escolher gênero
+([gêneros e alteração do cardápio](generos-e-alteracao-do-cardapio.md), issue
+#106), que o chama por baixo ao abrir.
 
-## O que fica para depois
+## O que ficou para depois, e onde foi parar
 
-- **Gêneros usados e alteração do cardápio.** Entram com a #105, que também
-  decide se abrir um dia para editar lê deste banco ou pede rede.
+- **Gêneros usados e alteração do cardápio.** Entraram com a #106
+  (`schemaVersion` 3, migração só aditiva) — ver
+  [gêneros e alteração do cardápio](generos-e-alteracao-do-cardapio.md#o-dia-agora-sobe-inteiro).
 
 A tela-casa (#104) resolveu as outras duas pendências que este documento
 deixava em aberto — ver

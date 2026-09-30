@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/local/app_database.dart';
+import 'package:mae/local/day.dart';
 import 'package:mae/local/month_gateway.dart';
 import 'package:mae/local/month_repository.dart';
 
@@ -190,4 +191,74 @@ void main() {
     final days = await repository.watchMonth(september).first;
     expect(days, hasLength(1));
   });
+
+  test(
+    'refreshMonth substitui também os gêneros e a alteração do dia',
+    () async {
+      RemoteMealMap day(List<RemoteMeal> meals) => RemoteMealMap(
+        id: 'map-1',
+        mapDate: DateTime(2026, 9, 10),
+        nonSchoolDay: false,
+        note: null,
+        mealsServed: null,
+        locked: false,
+        updatedAt: DateTime(2026, 9, 10, 18),
+        meals: meals,
+      );
+
+      gateway.maps = [
+        day(const [
+          RemoteMeal(
+            id: 'meal-1',
+            type: 'lunch',
+            foodItems: [
+              FoodItemPayload(
+                foodItemId: 'rice',
+                name: 'Arroz',
+                unit: 'quilo',
+                quantity: 4,
+              ),
+            ],
+            menuChange: MenuChangePayload(
+              id: 'change-1',
+              reason: 'Item impróprio',
+              foodItems: [
+                FoodItemPayload(
+                  foodItemId: 'egg',
+                  name: 'Ovo',
+                  unit: 'bandeja',
+                  quantity: 3,
+                ),
+              ],
+            ),
+          ),
+        ]),
+      ];
+      await repository.refreshMonth(september);
+
+      // A colega tirou a alteração e trocou o gênero pela web.
+      gateway.maps = [
+        day(const [
+          RemoteMeal(
+            id: 'meal-1',
+            type: 'lunch',
+            foodItems: [
+              FoodItemPayload(
+                foodItemId: 'beans',
+                name: 'Feijão',
+                unit: 'quilo',
+                quantity: 2,
+              ),
+            ],
+          ),
+        ]),
+      ];
+      await repository.refreshMonth(september);
+
+      final items = await db.select(db.mealFoodItems).get();
+      expect(items.map((item) => item.foodItemId), ['beans']);
+      expect(await db.select(db.menuChanges).get(), isEmpty);
+      expect(await db.select(db.menuChangeFoodItems).get(), isEmpty);
+    },
+  );
 }
