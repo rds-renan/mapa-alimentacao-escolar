@@ -11,6 +11,8 @@ import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
+import 'package:mae/theme/theme_preference.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
@@ -81,9 +83,13 @@ void main() {
     await tester.pumpWidget(
       UncontrolledProviderScope(
         container: container,
-        child: MaterialApp.router(
-          theme: maeLightTheme,
-          routerConfig: container.read(appRouterProvider),
+        child: Consumer(
+          builder: (context, ref, _) => MaterialApp.router(
+            theme: maeLightTheme,
+            darkTheme: maeDarkTheme,
+            themeMode: ref.watch(themePreferenceProvider).mode,
+            routerConfig: container.read(appRouterProvider),
+          ),
         ),
       ),
     );
@@ -291,12 +297,45 @@ void main() {
         expect(find.text('merendeira@escola.com'), findsOneWidget);
         expect(find.text('Documentos gerados'), findsOneWidget);
         expect(find.text('Gerenciar gêneros'), findsOneWidget);
-        expect(find.text('Tema escuro'), findsOneWidget);
+        expect(find.text('Tema'), findsOneWidget);
+        for (final option in ['Claro', 'Escuro', 'Sistema']) {
+          expect(find.text(option), findsOneWidget);
+        }
         expect(find.text('Sair'), findsOneWidget);
 
         // Nenhum caminho para a área da direção (RN#1 da US020).
         expect(find.textContaining('Painel'), findsNothing);
         expect(find.textContaining('Gestão'), findsNothing);
+
+        await dispose(tester);
+      });
+    });
+
+    testWidgets('escolher o tema escurece a tela na hora e fica guardado', (
+      tester,
+    ) async {
+      SharedPreferences.setMockInitialValues({});
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await pumpHome(tester);
+
+        await tester.tap(find.byTooltip('Abrir o menu'));
+        await tester.pumpAndSettle();
+
+        Brightness brightness() =>
+            Theme.of(tester.element(find.text('Tema'))).brightness;
+        expect(brightness(), Brightness.light);
+
+        await tester.tap(find.text('Escuro'));
+        await tester.pumpAndSettle();
+
+        expect(brightness(), Brightness.dark);
+        expect(await loadThemePreference(), ThemePreference.dark);
+
+        await tester.tap(find.text('Claro'));
+        await tester.pumpAndSettle();
+
+        expect(brightness(), Brightness.light);
+        expect(await loadThemePreference(), ThemePreference.light);
 
         await dispose(tester);
       });

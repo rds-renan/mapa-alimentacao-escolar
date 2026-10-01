@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Abertura quando ela escolheu "Escuro" no app, seja qual for o tema do aparelho. -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:drawable="@color/launch_dark" />
+</layer-list>
