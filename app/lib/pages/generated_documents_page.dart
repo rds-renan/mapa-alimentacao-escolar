@@ -41,8 +41,9 @@ class GeneratedDocumentsPage extends ConsumerStatefulWidget {
 
   static const path = '/documentos';
 
-  /// O documento que ela acabou de gerar, se é que acabou. Vem na navegação, e
-  /// não do servidor: é um fato daquela ida — reabrir a tela amanhã não deve
+  /// O documento que ela acabou de gerar, ou que o aviso da tela-casa acabou
+  /// de lhe mostrar (issue #110), se é que houve. Vem na navegação, e não do
+  /// servidor: é um fato daquela ida — reabrir a tela amanhã pelo menu não deve
   /// ressuscitar a tela 6 de hoje.
   final String? justGenerated;
 
@@ -58,6 +59,7 @@ class _GeneratedDocumentsPageState
   late DocumentSharer _sharer;
   Stream<List<GeneratedDocumentRecord>>? _stream;
   StreamSubscription<bool>? _connectivitySubscription;
+  StreamSubscription<List<GeneratedDocumentRecord>>? _seenSubscription;
 
   bool _online = true;
 
@@ -76,6 +78,19 @@ class _GeneratedDocumentsPageState
     _repository = ref.read(generatedDocumentsRepositoryProvider(profileId));
     _sharer = ref.read(documentSharerProvider);
     _stream = _repository.watch();
+
+    // Listar um documento é vê-lo: o aviso da tela-casa (issue #110) some
+    // para tudo o que está pronto aqui, venha ela pelo aviso ou pelo menu.
+    final seen = ref.read(seenDocumentsProvider(profileId));
+    _seenSubscription = _repository.watch().listen((documents) {
+      final now = clock.now();
+      unawaited(
+        seen.markSeen([
+          for (final document in documents)
+            if (downloadable(availabilityOf(document, now))) document.id,
+        ]),
+      );
+    });
 
     final connectivity = ref.read(connectivityGatewayProvider);
     unawaited(_checkOnline(connectivity));
@@ -140,6 +155,7 @@ class _GeneratedDocumentsPageState
   @override
   void dispose() {
     unawaited(_connectivitySubscription?.cancel());
+    unawaited(_seenSubscription?.cancel());
     super.dispose();
   }
 

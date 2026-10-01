@@ -52,12 +52,16 @@ que incluem o dia X". A migration do esquema local é só aditiva
 o servidor fora: se há cópia, a tela mostra a cópia e nada mais; se não há, diz
 que foi só a lista que não veio e oferece "Tentar de novo".
 
-**O recém-gerado chega pela navegação.** A [seleção de mapas](selecao-de-mapas-e-geracao.md)
+**O recém-pronto chega pela navegação.** A [seleção de mapas](selecao-de-mapas-e-geracao.md)
 troca de lugar com esta tela (`pushReplacement`) passando o identificador do
 documento em `extra`. É um fato daquela ida, não do servidor: abrir a tela pelo
 menu amanhã mostra só a lista, e o bloqueio de três dias atrás não é notícia.
 A tela 6 é o primeiro cartão, com o botão em destaque, o nome do arquivo e o
 aviso do bloqueio, dito uma vez.
+
+O [aviso da tela-casa](aviso-de-documento-pronto.md) usa a mesma porta: o
+documento que ela ainda não tinha visto é notícia, e o cartão dele vira a
+tela 6.
 
 **Não há "geração em curso" vinda de outra tela.** A web reencontra a mutação
 com chave que vive acima das rotas. No aplicativo a geração dura menos de um
@@ -68,7 +72,7 @@ como "Gerando" se um dia vier da lista.
 documento "aparece aqui quando ficar pronto, não é preciso esperar na tela". No
 aplicativo, a geração exige rede e não tem fila (decisão 7 da E6), então a frase
 diz o que de fato vale: gerar e compartilhar precisam de internet, e a lista
-abre sem ela. O aviso de documento pronto ao abrir é a issue #110.
+abre sem ela. O aviso de documento pronto ao abrir é o [da issue #110](aviso-de-documento-pronto.md).
 
 ## O pacote da folha
 

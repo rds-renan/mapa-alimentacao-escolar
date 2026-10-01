@@ -143,6 +143,25 @@ abstract final class DocumentMessages {
       'o cartão mostra — dá para tentar de novo.';
 }
 
+/// O aviso de documento pronto ao abrir o aplicativo (issue #110). Substitui
+/// a notificação do sistema da E3: a frase "O documento ficou pronto" é a
+/// dela, e o resto segue as mesmas regras do catálogo.
+abstract final class ReadyNoticeMessages {
+  static const single = 'O documento ficou pronto';
+  static const share = 'Compartilhar';
+  static const dismiss = 'Dispensar o aviso';
+
+  static String title(int count) =>
+      count == 1 ? single : '$count documentos ficaram prontos';
+
+  /// "1 a 12 de setembro · 10 mapas". Com mais de um documento, o aviso
+  /// fala do mais novo e diz que ele é o mais novo.
+  static String body(String period, int maps, {required int count}) {
+    final summary = '$period · ${mapCountLabel(maps)}';
+    return count == 1 ? summary : 'O mais recente é de $summary.';
+  }
+}
+
 const availabilityLabels = {
   DocumentAvailability.processing: 'Gerando',
   DocumentAvailability.available: 'Disponível',

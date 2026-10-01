@@ -14,6 +14,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../documents/fake_documents.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
@@ -50,6 +51,9 @@ void main() {
         monthGatewayProvider.overrideWithValue(monthGateway),
         syncGatewayProvider.overrideWithValue(syncGateway),
         catalogGatewayProvider.overrideWithValue(catalogGateway),
+        // A tela-casa lê a lista de documentos ao abrir, para o aviso de
+        // documento pronto (issue #110).
+        documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
         appDatabaseProvider.overrideWith(
           (ref, profileId) => AppDatabase(NativeDatabase.memory()),
         ),

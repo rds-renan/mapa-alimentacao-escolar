@@ -145,12 +145,12 @@
       "page": "page-avisos"
     },
     {
-      "file": "AvisosPush.dc.html",
+      "file": "AvisosAoAbrir.dc.html",
       "x": 1020,
       "y": 0,
       "w": 430,
-      "h": 630,
-      "title": "Avisos · Fora do app",
+      "h": 716,
+      "title": "Avisos · Ao abrir o app",
       "page": "page-avisos"
     }
   ],
