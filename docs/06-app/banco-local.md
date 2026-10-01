@@ -35,6 +35,7 @@ própria):
 | `meal_food_items` | `public.meal_food_item` | nada: guarda nome e unidade junto, na forma em que o gênero sobe (#106) |
 | `menu_changes` | `public.menu_change` | — (#106) |
 | `menu_change_food_items` | `public.menu_change_food_item` | nada: mesma forma de `meal_food_items` (#106) |
+| `generated_documents` | `public.generated_document` | as datas dos mapas incluídos vêm numa coluna só, derivadas de `document_meal_map` ([#109](documentos-gerados.md)) |
 
 `type` e `acceptance` guardam o mesmo texto do banco (`morning_snack`,
 `great`, …), sem tradução no meio — o mesmo raciocínio da

@@ -16,6 +16,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../documents/fake_documents.dart';
 import '../documents/fake_generation_gateway.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
@@ -69,6 +70,8 @@ void main() {
         monthGatewayProvider.overrideWithValue(monthGateway),
         syncGatewayProvider.overrideWithValue(syncGateway),
         generationGatewayProvider.overrideWithValue(generation),
+        documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
+        documentSharerProvider.overrideWithValue(FakeDocumentSharer()),
         catalogGatewayProvider.overrideWithValue(FakeCatalogGateway()),
         connectivityGatewayProvider.overrideWithValue(connectivity),
         appDatabaseProvider.overrideWith(

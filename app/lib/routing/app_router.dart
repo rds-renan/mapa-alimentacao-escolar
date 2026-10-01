@@ -73,7 +73,8 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: GeneratedDocumentsPage.path,
-        builder: (_, _) => const GeneratedDocumentsPage(),
+        builder: (_, state) =>
+            GeneratedDocumentsPage(justGenerated: state.extra as String?),
       ),
     ],
   );

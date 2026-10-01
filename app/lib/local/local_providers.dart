@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../documents/document_sharer.dart';
 import '../documents/generation_gateway.dart';
 import '../supabase.dart';
 import 'app_database.dart';
@@ -7,9 +8,12 @@ import 'catalog_gateway.dart';
 import 'catalog_repository.dart';
 import 'connectivity_gateway.dart';
 import 'day_repository.dart';
+import 'documents_gateway.dart';
+import 'documents_repository.dart';
 import 'month_gateway.dart';
 import 'month_repository.dart';
 import 'supabase_catalog_gateway.dart';
+import 'supabase_documents_gateway.dart';
 import 'supabase_month_gateway.dart';
 import 'supabase_sync_gateway.dart';
 import 'sync_engine.dart';
@@ -110,4 +114,23 @@ final syncEngineProvider = Provider.family<SyncEngine, String>((
 /// nos testes, como [syncGatewayProvider].
 final generationGatewayProvider = Provider<GenerationGateway>((ref) {
   return SupabaseGenerationGateway(supabase);
+});
+
+/// A lista dos documentos gerados (issue #109), substituível por um falso nos
+/// testes, como [monthGatewayProvider].
+final documentsGatewayProvider = Provider<DocumentsGateway>((ref) {
+  return SupabaseDocumentsGateway(supabase);
+});
+
+final generatedDocumentsRepositoryProvider =
+    Provider.family<GeneratedDocumentsRepository, String>((ref, profileId) {
+      return GeneratedDocumentsRepository(
+        ref.watch(appDatabaseProvider(profileId)),
+        ref.watch(documentsGatewayProvider),
+      );
+    });
+
+/// A folha de compartilhamento do Android, que nos testes é um falso.
+final documentSharerProvider = Provider<DocumentSharer>((ref) {
+  return PlatformDocumentSharer(ref.watch(documentsGatewayProvider));
 });
