@@ -148,4 +148,43 @@ void main() {
     expect(items, hasLength(1));
     expect(items.single.name, 'Arroz');
   });
+
+  group('manutenção', () {
+    test('salvar grava no servidor e depois na cópia local', () async {
+      await repository.save(
+        schoolId: 'school-1',
+        name: ' Feijão ',
+        unit: 'quilo',
+      );
+
+      expect(gateway.saved.single['schoolId'], 'school-1');
+      final items = await repository.watchFoodItems().first;
+      expect(items.single.name, 'Feijão');
+      expect(items.single.active, isTrue);
+    });
+
+    test('gravação recusada não toca a cópia local', () async {
+      gateway.saveError = Exception('sem rede');
+
+      await expectLater(
+        repository.save(schoolId: 'school-1', name: 'Feijão', unit: 'quilo'),
+        throwsException,
+      );
+
+      expect(await repository.watchFoodItems().first, isEmpty);
+    });
+
+    test('desativar e reativar atualizam a cópia local', () async {
+      gateway.items = const [
+        RemoteFoodItem(id: 'a', name: 'Arroz', unit: 'quilo', active: true),
+      ];
+      await repository.refresh();
+
+      await repository.setActive('a', active: false);
+      expect((await repository.watchFoodItems().first).single.active, isFalse);
+
+      await repository.setActive('a', active: true);
+      expect((await repository.watchFoodItems().first).single.active, isTrue);
+    });
+  });
 }

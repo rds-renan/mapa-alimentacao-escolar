@@ -53,7 +53,7 @@ Na web as duas são `Sheet` montadas pela própria página. No aplicativo:
   ignora a falha: a lista já aparece com o que o aparelho tem, e sem rede a
   atualização só não acontece. É a primeira tela a acionar esse `refresh`,
   que a #102 tinha deixado sem uso; `catalogRepositoryProvider` nasceu aqui e
-  é a mesma porta que a manutenção do catálogo (#107) vai usar.
+  é a mesma porta que a manutenção do catálogo ([#107](catalogo-de-generos.md)) usa.
 - **A tela 3a** é uma rota de tela cheia (`fullscreenDialog`). Por ser outra
   rota, ela não se reconstrói junto com o registro — por isso recebe o dia
   por um `ValueListenable`, que o registro atualiza a cada tecla. A tela não

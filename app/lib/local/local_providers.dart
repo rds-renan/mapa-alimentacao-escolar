@@ -4,6 +4,7 @@ import '../supabase.dart';
 import 'app_database.dart';
 import 'catalog_gateway.dart';
 import 'catalog_repository.dart';
+import 'connectivity_gateway.dart';
 import 'day_repository.dart';
 import 'month_gateway.dart';
 import 'month_repository.dart';
@@ -51,9 +52,16 @@ final monthRepositoryProvider = Provider.family<MonthRepository, String>((
 });
 
 /// O catálogo de gêneros. Quem o lê primeiro é a folha de escolher gênero
-/// (issue #106); a manutenção dele (issue #107) lê pela mesma porta.
+/// (issue #106); a manutenção dele (issue #107) lê pela mesma porta e grava
+/// por ela direto no servidor.
 final catalogGatewayProvider = Provider<CatalogGateway>((ref) {
   return SupabaseCatalogGateway(supabase);
+});
+
+/// A rede do aparelho, para as telas que exigem conexão (a manutenção do
+/// catálogo, issue #107) dizerem isso antes de tentar.
+final connectivityGatewayProvider = Provider<ConnectivityGateway>((ref) {
+  return ConnectivityPlusGateway();
 });
 
 final catalogRepositoryProvider = Provider.family<CatalogRepository, String>((
