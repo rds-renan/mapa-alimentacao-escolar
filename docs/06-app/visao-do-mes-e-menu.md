@@ -125,7 +125,7 @@ mais do que deixá-los explicados.
 | Documentos gerados | tela-marco | #109 |
 | Gerenciar gêneros | tela-marco | #107 |
 | Tema escuro | à vista e inerte — o aplicativo já segue o tema do aparelho (`ThemeMode.system`), falta o controle entre claro/escuro/sistema | #111 |
-| Gerar documento (rodapé) | à vista e inerte | #108 |
+| Gerar documento (rodapé) | abre a [seleção de mapas](selecao-de-mapas-e-geracao.md) no mês que ela estava vendo | #108 |
 | Registro do dia (toque numa linha) | tela-marco | #105 |
 
 Sem caminho para a área da direção (RN#1 da US020) — cortesia de interface,

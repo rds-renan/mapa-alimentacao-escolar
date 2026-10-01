@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../documents/generation_gateway.dart';
 import '../supabase.dart';
 import 'app_database.dart';
 import 'catalog_gateway.dart';
@@ -98,8 +99,15 @@ final syncEngineProvider = Provider.family<SyncEngine, String>((
   final engine = SyncEngine(
     SyncQueueStore(ref.watch(appDatabaseProvider(profileId))),
     ref.watch(syncGatewayProvider),
+    connectivity: ref.watch(connectivityGatewayProvider),
   );
   engine.start();
   ref.onDispose(engine.stop);
   return engine;
+});
+
+/// O pedido de geração do documento (issue #108), substituível por um falso
+/// nos testes, como [syncGatewayProvider].
+final generationGatewayProvider = Provider<GenerationGateway>((ref) {
+  return SupabaseGenerationGateway(supabase);
 });
