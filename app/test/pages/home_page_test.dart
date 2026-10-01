@@ -14,6 +14,8 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../local/fake_catalog_gateway.dart';
+import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
 
@@ -44,6 +46,12 @@ void main() {
         // a fila de envio — sem este falso, o provedor de verdade tentaria
         // o Supabase que este teste nunca inicializa.
         syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
+        // "Gerenciar gêneros" abre a manutenção do catálogo (issue #107),
+        // que lê o catálogo e pergunta pela rede.
+        catalogGatewayProvider.overrideWithValue(FakeCatalogGateway()),
+        connectivityGatewayProvider.overrideWithValue(
+          FakeConnectivityGateway(),
+        ),
         appDatabaseProvider.overrideWith(
           (ref, profileId) => AppDatabase(NativeDatabase.memory()),
         ),
@@ -297,7 +305,7 @@ void main() {
       });
     });
 
-    testWidgets('"Gerenciar gêneros" leva à tela-marco da issue #107', (
+    testWidgets('"Gerenciar gêneros" leva à manutenção do catálogo', (
       tester,
     ) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
@@ -308,7 +316,7 @@ void main() {
         await tester.tap(find.text('Gerenciar gêneros'));
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('issue #107'), findsOneWidget);
+        expect(find.text('Catálogo de gêneros'), findsOneWidget);
 
         await dispose(tester);
       });
