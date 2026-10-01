@@ -1,4 +1,5 @@
 import '../month/month.dart';
+import 'generated.dart';
 import 'selection.dart';
 
 /// Os textos da seleção de mapas (tela 5) e da confirmação. Valem as regras
@@ -99,3 +100,73 @@ abstract final class FailureMessages {
   static const close = 'Fechar';
   static const retry = 'Tentar de novo';
 }
+
+/// Os textos da lista de documentos gerados (tela 2b, e a 6 dentro do
+/// cartão do recém-gerado) — as frases da web, com o que o aplicativo muda:
+/// o arquivo se compartilha pela folha do Android, e não se baixa, e a lista
+/// abre sem rede (decisão 6 da E6).
+abstract final class DocumentMessages {
+  static const title = 'Documentos gerados';
+  static const subtitle = 'O arquivo fica disponível por 7 dias';
+  static const back = 'Voltar';
+
+  /// O aviso do alto. A frase da E3 prometia uma notificação do sistema, que
+  /// não existe (decisão 10 da E6): o que vale é o que de fato acontece.
+  static const notice =
+      'Gerar e compartilhar o documento precisa de internet. A lista abre '
+      'sem ela, com o que já veio.';
+  static const loading = 'Carregando os documentos…';
+  static const loadFailed =
+      'Não deu para carregar a lista de documentos. Os mapas que você '
+      'registrou continuam guardados — foi só a lista que não veio.';
+  static const retry = 'Tentar de novo';
+  static const empty = 'Você ainda não gerou nenhum documento.';
+  static const emptyHint = 'Quando gerar o primeiro, ele aparece aqui.';
+  static const generate = 'Gerar documento';
+  static const share = 'Compartilhar';
+  static const justGenerated = 'Documento gerado';
+  static const expireNote =
+      'O arquivo expira sozinho. Se precisar de novo, é só gerar outra vez '
+      'com os mesmos dias.';
+
+  /// A frase da tela 2b para o documento fora da janela (CA#3 da US021).
+  static const expiredNote = 'Os mapas desse período continuam guardados.';
+  static const failedNote =
+      'A geração não chegou ao fim. Nenhum mapa foi bloqueado e os registros '
+      'do período continuam guardados — dá para gerar de novo.';
+  static const processingNote = 'Ele aparece aqui assim que ficar pronto.';
+  static const offline =
+      'Compartilhar o documento precisa de internet. A lista continua aqui — '
+      'é só tentar de novo quando houver.';
+  static const fileFailed =
+      'Não deu para abrir o arquivo agora. Ele continua no ar até a data que '
+      'o cartão mostra — dá para tentar de novo.';
+}
+
+const availabilityLabels = {
+  DocumentAvailability.processing: 'Gerando',
+  DocumentAvailability.available: 'Disponível',
+  DocumentAvailability.expiring: 'Sai amanhã',
+  DocumentAvailability.expired: 'Fora do ar',
+  DocumentAvailability.failed: 'Não saiu',
+};
+
+/// "Sai hoje" quando é hoje mesmo: o desenho só previu o "Sai amanhã".
+String availabilityLabel(DocumentAvailability availability, int? daysLeft) {
+  if (availability == DocumentAvailability.expiring &&
+      daysLeft != null &&
+      daysLeft <= 0) {
+    return 'Sai hoje';
+  }
+  return availabilityLabels[availability]!;
+}
+
+String lockedNotice(int count) => count == 1
+    ? 'O mapa incluído ficou bloqueado para edição. Precisou corrigir algo? '
+          'Fale com a direção.'
+    : 'Os $count mapas incluídos ficaram bloqueados para edição. Precisou '
+          'corrigir algo? Fale com a direção.';
+
+/// A etiqueta de acessibilidade do botão, que diz de qual documento ele é.
+String shareLabel(String period) =>
+    '${DocumentMessages.share} o documento de $period';

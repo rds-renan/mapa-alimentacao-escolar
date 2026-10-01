@@ -2711,6 +2711,528 @@ class PendingMealMapsCompanion extends UpdateCompanion<PendingMealMap> {
   }
 }
 
+class $GeneratedDocumentsTable extends GeneratedDocuments
+    with TableInfo<$GeneratedDocumentsTable, StoredDocument> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $GeneratedDocumentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<String> id = GeneratedColumn<String>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusMeta = const VerificationMeta('status');
+  @override
+  late final GeneratedColumn<String> status = GeneratedColumn<String>(
+    'status',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _requestedAtMeta = const VerificationMeta(
+    'requestedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> requestedAt = GeneratedColumn<DateTime>(
+    'requested_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _completedAtMeta = const VerificationMeta(
+    'completedAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> completedAt = GeneratedColumn<DateTime>(
+    'completed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _expiresAtMeta = const VerificationMeta(
+    'expiresAt',
+  );
+  @override
+  late final GeneratedColumn<DateTime> expiresAt = GeneratedColumn<DateTime>(
+    'expires_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.dateTime,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _filePathMeta = const VerificationMeta(
+    'filePath',
+  );
+  @override
+  late final GeneratedColumn<String> filePath = GeneratedColumn<String>(
+    'file_path',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _fileNameMeta = const VerificationMeta(
+    'fileName',
+  );
+  @override
+  late final GeneratedColumn<String> fileName = GeneratedColumn<String>(
+    'file_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _datesMeta = const VerificationMeta('dates');
+  @override
+  late final GeneratedColumn<String> dates = GeneratedColumn<String>(
+    'dates',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    status,
+    requestedAt,
+    completedAt,
+    expiresAt,
+    filePath,
+    fileName,
+    dates,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'generated_documents';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StoredDocument> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    } else if (isInserting) {
+      context.missing(_idMeta);
+    }
+    if (data.containsKey('status')) {
+      context.handle(
+        _statusMeta,
+        status.isAcceptableOrUnknown(data['status']!, _statusMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_statusMeta);
+    }
+    if (data.containsKey('requested_at')) {
+      context.handle(
+        _requestedAtMeta,
+        requestedAt.isAcceptableOrUnknown(
+          data['requested_at']!,
+          _requestedAtMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_requestedAtMeta);
+    }
+    if (data.containsKey('completed_at')) {
+      context.handle(
+        _completedAtMeta,
+        completedAt.isAcceptableOrUnknown(
+          data['completed_at']!,
+          _completedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('expires_at')) {
+      context.handle(
+        _expiresAtMeta,
+        expiresAt.isAcceptableOrUnknown(data['expires_at']!, _expiresAtMeta),
+      );
+    }
+    if (data.containsKey('file_path')) {
+      context.handle(
+        _filePathMeta,
+        filePath.isAcceptableOrUnknown(data['file_path']!, _filePathMeta),
+      );
+    }
+    if (data.containsKey('file_name')) {
+      context.handle(
+        _fileNameMeta,
+        fileName.isAcceptableOrUnknown(data['file_name']!, _fileNameMeta),
+      );
+    }
+    if (data.containsKey('dates')) {
+      context.handle(
+        _datesMeta,
+        dates.isAcceptableOrUnknown(data['dates']!, _datesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_datesMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StoredDocument map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StoredDocument(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}id'],
+      )!,
+      status: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status'],
+      )!,
+      requestedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}requested_at'],
+      )!,
+      completedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}completed_at'],
+      ),
+      expiresAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.dateTime,
+        data['${effectivePrefix}expires_at'],
+      ),
+      filePath: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_path'],
+      ),
+      fileName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}file_name'],
+      ),
+      dates: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}dates'],
+      )!,
+    );
+  }
+
+  @override
+  $GeneratedDocumentsTable createAlias(String alias) {
+    return $GeneratedDocumentsTable(attachedDatabase, alias);
+  }
+}
+
+class StoredDocument extends DataClass implements Insertable<StoredDocument> {
+  final String id;
+  final String status;
+  final DateTime requestedAt;
+  final DateTime? completedAt;
+  final DateTime? expiresAt;
+  final String? filePath;
+  final String? fileName;
+  final String dates;
+  const StoredDocument({
+    required this.id,
+    required this.status,
+    required this.requestedAt,
+    this.completedAt,
+    this.expiresAt,
+    this.filePath,
+    this.fileName,
+    required this.dates,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<String>(id);
+    map['status'] = Variable<String>(status);
+    map['requested_at'] = Variable<DateTime>(requestedAt);
+    if (!nullToAbsent || completedAt != null) {
+      map['completed_at'] = Variable<DateTime>(completedAt);
+    }
+    if (!nullToAbsent || expiresAt != null) {
+      map['expires_at'] = Variable<DateTime>(expiresAt);
+    }
+    if (!nullToAbsent || filePath != null) {
+      map['file_path'] = Variable<String>(filePath);
+    }
+    if (!nullToAbsent || fileName != null) {
+      map['file_name'] = Variable<String>(fileName);
+    }
+    map['dates'] = Variable<String>(dates);
+    return map;
+  }
+
+  GeneratedDocumentsCompanion toCompanion(bool nullToAbsent) {
+    return GeneratedDocumentsCompanion(
+      id: Value(id),
+      status: Value(status),
+      requestedAt: Value(requestedAt),
+      completedAt: completedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(completedAt),
+      expiresAt: expiresAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(expiresAt),
+      filePath: filePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(filePath),
+      fileName: fileName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(fileName),
+      dates: Value(dates),
+    );
+  }
+
+  factory StoredDocument.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StoredDocument(
+      id: serializer.fromJson<String>(json['id']),
+      status: serializer.fromJson<String>(json['status']),
+      requestedAt: serializer.fromJson<DateTime>(json['requestedAt']),
+      completedAt: serializer.fromJson<DateTime?>(json['completedAt']),
+      expiresAt: serializer.fromJson<DateTime?>(json['expiresAt']),
+      filePath: serializer.fromJson<String?>(json['filePath']),
+      fileName: serializer.fromJson<String?>(json['fileName']),
+      dates: serializer.fromJson<String>(json['dates']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<String>(id),
+      'status': serializer.toJson<String>(status),
+      'requestedAt': serializer.toJson<DateTime>(requestedAt),
+      'completedAt': serializer.toJson<DateTime?>(completedAt),
+      'expiresAt': serializer.toJson<DateTime?>(expiresAt),
+      'filePath': serializer.toJson<String?>(filePath),
+      'fileName': serializer.toJson<String?>(fileName),
+      'dates': serializer.toJson<String>(dates),
+    };
+  }
+
+  StoredDocument copyWith({
+    String? id,
+    String? status,
+    DateTime? requestedAt,
+    Value<DateTime?> completedAt = const Value.absent(),
+    Value<DateTime?> expiresAt = const Value.absent(),
+    Value<String?> filePath = const Value.absent(),
+    Value<String?> fileName = const Value.absent(),
+    String? dates,
+  }) => StoredDocument(
+    id: id ?? this.id,
+    status: status ?? this.status,
+    requestedAt: requestedAt ?? this.requestedAt,
+    completedAt: completedAt.present ? completedAt.value : this.completedAt,
+    expiresAt: expiresAt.present ? expiresAt.value : this.expiresAt,
+    filePath: filePath.present ? filePath.value : this.filePath,
+    fileName: fileName.present ? fileName.value : this.fileName,
+    dates: dates ?? this.dates,
+  );
+  StoredDocument copyWithCompanion(GeneratedDocumentsCompanion data) {
+    return StoredDocument(
+      id: data.id.present ? data.id.value : this.id,
+      status: data.status.present ? data.status.value : this.status,
+      requestedAt: data.requestedAt.present
+          ? data.requestedAt.value
+          : this.requestedAt,
+      completedAt: data.completedAt.present
+          ? data.completedAt.value
+          : this.completedAt,
+      expiresAt: data.expiresAt.present ? data.expiresAt.value : this.expiresAt,
+      filePath: data.filePath.present ? data.filePath.value : this.filePath,
+      fileName: data.fileName.present ? data.fileName.value : this.fileName,
+      dates: data.dates.present ? data.dates.value : this.dates,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StoredDocument(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('filePath: $filePath, ')
+          ..write('fileName: $fileName, ')
+          ..write('dates: $dates')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    status,
+    requestedAt,
+    completedAt,
+    expiresAt,
+    filePath,
+    fileName,
+    dates,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StoredDocument &&
+          other.id == this.id &&
+          other.status == this.status &&
+          other.requestedAt == this.requestedAt &&
+          other.completedAt == this.completedAt &&
+          other.expiresAt == this.expiresAt &&
+          other.filePath == this.filePath &&
+          other.fileName == this.fileName &&
+          other.dates == this.dates);
+}
+
+class GeneratedDocumentsCompanion extends UpdateCompanion<StoredDocument> {
+  final Value<String> id;
+  final Value<String> status;
+  final Value<DateTime> requestedAt;
+  final Value<DateTime?> completedAt;
+  final Value<DateTime?> expiresAt;
+  final Value<String?> filePath;
+  final Value<String?> fileName;
+  final Value<String> dates;
+  final Value<int> rowid;
+  const GeneratedDocumentsCompanion({
+    this.id = const Value.absent(),
+    this.status = const Value.absent(),
+    this.requestedAt = const Value.absent(),
+    this.completedAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.fileName = const Value.absent(),
+    this.dates = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  GeneratedDocumentsCompanion.insert({
+    required String id,
+    required String status,
+    required DateTime requestedAt,
+    this.completedAt = const Value.absent(),
+    this.expiresAt = const Value.absent(),
+    this.filePath = const Value.absent(),
+    this.fileName = const Value.absent(),
+    required String dates,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       status = Value(status),
+       requestedAt = Value(requestedAt),
+       dates = Value(dates);
+  static Insertable<StoredDocument> custom({
+    Expression<String>? id,
+    Expression<String>? status,
+    Expression<DateTime>? requestedAt,
+    Expression<DateTime>? completedAt,
+    Expression<DateTime>? expiresAt,
+    Expression<String>? filePath,
+    Expression<String>? fileName,
+    Expression<String>? dates,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (status != null) 'status': status,
+      if (requestedAt != null) 'requested_at': requestedAt,
+      if (completedAt != null) 'completed_at': completedAt,
+      if (expiresAt != null) 'expires_at': expiresAt,
+      if (filePath != null) 'file_path': filePath,
+      if (fileName != null) 'file_name': fileName,
+      if (dates != null) 'dates': dates,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  GeneratedDocumentsCompanion copyWith({
+    Value<String>? id,
+    Value<String>? status,
+    Value<DateTime>? requestedAt,
+    Value<DateTime?>? completedAt,
+    Value<DateTime?>? expiresAt,
+    Value<String?>? filePath,
+    Value<String?>? fileName,
+    Value<String>? dates,
+    Value<int>? rowid,
+  }) {
+    return GeneratedDocumentsCompanion(
+      id: id ?? this.id,
+      status: status ?? this.status,
+      requestedAt: requestedAt ?? this.requestedAt,
+      completedAt: completedAt ?? this.completedAt,
+      expiresAt: expiresAt ?? this.expiresAt,
+      filePath: filePath ?? this.filePath,
+      fileName: fileName ?? this.fileName,
+      dates: dates ?? this.dates,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<String>(id.value);
+    }
+    if (status.present) {
+      map['status'] = Variable<String>(status.value);
+    }
+    if (requestedAt.present) {
+      map['requested_at'] = Variable<DateTime>(requestedAt.value);
+    }
+    if (completedAt.present) {
+      map['completed_at'] = Variable<DateTime>(completedAt.value);
+    }
+    if (expiresAt.present) {
+      map['expires_at'] = Variable<DateTime>(expiresAt.value);
+    }
+    if (filePath.present) {
+      map['file_path'] = Variable<String>(filePath.value);
+    }
+    if (fileName.present) {
+      map['file_name'] = Variable<String>(fileName.value);
+    }
+    if (dates.present) {
+      map['dates'] = Variable<String>(dates.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('GeneratedDocumentsCompanion(')
+          ..write('id: $id, ')
+          ..write('status: $status, ')
+          ..write('requestedAt: $requestedAt, ')
+          ..write('completedAt: $completedAt, ')
+          ..write('expiresAt: $expiresAt, ')
+          ..write('filePath: $filePath, ')
+          ..write('fileName: $fileName, ')
+          ..write('dates: $dates, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -2724,6 +3246,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $PendingMealMapsTable pendingMealMaps = $PendingMealMapsTable(
     this,
   );
+  late final $GeneratedDocumentsTable generatedDocuments =
+      $GeneratedDocumentsTable(this);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2736,6 +3260,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     menuChanges,
     menuChangeFoodItems,
     pendingMealMaps,
+    generatedDocuments,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5110,6 +5635,285 @@ typedef $$PendingMealMapsTableProcessedTableManager =
       PendingMealMap,
       PrefetchHooks Function()
     >;
+typedef $$GeneratedDocumentsTableCreateCompanionBuilder =
+    GeneratedDocumentsCompanion Function({
+      required String id,
+      required String status,
+      required DateTime requestedAt,
+      Value<DateTime?> completedAt,
+      Value<DateTime?> expiresAt,
+      Value<String?> filePath,
+      Value<String?> fileName,
+      required String dates,
+      Value<int> rowid,
+    });
+typedef $$GeneratedDocumentsTableUpdateCompanionBuilder =
+    GeneratedDocumentsCompanion Function({
+      Value<String> id,
+      Value<String> status,
+      Value<DateTime> requestedAt,
+      Value<DateTime?> completedAt,
+      Value<DateTime?> expiresAt,
+      Value<String?> filePath,
+      Value<String?> fileName,
+      Value<String> dates,
+      Value<int> rowid,
+    });
+
+class $$GeneratedDocumentsTableFilterComposer
+    extends Composer<_$AppDatabase, $GeneratedDocumentsTable> {
+  $$GeneratedDocumentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get dates => $composableBuilder(
+    column: $table.dates,
+    builder: (column) => ColumnFilters(column),
+  );
+}
+
+class $$GeneratedDocumentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $GeneratedDocumentsTable> {
+  $$GeneratedDocumentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get status => $composableBuilder(
+    column: $table.status,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<DateTime> get expiresAt => $composableBuilder(
+    column: $table.expiresAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get filePath => $composableBuilder(
+    column: $table.filePath,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get fileName => $composableBuilder(
+    column: $table.fileName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get dates => $composableBuilder(
+    column: $table.dates,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$GeneratedDocumentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $GeneratedDocumentsTable> {
+  $$GeneratedDocumentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get status =>
+      $composableBuilder(column: $table.status, builder: (column) => column);
+
+  GeneratedColumn<DateTime> get requestedAt => $composableBuilder(
+    column: $table.requestedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get completedAt => $composableBuilder(
+    column: $table.completedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<DateTime> get expiresAt =>
+      $composableBuilder(column: $table.expiresAt, builder: (column) => column);
+
+  GeneratedColumn<String> get filePath =>
+      $composableBuilder(column: $table.filePath, builder: (column) => column);
+
+  GeneratedColumn<String> get fileName =>
+      $composableBuilder(column: $table.fileName, builder: (column) => column);
+
+  GeneratedColumn<String> get dates =>
+      $composableBuilder(column: $table.dates, builder: (column) => column);
+}
+
+class $$GeneratedDocumentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $GeneratedDocumentsTable,
+          StoredDocument,
+          $$GeneratedDocumentsTableFilterComposer,
+          $$GeneratedDocumentsTableOrderingComposer,
+          $$GeneratedDocumentsTableAnnotationComposer,
+          $$GeneratedDocumentsTableCreateCompanionBuilder,
+          $$GeneratedDocumentsTableUpdateCompanionBuilder,
+          (
+            StoredDocument,
+            BaseReferences<
+              _$AppDatabase,
+              $GeneratedDocumentsTable,
+              StoredDocument
+            >,
+          ),
+          StoredDocument,
+          PrefetchHooks Function()
+        > {
+  $$GeneratedDocumentsTableTableManager(
+    _$AppDatabase db,
+    $GeneratedDocumentsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$GeneratedDocumentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$GeneratedDocumentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$GeneratedDocumentsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> id = const Value.absent(),
+                Value<String> status = const Value.absent(),
+                Value<DateTime> requestedAt = const Value.absent(),
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<String?> filePath = const Value.absent(),
+                Value<String?> fileName = const Value.absent(),
+                Value<String> dates = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => GeneratedDocumentsCompanion(
+                id: id,
+                status: status,
+                requestedAt: requestedAt,
+                completedAt: completedAt,
+                expiresAt: expiresAt,
+                filePath: filePath,
+                fileName: fileName,
+                dates: dates,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String id,
+                required String status,
+                required DateTime requestedAt,
+                Value<DateTime?> completedAt = const Value.absent(),
+                Value<DateTime?> expiresAt = const Value.absent(),
+                Value<String?> filePath = const Value.absent(),
+                Value<String?> fileName = const Value.absent(),
+                required String dates,
+                Value<int> rowid = const Value.absent(),
+              }) => GeneratedDocumentsCompanion.insert(
+                id: id,
+                status: status,
+                requestedAt: requestedAt,
+                completedAt: completedAt,
+                expiresAt: expiresAt,
+                filePath: filePath,
+                fileName: fileName,
+                dates: dates,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$GeneratedDocumentsTable, StoredDocument>(table),
+                  BaseReferences<
+                    _$AppDatabase,
+                    $GeneratedDocumentsTable,
+                    StoredDocument
+                  >(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$GeneratedDocumentsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $GeneratedDocumentsTable,
+      StoredDocument,
+      $$GeneratedDocumentsTableFilterComposer,
+      $$GeneratedDocumentsTableOrderingComposer,
+      $$GeneratedDocumentsTableAnnotationComposer,
+      $$GeneratedDocumentsTableCreateCompanionBuilder,
+      $$GeneratedDocumentsTableUpdateCompanionBuilder,
+      (
+        StoredDocument,
+        BaseReferences<_$AppDatabase, $GeneratedDocumentsTable, StoredDocument>,
+      ),
+      StoredDocument,
+      PrefetchHooks Function()
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -5128,4 +5932,6 @@ class $AppDatabaseManager {
       $$MenuChangeFoodItemsTableTableManager(_db, _db.menuChangeFoodItems);
   $$PendingMealMapsTableTableManager get pendingMealMaps =>
       $$PendingMealMapsTableTableManager(_db, _db.pendingMealMaps);
+  $$GeneratedDocumentsTableTableManager get generatedDocuments =>
+      $$GeneratedDocumentsTableTableManager(_db, _db.generatedDocuments);
 }

@@ -195,14 +195,14 @@ class _SelectMapsPageState extends ConsumerState<SelectMapsPage> {
     setState(() => _generating = true);
 
     try {
-      await _generation.generate(ids);
+      final document = await _generation.generate(ids);
       // Os mapas acabaram de ficar bloqueados, e a cópia local ainda não
       // sabe. Antes de sair, porque é a tela do mês que ela vai ver.
       await _refresh();
       if (!mounted) return;
 
       setState(() => _generating = false);
-      context.pushReplacement(GeneratedDocumentsPage.path);
+      context.pushReplacement(GeneratedDocumentsPage.path, extra: document.id);
     } on GenerationFailure catch (failure) {
       if (!mounted) return;
       setState(() => _generating = false);

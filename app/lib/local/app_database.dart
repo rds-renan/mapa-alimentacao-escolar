@@ -137,6 +137,28 @@ class PendingMealMaps extends Table {
   Set<Column> get primaryKey => {mapDate};
 }
 
+/// A lista dos documentos gerados, espelhando `public.generated_document`
+/// (issue #109). O que fica no aparelho é a lista, não o arquivo: abrir e
+/// compartilhar exigem rede (decisão 6 da E6).
+///
+/// As datas dos mapas incluídos moram numa coluna só, em texto separado por
+/// vírgula, e não numa tabela filha: só se leem juntas, para dizer o período
+/// e contar os mapas, e nunca se consultam por data.
+@DataClassName('StoredDocument')
+class GeneratedDocuments extends Table {
+  TextColumn get id => text()();
+  TextColumn get status => text()();
+  DateTimeColumn get requestedAt => dateTime()();
+  DateTimeColumn get completedAt => dateTime().nullable()();
+  DateTimeColumn get expiresAt => dateTime().nullable()();
+  TextColumn get filePath => text().nullable()();
+  TextColumn get fileName => text().nullable()();
+  TextColumn get dates => text()();
+
+  @override
+  Set<Column> get primaryKey => {id};
+}
+
 @DriftDatabase(
   tables: [
     FoodItems,
@@ -146,17 +168,18 @@ class PendingMealMaps extends Table {
     MenuChanges,
     MenuChangeFoodItems,
     PendingMealMaps,
+    GeneratedDocuments,
   ],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-    // A #103 e a #106 só acrescentaram tabelas; `createAll()` cria o que
+    // A #103, a #106 e a #109 só acrescentaram tabelas; `createAll()` cria o que
     // falta e ignora o que já existe, então não há dado de nenhum arquivo
     // local de desenvolvimento para migrar de verdade. Os dias baixados antes
     // da #106 ficam sem gêneros até o próximo `refreshMonth` do mês deles —

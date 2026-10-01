@@ -76,8 +76,9 @@ acontece junto com a publicação do documento.
 
 Gerada com sucesso, a tela **troca** de lugar com os documentos gerados
 (`pushReplacement`): o voltar leva ao mês, e não de volta a uma seleção cujos
-dias acabaram de mudar. Qual documento acabou de sair não vai junto — a tela
-de documentos é da #109, e é ela quem decide se precisa disso.
+dias acabaram de mudar. O identificador do documento que acabou de sair vai
+junto, em `extra`, e é com ele que a [tela de documentos](documentos-gerados.md)
+desenha o cartão recém-gerado (issue #109).
 
 ## Verificação
 

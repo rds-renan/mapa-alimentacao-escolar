@@ -14,6 +14,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../documents/fake_documents.dart';
 import '../documents/fake_generation_gateway.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
@@ -49,6 +50,9 @@ void main() {
         syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
         // A seleção de mapas (issue #108) lê a porta da geração ao abrir.
         generationGatewayProvider.overrideWithValue(FakeGenerationGateway()),
+        // "Documentos gerados" lê a lista (issue #109).
+        documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
+        documentSharerProvider.overrideWithValue(FakeDocumentSharer()),
         // "Gerenciar gêneros" abre a manutenção do catálogo (issue #107),
         // que lê o catálogo e pergunta pela rede.
         catalogGatewayProvider.overrideWithValue(FakeCatalogGateway()),
@@ -298,7 +302,7 @@ void main() {
       });
     });
 
-    testWidgets('"Documentos gerados" leva à tela-marco da issue #109', (
+    testWidgets('"Documentos gerados" leva à lista de documentos', (
       tester,
     ) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
@@ -309,7 +313,10 @@ void main() {
         await tester.tap(find.text('Documentos gerados'));
         await tester.pumpAndSettle();
 
-        expect(find.textContaining('issue #109'), findsOneWidget);
+        expect(
+          find.text('O arquivo fica disponível por 7 dias'),
+          findsOneWidget,
+        );
 
         await dispose(tester);
       });

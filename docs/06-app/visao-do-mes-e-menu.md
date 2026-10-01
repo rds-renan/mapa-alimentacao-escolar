@@ -122,7 +122,6 @@ mais do que deixá-los explicados.
 
 | O que | Onde está hoje | Issue |
 | --- | --- | --- |
-| Documentos gerados | tela-marco | #109 |
 | Gerenciar gêneros | tela-marco | #107 |
 | Tema escuro | à vista e inerte — o aplicativo já segue o tema do aparelho (`ThemeMode.system`), falta o controle entre claro/escuro/sistema | #111 |
 | Gerar documento (rodapé) | abre a [seleção de mapas](selecao-de-mapas-e-geracao.md) no mês que ela estava vendo | #108 |
@@ -164,7 +163,7 @@ raciocínio do `vi.setSystemTime` da web):
 | "Gerar documento" | visível e inerte |
 | Menu | um toque, e reúne os quatro itens (CA#2 da US020) |
 | Menu | nenhum caminho para a direção (RN#1 da US020) |
-| Menu → Documentos gerados / Gerenciar gêneros | levam à tela-marco certa |
+| Menu → Documentos gerados / Gerenciar gêneros | levam à lista de documentos e à manutenção do catálogo |
 | Menu → Sair | encerra a sessão e volta ao login |
 
 `flutter build apk --debug` compila com o Drift ligado ao SQLite nativo do
