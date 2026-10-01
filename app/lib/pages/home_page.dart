@@ -6,6 +6,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import '../documents/ready_notice.dart';
 import '../local/local_providers.dart';
 import '../local/month_repository.dart';
 import '../month/day_row.dart';
@@ -13,6 +14,7 @@ import '../month/month.dart';
 import '../theme/theme.dart';
 import '../widgets/app_menu.dart';
 import 'day_register_page.dart';
+import 'generated_documents_page.dart';
 import 'select_maps_page.dart';
 
 /// A tela-casa da merendeira: a visão do mês (US008), ao lado do menu do
@@ -126,6 +128,12 @@ class _HomePageState extends ConsumerState<HomePage> {
               month: _month,
               onPrevious: () => _goToMonth(-1),
               onNext: () => _goToMonth(1),
+            ),
+            // Documento que ficou pronto e ela ainda não viu (issue #110).
+            DocumentReadyNotice(
+              profileId: profile.id,
+              onShare: (documentId) =>
+                  context.push(GeneratedDocumentsPage.path, extra: documentId),
             ),
             Expanded(
               child: StreamBuilder<List<MealMapWithMeals>>(

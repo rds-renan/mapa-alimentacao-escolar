@@ -11,6 +11,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../documents/fake_documents.dart';
 import '../local/fake_month_gateway.dart';
 
 void main() {
@@ -25,6 +26,9 @@ void main() {
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         monthGatewayProvider.overrideWithValue(monthGateway),
+        // A tela-casa lê a lista de documentos ao abrir, para o aviso de
+        // documento pronto (issue #110).
+        documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
         // A visão do mês abre um arquivo Drift por perfil (decisão 6 da
         // E6); nos testes de widget, sempre um banco em memória, como
         // `month_repository_test.dart` já faz sem Riverpod nenhum.

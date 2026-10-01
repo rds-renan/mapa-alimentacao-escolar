@@ -108,8 +108,10 @@ A alteração precisa aparecer no cartão porque é o que sai impresso (US002); 
 
 ## 11. As mensagens de erro são parte do produto, não sobra
 
-**Decisão**: existe um catálogo único de avisos e mensagens — [avisos-e-mensagens.md](avisos-e-mensagens.md) —, com o texto exato de cada uma e a regra de quando aparece, sob três regras de linguagem: nenhuma mensagem culpa a merendeira; toda mensagem de erro diz primeiro o que **não** se perdeu; nada de jargão. Uma única notificação no MVP (documento pronto) e uma única confirmação no fluxo da merendeira (antes de gerar, porque o bloqueio é irreversível para ela).
+**Decisão**: existe um catálogo único de avisos e mensagens — [avisos-e-mensagens.md](avisos-e-mensagens.md) —, com o texto exato de cada uma e a regra de quando aparece, sob três regras de linguagem: nenhuma mensagem culpa a merendeira; toda mensagem de erro diz primeiro o que **não** se perdeu; nada de jargão. Um único aviso de destaque no MVP (documento pronto) e uma única confirmação no fluxo da merendeira (antes de gerar, porque o bloqueio é irreversível para ela).
 
 **Por quê**: o contrato do MAE com quem usa é "nada foi perdido" — a decisão 3 inteira existe para isso. Esse contrato não se cumpre no caminho feliz, onde nada dá errado; cumpre-se exatamente nas mensagens de falha. Deixá-las para a hora da implementação faria cada tela inventar o seu próprio tom, e o tom é o produto aqui.
+
+**Revisada na E6**: o aviso de documento pronto nasceu aqui como notificação do sistema e virou aviso na tela, ao abrir o aplicativo — ver a [decisão 10 da E6](../06-app/decisoes-tecnicas.md#10-documento-pronto-é-aviso-ao-abrir-não-notificação-por-push). O resto da decisão vale como estava.
 
 **Histórias**: transversal; US010, US011 (falhas de envio), US012 (geração), US016 (login).

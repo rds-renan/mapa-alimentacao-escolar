@@ -2,6 +2,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../documents/document_sharer.dart';
 import '../documents/generation_gateway.dart';
+import '../documents/seen_documents.dart';
 import '../supabase.dart';
 import 'app_database.dart';
 import 'catalog_gateway.dart';
@@ -133,4 +134,16 @@ final generatedDocumentsRepositoryProvider =
 /// A folha de compartilhamento do Android, que nos testes é um falso.
 final documentSharerProvider = Provider<DocumentSharer>((ref) {
   return PlatformDocumentSharer(ref.watch(documentsGatewayProvider));
+});
+
+/// O "já visto" dos documentos gerados (issue #110), um por perfil. Vive
+/// enquanto o [ProviderContainer] existir, porque a tela de documentos marca
+/// e a tela-casa lê — e as duas precisam ver o mesmo objeto.
+final seenDocumentsProvider = Provider.family<SeenDocuments, String>((
+  ref,
+  profileId,
+) {
+  final seen = SeenDocuments(profileId);
+  ref.onDispose(seen.dispose);
+  return seen;
 });
