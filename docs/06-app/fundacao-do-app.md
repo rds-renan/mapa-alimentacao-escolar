@@ -96,10 +96,8 @@ escuro, então não precisam de extensão.
 A **variante escura** (US024) é o mesmo conjunto de tokens com outra paleta,
 já em `maeDarkTheme`: o azul do logo clareia para `#7fb3d0`, pelo mesmo
 motivo da web — `#397ba1` sobre fundo escuro não alcança o contraste AA — e
-passa a levar texto escuro em cima. Por ora o app segue `ThemeMode.system`;
-gravar a preferência da usuária é a issue #111, em
-[o tema escuro](../05-web/tema-escuro.md) da web, cujo par no app ainda não
-tem página própria.
+passa a levar texto escuro em cima. A escolha entre claro, escuro e sistema,
+e onde ela mora, está em [o tema escuro](tema-escuro.md) (issue #111).
 
 ## Os ambientes
 

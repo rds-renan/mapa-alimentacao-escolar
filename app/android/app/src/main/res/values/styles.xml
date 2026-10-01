@@ -15,4 +15,13 @@
     <style name="NormalTheme" parent="@android:style/Theme.Light.NoTitleBar">
         <item name="android:windowBackground">?android:colorBackground</item>
     </style>
+
+    <!-- A abertura quando a preferência de tema do app contraria a do aparelho.
+         MainActivity escolhe uma destas antes de a janela existir. -->
+    <style name="LaunchThemeLight" parent="@android:style/Theme.Light.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background_light</item>
+    </style>
+    <style name="LaunchThemeDark" parent="@android:style/Theme.Black.NoTitleBar">
+        <item name="android:windowBackground">@drawable/launch_background_dark</item>
+    </style>
 </resources>

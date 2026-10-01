@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- O fundo da tela nos dois temas: os mesmos scaffoldBackgroundColor de lib/theme/theme.dart. -->
+    <color name="launch_light">#FAFAFA</color>
+    <color name="launch_dark">#09090B</color>
+</resources>

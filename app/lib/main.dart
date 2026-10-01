@@ -5,6 +5,7 @@ import 'env.dart';
 import 'routing/app_router.dart';
 import 'supabase.dart';
 import 'theme/theme.dart';
+import 'theme/theme_preference.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +20,16 @@ Future<void> main() async {
 
   await initSupabase();
 
-  runApp(const ProviderScope(child: MaeApp()));
+  final themePreference = await loadThemePreference();
+
+  runApp(
+    ProviderScope(
+      overrides: [
+        initialThemePreferenceProvider.overrideWithValue(themePreference),
+      ],
+      child: const MaeApp(),
+    ),
+  );
 }
 
 class MaeApp extends ConsumerWidget {
@@ -33,7 +43,7 @@ class MaeApp extends ConsumerWidget {
       title: 'MAE',
       theme: maeLightTheme,
       darkTheme: maeDarkTheme,
-      themeMode: ThemeMode.system,
+      themeMode: ref.watch(themePreferenceProvider).mode,
       routerConfig: router,
     );
   }

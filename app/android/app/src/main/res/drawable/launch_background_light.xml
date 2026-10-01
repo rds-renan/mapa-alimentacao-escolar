@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Abertura no tema claro do aparelho (o escuro está em drawable-night). -->
+<!-- Abertura quando ela escolheu "Claro" no app, seja qual for o tema do aparelho. -->
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:drawable="@color/launch_light" />
 </layer-list>

@@ -5,14 +5,13 @@ import 'package:go_router/go_router.dart';
 import '../auth/auth_controller.dart';
 import '../pages/food_items_page.dart';
 import '../pages/generated_documents_page.dart';
+import '../theme/theme_preference.dart';
 
 /// O menu do aplicativo — tela 2a da E3, decisão 9 da mesma etapa.
 ///
 /// A versão em Dart do `web/src/components/app-menu.tsx`: a porta do que
 /// **não** é fluxo diário. É a decisão 9 da E3 que dá os quatro itens —
-/// documentos gerados, gerenciar gêneros, tema e sair —, mas dois deles
-/// ainda não têm destino nem controle nesta issue: a mesma situação em que a
-/// web esteve entre as issues #61 e #71.
+/// documentos gerados, gerenciar gêneros, tema e sair.
 ///
 /// Ele não interrompe registro em andamento (CA#1 da US020): o rascunho do
 /// dia mora no aparelho e não depende desta tela estar aberta. E não tem
@@ -84,22 +83,7 @@ class AppMenu extends ConsumerWidget {
               onTap: () => navigateTo(FoodItemsPage.path),
             ),
             const Divider(height: 1),
-            /*
-             * O tema escuro é da issue #111. O aplicativo já segue o tema do
-             * aparelho (`ThemeMode.system`, em `main.dart`) — o que falta é
-             * o controle entre claro, escuro e sistema, como a web tem.
-             * Fica aqui à vista e inerte, no mesmo espírito da web entre as
-             * issues #61 e #71: tirá-lo do desenho e recolocá-lo depois
-             * custaria mais do que deixá-lo explicado.
-             */
-            Opacity(
-              opacity: 0.5,
-              child: ListTile(
-                leading: const Icon(Icons.dark_mode_outlined),
-                title: const Text('Tema escuro'),
-                trailing: Text('issue #111', style: theme.textTheme.labelSmall),
-              ),
-            ),
+            const _ThemeChoice(),
             const Spacer(),
             const Divider(height: 1),
             Padding(
@@ -118,6 +102,64 @@ class AppMenu extends ConsumerWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// O controle do tema (US024, issue #111): claro, escuro e sistema, os três à
+/// vista — o par de `web/src/theme/theme-choice.tsx`, com o rótulo e a dica
+/// do desenho da tela 2a.
+///
+/// `SegmentedButton` é o controle que o Material 3 tem para escolha
+/// excludente de poucas opções: a escolha inteira cabe na tela e trocar custa
+/// um toque. Sem ícone nas opções, como na web; a marca da escolhida é o
+/// fundo, e o `showSelectedIcon` desligado evita o "✓" que espremeria
+/// "Sistema" numa barra de 304 px.
+class _ThemeChoice extends ConsumerWidget {
+  const _ThemeChoice();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final theme = Theme.of(context);
+    final preference = ref.watch(themePreferenceProvider);
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(18, 12, 18, 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.dark_mode_outlined,
+                color: theme.colorScheme.onSurfaceVariant,
+              ),
+              const SizedBox(width: 16),
+              Text('Tema', style: theme.textTheme.bodyLarge),
+            ],
+          ),
+          const SizedBox(height: 10),
+          SizedBox(
+            width: double.infinity,
+            child: SegmentedButton<ThemePreference>(
+              showSelectedIcon: false,
+              segments: [
+                for (final option in ThemePreference.values)
+                  ButtonSegment(value: option, label: Text(option.label)),
+              ],
+              selected: {preference},
+              onSelectionChanged: (selection) => ref
+                  .read(themePreferenceProvider.notifier)
+                  .choose(selection.single),
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'Em Sistema, acompanha o tema do aparelho.',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
       ),
     );
   }
