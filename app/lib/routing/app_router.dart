@@ -8,6 +8,7 @@ import '../pages/food_items_page.dart';
 import '../pages/forgot_password_page.dart';
 import '../pages/generated_documents_page.dart';
 import '../pages/home_page.dart';
+import '../pages/select_maps_page.dart';
 import '../pages/sign_in_page.dart';
 
 /// A navegação (decisão 5 da E6): sem sessão, toda rota leva ao login; com
@@ -61,6 +62,14 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: FoodItemsPage.path,
         builder: (_, _) => const FoodItemsPage(),
+      ),
+      GoRoute(
+        path: SelectMapsPage.path,
+        builder: (_, state) => SelectMapsPage(
+          month: SelectMapsPage.monthFrom(
+            state.uri.queryParameters[SelectMapsPage.monthParam],
+          ),
+        ),
       ),
       GoRoute(
         path: GeneratedDocumentsPage.path,

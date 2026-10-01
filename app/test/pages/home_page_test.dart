@@ -14,6 +14,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../documents/fake_generation_gateway.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
@@ -46,6 +47,8 @@ void main() {
         // a fila de envio — sem este falso, o provedor de verdade tentaria
         // o Supabase que este teste nunca inicializa.
         syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
+        // A seleção de mapas (issue #108) lê a porta da geração ao abrir.
+        generationGatewayProvider.overrideWithValue(FakeGenerationGateway()),
         // "Gerenciar gêneros" abre a manutenção do catálogo (issue #107),
         // que lê o catálogo e pergunta pela rede.
         catalogGatewayProvider.overrideWithValue(FakeCatalogGateway()),
@@ -248,20 +251,27 @@ void main() {
     });
   });
 
-  testWidgets('"Gerar documento" fica visível e inerte (issue #108)', (
-    tester,
-  ) async {
-    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
-      await pumpHome(tester);
+  testWidgets(
+    '"Gerar documento" abre a seleção com o mês que ela estava vendo (#108)',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await pumpHome(tester);
 
-      final button = tester.widget<FilledButton>(
-        find.widgetWithText(FilledButton, 'Gerar documento'),
-      );
-      expect(button.onPressed, isNull);
+        await tester.tap(find.byTooltip('Próximo mês'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(FilledButton, 'Gerar documento'));
+        await tester.pumpAndSettle();
 
-      await dispose(tester);
-    });
-  });
+        expect(
+          find.text('Escolha os mapas de outubro de 2026'),
+          findsOneWidget,
+        );
+
+        container.read(syncEngineProvider(cook.id)).stop();
+        await dispose(tester);
+      });
+    },
+  );
 
   group('menu', () {
     testWidgets('um toque abre e reúne os itens da decisão 9 da E3', (

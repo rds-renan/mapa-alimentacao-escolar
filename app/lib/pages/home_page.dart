@@ -13,6 +13,7 @@ import '../month/month.dart';
 import '../theme/theme.dart';
 import '../widgets/app_menu.dart';
 import 'day_register_page.dart';
+import 'select_maps_page.dart';
 
 /// A tela-casa da merendeira: a visão do mês (US008), ao lado do menu do
 /// aplicativo (US020) — telas 2 e 2a da E3, issue #104.
@@ -189,7 +190,7 @@ class _HomePageState extends ConsumerState<HomePage> {
           ],
         ),
       ),
-      bottomNavigationBar: const _GenerateDocumentButton(),
+      bottomNavigationBar: _GenerateDocumentButton(month: _month),
     );
   }
 }
@@ -342,11 +343,11 @@ class _WeekCard extends StatelessWidget {
 }
 
 /// O segundo dos dois caminhos da tela-casa: a seleção de mapas (issue
-/// #108). Até ela existir, o botão fica aqui inerte — o rodapé é parte do
-/// desenho desta tela e não da tela seguinte, mesmo raciocínio da web entre
-/// as issues #61 e #66.
+/// #108), já com o mês que ela estava vendo.
 class _GenerateDocumentButton extends StatelessWidget {
-  const _GenerateDocumentButton();
+  const _GenerateDocumentButton({required this.month});
+
+  final DateTime month;
 
   @override
   Widget build(BuildContext context) {
@@ -360,7 +361,7 @@ class _GenerateDocumentButton extends StatelessWidget {
       child: SizedBox(
         width: double.infinity,
         child: FilledButton.icon(
-          onPressed: null,
+          onPressed: () => context.push(SelectMapsPage.pathFor(month)),
           icon: const Icon(Icons.description),
           label: const Text('Gerar documento'),
         ),

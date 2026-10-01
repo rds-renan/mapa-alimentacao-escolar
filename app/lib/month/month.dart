@@ -19,6 +19,7 @@
 /// registra.
 library;
 
+import '../local/day.dart';
 import '../local/month_repository.dart';
 
 enum DayState { locked, nonSchool, complete, pending, empty }
@@ -78,9 +79,12 @@ class DayRecord {
     required this.mealsServed,
     required this.locked,
     required this.meals,
+    this.id,
+    this.unsent = false,
   });
 
   factory DayRecord.fromLocal(MealMapWithMeals row) => DayRecord(
+    id: row.mealMap.id,
     nonSchoolDay: row.mealMap.nonSchoolDay,
     note: row.mealMap.note,
     mealsServed: row.mealMap.mealsServed,
@@ -95,6 +99,48 @@ class DayRecord {
         )
         .toList(),
   );
+
+  /// Um dia que só existe no aparelho, esperando subir. Não tem como estar
+  /// bloqueado nem como ter o identificador que o servidor adotou — quem
+  /// os traz é [DayRecord.withDraft].
+  factory DayRecord.fromDraft(DayPayload day) => DayRecord(
+    nonSchoolDay: day.nonSchoolDay,
+    note: day.note,
+    mealsServed: day.mealsServed,
+    locked: false,
+    unsent: true,
+    meals: day.meals
+        .map(
+          (meal) => MealRecord(
+            type: meal.type,
+            description: meal.description,
+            acceptance: meal.acceptance,
+          ),
+        )
+        .toList(),
+  );
+
+  /// Quando o mesmo dia existe no servidor e no aparelho, vale o rascunho —
+  /// **menos o bloqueio e o identificador**, que ele não tem como conhecer
+  /// (a mesma regra da web, em `selection`).
+  DayRecord withDraft(DayPayload draft) {
+    final fromDraft = DayRecord.fromDraft(draft);
+    return DayRecord(
+      id: id,
+      nonSchoolDay: fromDraft.nonSchoolDay,
+      note: fromDraft.note,
+      mealsServed: fromDraft.mealsServed,
+      locked: locked,
+      unsent: true,
+      meals: fromDraft.meals,
+    );
+  }
+
+  /// O identificador do mapa **no servidor**. É o que a geração recebe.
+  final String? id;
+
+  /// Guardado no aparelho, ainda esperando subir.
+  final bool unsent;
 
   final bool nonSchoolDay;
   final String? note;
@@ -221,6 +267,9 @@ const Map<int, String> _weekdayAbbrev = {
   6: 'SÁB',
   7: 'DOM',
 };
+
+/// "setembro" — o mês por extenso, em minúsculas, como a frase o pede.
+String monthName(DateTime month) => _monthNames[month.month - 1];
 
 String weekdayAbbrev(DateTime date) => _weekdayAbbrev[date.weekday]!;
 
