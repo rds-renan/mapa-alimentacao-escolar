@@ -6,8 +6,9 @@ import '../theme/theme.dart';
 
 /// A faixa de salvamento da decisão 3 da E3: não há botão "Salvar", e é esta
 /// faixa que diz em que pé está o registro. Três estados, três frases fixas
-/// — a versão em Dart de `web/src/local/sync-banner.tsx`, ainda sem tela que
-/// a monte (chega com a #105).
+/// — a versão em Dart de `web/src/local/sync-banner.tsx` —, e um quarto que só
+/// o aplicativo tem: abaixo da versão mínima (issue #113), com o tom da falha,
+/// porque também é envio parado.
 ///
 /// `status.detail` é a frase que o servidor mandou quando a recusa tem
 /// explicação própria — quantidade inválida, mapa já dentro de um documento
@@ -39,7 +40,7 @@ class SyncBanner extends StatelessWidget {
         foreground: tokens.success,
         border: tokens.successBorder,
       ),
-      SyncStatus.failed => (
+      SyncStatus.failed || SyncStatus.outdated => (
         icon: Icons.error_outline,
         background: tokens.warningSubtle,
         foreground: tokens.warning,

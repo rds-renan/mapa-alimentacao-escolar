@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
+import '../version/version_gate.dart';
 import 'connectivity_gateway.dart';
 import 'day.dart';
 import 'sync_gateway.dart';
@@ -109,9 +110,9 @@ class SyncState {
   );
 }
 
-enum _SendOutcome { ok, retry, again }
+enum _SendOutcome { ok, retry, again, outdated }
 
-enum _ErrorClass { retry, rejected }
+enum _ErrorClass { retry, rejected, outdated }
 
 /*
  * A distinção que decide tudo na fila: **o que se resolve reenviando e o que
@@ -120,6 +121,12 @@ enum _ErrorClass { retry, rejected }
  */
 _ErrorClass _classify(String? code) {
   switch (code) {
+    // O aplicativo está abaixo da versão mínima (decisão 12 da E6). Nem
+    // reenviar nem desistir do dia resolve: o dia fica na fila, intocado,
+    // até o aplicativo novo mandá-lo.
+    case 'PT426':
+      return _ErrorClass.outdated;
+
     // Payload incoerente ou mapa bloqueado; e perfil sem permissão de
     // registrar. Reenviar daria exatamente o mesmo erro.
     case '23514':
@@ -148,12 +155,22 @@ final _sentState = DaySyncState(
 /// troca de motor por usuária como na web, porque o arquivo já separa as
 /// duas (decisão 6 da E6).
 class SyncEngine {
-  SyncEngine(this._store, this._gateway, {ConnectivityGateway? connectivity})
-    : _connectivity = connectivity ?? ConnectivityPlusGateway();
+  SyncEngine(
+    this._store,
+    this._gateway, {
+    ConnectivityGateway? connectivity,
+    this._version,
+  }) : _connectivity = connectivity ?? ConnectivityPlusGateway();
 
   final SyncQueueStore _store;
   final SyncGateway _gateway;
   final ConnectivityGateway _connectivity;
+
+  /// A trava de versão mínima (issue #113). Sem ela, a fila não confere
+  /// versão — é como os testes que não falam disso a montam.
+  final VersionGate? _version;
+
+  bool get _outdated => _version?.outdated ?? false;
 
   final ValueNotifier<SyncState> _state = ValueNotifier(SyncState.empty);
   ValueListenable<SyncState> get stateListenable => _state;
@@ -184,6 +201,9 @@ class SyncEngine {
     _patch(days: {..._state.value.days, mapDate: day});
   }
 
+  DaySyncState _stateOf(SyncStatus status) =>
+      DaySyncState(status: status, message: syncMessages[status]!);
+
   DaySyncState _stateFor(StoredDay record) {
     final rejection = record.rejection;
     if (rejection != null) {
@@ -193,6 +213,10 @@ class SyncEngine {
         detail: rejection.message,
       );
     }
+
+    // Abaixo do mínimo, a frase de sempre ("envia sozinho quando houver
+    // internet") seria falsa.
+    if (_outdated) return _stateOf(SyncStatus.outdated);
 
     /*
      * Falhou tentando, mas é falha que passa: a fila continua insistindo. Só
@@ -232,7 +256,12 @@ class SyncEngine {
     try {
       response = await _gateway.saveMealMap(record.day.toJson());
     } on PostgrestException catch (error) {
-      if (_classify(error.code) == _ErrorClass.retry) {
+      final errorClass = _classify(error.code);
+      if (errorClass == _ErrorClass.outdated) {
+        _version?.reportRejected();
+        return _SendOutcome.outdated;
+      }
+      if (errorClass == _ErrorClass.retry) {
         await _store.markRetried(record.mapDate);
         return _SendOutcome.retry;
       }
@@ -342,8 +371,21 @@ class SyncEngine {
         return;
       }
 
+      /*
+       * Antes de mandar, a versão (decisão 12 da E6). Abaixo do mínimo, nada
+       * sai: o banco recusaria cada dia, e o aplicativo velho não tem por que
+       * descobrir isso um dia de cada vez.
+       */
+      final version = _version;
+      if (version != null && await version.check()) {
+        await _refreshPending();
+        _patch(sending: false);
+        return;
+      }
+
       var worstAttempts = 0;
       var again = false;
+      var outdated = false;
 
       for (final record in queue) {
         _SendOutcome outcome;
@@ -359,10 +401,18 @@ class SyncEngine {
           worstAttempts = max(worstAttempts, record.attempts + 1);
         }
         if (outcome == _SendOutcome.again) again = true;
+        if (outcome == _SendOutcome.outdated) {
+          // O banco recusou a versão: os outros dias teriam a mesma resposta.
+          outdated = true;
+          break;
+        }
       }
 
       await _refreshPending();
       _patch(sending: false);
+
+      // Sem nova tentativa agendada: só o aplicativo novo manda esses dias.
+      if (outdated) return;
 
       if (worstAttempts > 0) {
         _scheduleFlush(_retryDelay(worstAttempts));
@@ -393,10 +443,7 @@ class SyncEngine {
 
     _setDay(
       day.mapDate,
-      DaySyncState(
-        status: SyncStatus.pending,
-        message: syncMessages[SyncStatus.pending]!,
-      ),
+      _stateOf(_outdated ? SyncStatus.outdated : SyncStatus.pending),
     );
 
     await _refreshPending();
@@ -449,13 +496,20 @@ class SyncEngine {
       onResume: () => unawaited(flush()),
     );
 
+    // A versão mudou de estado — a tela-casa conferiu, ou o banco recusou: a
+    // faixa de cada dia guardado passa a dizer a frase certa.
+    _version?.addListener(_onVersionChange);
+
     // Reabrir o aplicativo no meio do preenchimento não perde nada (CA#3 da
     // US010): o que estava na fila é lido do aparelho e volta a subir.
     unawaited(_refreshPending().then((_) => flush()));
   }
 
+  void _onVersionChange() => unawaited(_refreshPending());
+
   void stop() {
     _started = false;
+    _version?.removeListener(_onVersionChange);
     _sendTimer?.cancel();
     _sendTimer = null;
     unawaited(_connectivitySubscription?.cancel());

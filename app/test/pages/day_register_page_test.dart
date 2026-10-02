@@ -11,6 +11,7 @@ import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
+import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
@@ -18,6 +19,7 @@ import '../documents/fake_documents.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 /// A tela central do produto (issues #105 e #106), critério por critério: as
 /// três refeições com cardápio previsto e aceitação em três botões, o número
@@ -50,6 +52,8 @@ void main() {
         authGatewayProvider.overrideWithValue(gateway),
         monthGatewayProvider.overrideWithValue(monthGateway),
         syncGatewayProvider.overrideWithValue(syncGateway),
+        // A tela-casa e a fila conferem a versão mínima (issue #113).
+        versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         catalogGatewayProvider.overrideWithValue(catalogGateway),
         // A tela-casa lê a lista de documentos ao abrir, para o aviso de
         // documento pronto (issue #110).

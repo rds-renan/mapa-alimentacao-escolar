@@ -5,10 +5,12 @@ import 'package:mae/local/day.dart';
 import 'package:mae/local/sync_engine.dart';
 import 'package:mae/local/sync_messages.dart';
 import 'package:mae/local/sync_queue_store.dart';
+import 'package:mae/version/version_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import 'fake_connectivity_gateway.dart';
 import 'fake_sync_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 /*
  * A fila é o que quebra em silêncio neste produto: um mapa que não subiu não
@@ -394,5 +396,115 @@ void main() {
       expect(gateway.calls, hasLength(1));
       expect(await store.get(_date), isNull);
     });
+  });
+
+  group('a versão mínima (issue #113)', () {
+    late FakeVersionGateway versions;
+    late VersionGate gate;
+
+    setUp(() {
+      versions = FakeVersionGateway(minimum: 1);
+      gate = VersionGate(currentBuild: 3, gateway: versions);
+      engine.stop();
+      engine = SyncEngine(
+        store,
+        gateway,
+        connectivity: connectivity,
+        version: gate,
+      );
+    });
+
+    tearDown(() => gate.dispose());
+
+    test('confere a versão antes de mandar, e no mínimo manda', () async {
+      gateway.enqueueSaved(_saved());
+
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      expect(versions.calls, 1);
+      expect(gateway.calls, hasLength(1));
+      expect(await store.get(_date), isNull);
+    });
+
+    test('abaixo do mínimo não manda nada, e o dia fica no aparelho, '
+        'com a frase de atualizar', () async {
+      versions.minimum = 4;
+
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      expect(gateway.calls, isEmpty);
+      expect(gate.outdated, isTrue);
+
+      final stored = await store.get(_date);
+      expect(stored, isNotNull);
+      expect(stored!.rejection, isNull);
+      expect(stored.attempts, 0);
+      expect(
+        engine.state.days[_date]?.message,
+        syncMessages[SyncStatus.outdated],
+      );
+    });
+
+    test('sem rede para perguntar, vale o último mínimo conhecido', () async {
+      final known = VersionGate(
+        currentBuild: 3,
+        gateway: versions..error = Exception('sem rede'),
+        knownMinimum: 4,
+      );
+      addTearDown(known.dispose);
+      engine.stop();
+      engine = SyncEngine(
+        store,
+        gateway,
+        connectivity: connectivity,
+        version: known,
+      );
+
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      expect(gateway.calls, isEmpty);
+      expect(
+        engine.state.days[_date]?.message,
+        syncMessages[SyncStatus.outdated],
+      );
+    });
+
+    test(
+      'a recusa do banco pela versão não descarta o dia nem insiste',
+      () async {
+        // O mínimo subiu entre a conferência e o envio.
+        gateway.enqueueError(
+          PostgrestException(
+            code: 'PT426',
+            message: 'Esta versão do aplicativo está desatualizada.',
+          ),
+        );
+        gateway.enqueueSaved(_saved());
+
+        await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+        await engine.save(
+          _dayFor('2026-09-11T18:30:00-03:00', mapDate: '2026-09-11'),
+        );
+        gateway.beforeRespond = () async => versions.minimum = 4;
+        await engine.flush();
+        // A reconferência que a recusa pede é a que traz o mínimo exato.
+        await gate.check();
+
+        // Parou no primeiro: os outros teriam a mesma resposta.
+        expect(gateway.calls, hasLength(1));
+        expect(gate.outdated, isTrue);
+        expect(gate.minimumBuild, 4);
+
+        for (final date in [_date, '2026-09-11']) {
+          final stored = await store.get(date);
+          expect(stored, isNotNull, reason: date);
+          expect(stored!.rejection, isNull, reason: date);
+          expect(stored.attempts, 0, reason: date);
+        }
+      },
+    );
   });
 }

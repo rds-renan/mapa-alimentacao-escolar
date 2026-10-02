@@ -1,10 +1,31 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <!--
       Declarada aqui, e não só nos manifestos de depuração (issue #112): o
       APK de release é montado só com este manifesto, e sem ela o app não
       alcança o Supabase. Nenhuma dependência a acrescenta sozinha.
     -->
     <uses-permission android:name="android.permission.INTERNET"/>
+
+    <!--
+      A atualização pelo próprio aplicativo (issue #113): o MAE baixa o APK
+      novo e entrega ao instalador do Android. Na primeira vez, o Android pede
+      que ela permita ao MAE instalar aplicativos.
+    -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES"/>
+
+    <!--
+      O ota_update declara estas também, e nenhuma serve aqui: o arquivo vai
+      para a pasta interna do aplicativo (não para o armazenamento
+      compartilhado), a instalação silenciosa é só de aplicativo de sistema, e
+      o estado do Wi-Fi não é consultado. Permissão a mais é pergunta a mais
+      na tela da instalação. A de leitura entra porque o Gradle a deduz da de
+      escrita que o plugin pede, mesmo depois de removida.
+    -->
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" tools:node="remove"/>
+    <uses-permission android:name="android.permission.INSTALL_PACKAGES" tools:node="remove"/>
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" tools:node="remove"/>
 
     <application
         android:label="MAE"
@@ -32,6 +53,19 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <!--
+          Por onde o instalador do Android lê o APK baixado pelo ota_update,
+          na pasta interna do aplicativo (res/xml/ota_update_paths.xml).
+        -->
+        <provider
+            android:name="sk.fourq.otaupdate.OtaUpdateFileProvider"
+            android:authorities="${applicationId}.ota_update_provider"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/ota_update_paths" />
+        </provider>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
         <meta-data

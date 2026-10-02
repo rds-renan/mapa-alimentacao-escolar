@@ -8,11 +8,13 @@ import 'package:mae/local/app_database.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
+import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
 import '../documents/fake_documents.dart';
 import '../local/fake_month_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 void main() {
   late FakeAuthGateway gateway;
@@ -26,6 +28,7 @@ void main() {
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
         monthGatewayProvider.overrideWithValue(monthGateway),
+        versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         // A tela-casa lê a lista de documentos ao abrir, para o aviso de
         // documento pronto (issue #110).
         documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),

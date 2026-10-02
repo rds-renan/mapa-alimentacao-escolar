@@ -13,6 +13,7 @@ import 'package:mae/local/month_gateway.dart';
 import 'package:mae/local/sync_queue_store.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
+import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
@@ -22,6 +23,7 @@ import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 /// A seleção de mapas e o pedido de geração (issue #108), com o relógio
 /// fixado em setembro de 2026 — o mês de 22 dias úteis (terça 1º a quarta
@@ -69,6 +71,8 @@ void main() {
         authGatewayProvider.overrideWithValue(auth),
         monthGatewayProvider.overrideWithValue(monthGateway),
         syncGatewayProvider.overrideWithValue(syncGateway),
+        // A tela-casa e a fila conferem a versão mínima (issue #113).
+        versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         generationGatewayProvider.overrideWithValue(generation),
         documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
         documentSharerProvider.overrideWithValue(FakeDocumentSharer()),

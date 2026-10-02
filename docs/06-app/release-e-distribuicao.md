@@ -6,7 +6,7 @@ implementada, issue #112. Uma tag `app-v*` dispara
 APK de produção, assina com a chave de release e cria a release do GitHub com
 o arquivo anexado. A primeira instalação é pelo arquivo mandado no WhatsApp;
 as seguintes, pelo próprio aplicativo, que busca a release nova — isso é a
-trava de versão mínima, na issue #113.
+[trava de versão mínima](versao-minima.md), issue #113.
 
 | Critério da issue | Onde está |
 |---|---|
@@ -22,7 +22,8 @@ Uma **tag** é um nome fixo dado a um commit (`app-v0.1.0` aponta para um
 commit da `main` e não se move mais). Uma **release** é uma página do GitHub
 pendurada numa tag, com notas e arquivos anexados — aqui, o APK. O endereço
 `/releases/latest` sempre leva à release mais recente que não é
-pré-release, e é dele que o aplicativo vai buscar a atualização (#113).
+pré-release, e é dele que o aplicativo vai buscar a atualização
+([a atualização](versao-minima.md#a-atualização)).
 
 ## A versão
 
@@ -32,7 +33,7 @@ A versão mora num lugar só, a linha `version:` do
 - **nome** (`0.1.0`): o que a merendeira vê e o que vai na tag (`app-v0.1.0`).
 - **número** (`+1`): o `versionCode` do Android. Ele **tem que subir** a cada
   release: o Android recusa instalar por cima uma versão de número menor. É
-  também o número que a trava da #113 tem para comparar.
+  também o número que a [trava de versão mínima](versao-minima.md) compara.
 
 **Os dois sobem à mão, no mesmo PR**, e a Action confere os dois antes de
 compilar: recusa a tag que não bate com o nome (tag `app-v0.2.0` com
@@ -221,7 +222,8 @@ respeita a trava que já veio com ele (decisão 12). Esta issue deixa a
 esteira pronta e conferida até onde dá sem publicar — o APK de release
 compilado localmente, com a chave de release, o certificado batendo com o
 que a Action espera e a permissão de internet presente. A tag, a release e o
-link entram nesta tabela quando a #113 for feita.
+link entram nesta tabela quando a primeira release for criada, com a
+[trava](versao-minima.md) já na `main`.
 
 O APK tem 64 MB porque leva o código para as três arquiteturas que o Flutter
 compila (`arm64-v8a`, `armeabi-v7a`, `x86_64`). Um arquivo só, que instala em
@@ -231,7 +233,8 @@ que obrigaria a escolher qual mandar pelo WhatsApp.
 ## A primeira instalação
 
 Feita uma vez por aparelho, com o arquivo mandado pelo WhatsApp. Daí em
-diante, a atualização vem pelo próprio aplicativo (#113).
+diante, a atualização vem pelo próprio aplicativo
+([a atualização](versao-minima.md#a-atualização)).
 
 1. Baixar o `mae-<versão>.apk` da release (Releases > a versão > Assets) e
    mandar pelo WhatsApp para a merendeira, como **documento**.

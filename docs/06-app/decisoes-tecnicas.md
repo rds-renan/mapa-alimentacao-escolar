@@ -126,7 +126,7 @@
 
 - **Compartilhamento pela folha do Android** — o pacote que abre a folha nasceu com a tela de documento gerado (issue #109): `share_plus`, com `path_provider` para o arquivo temporário. Ver [documentos gerados](documentos-gerados.md#o-pacote-da-folha).
 - **Armazenamento de preferências do aparelho** — o "já visto" do aviso de documento pronto (issue #110) nasceu com `shared_preferences`, que o tema escuro (#111) reaproveitou. Ver [aviso de documento pronto](aviso-de-documento-pronto.md#onde-o-já-visto-mora) e [o tema escuro](tema-escuro.md).
-- **Download e instalação da atualização** — como baixar o APK e chamar o instalador, e a permissão de instalar aplicativos que isso exige, se decidem com a trava de versão (issue #113).
+- **Download e instalação da atualização** — decididos com a trava de versão (issue #113): a release mais recente pela API do GitHub, o download e o instalador pelo `ota_update`, e a permissão de instalar aplicativos. Abaixo do mínimo, ela continua registrando e só o envio para. Ver [versão mínima do aplicativo](versao-minima.md).
 - **Detecção de conexão** — se a fila precisa de um pacote para saber que a rede voltou, ou se basta tentar e falhar, se decide com a fila (issue #103).
 - **Armazenamento seguro da sessão** — o pacote que guarda a sessão no cofre do Android se escolhe com a autenticação (issue #101).
 - **Formulários, validação e datas** — como na web, nascem com a primeira tela que precisar delas, se precisarem.

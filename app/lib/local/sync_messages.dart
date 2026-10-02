@@ -9,7 +9,7 @@
 /// "sincronizado").
 library;
 
-enum SyncStatus { pending, sent, failed }
+enum SyncStatus { pending, sent, failed, outdated }
 
 const Map<SyncStatus, String> syncMessages = {
   SyncStatus.pending:
@@ -18,6 +18,11 @@ const Map<SyncStatus, String> syncMessages = {
       'Enviado. Este mapa já está disponível para gerar o documento.',
   SyncStatus.failed:
       'Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo.',
+  // O quarto estado, que a E3 não tinha: o aplicativo está abaixo da versão
+  // mínima (decisão 12 da E6, issue #113). Prometer "quando houver internet"
+  // seria mentir — com internet também não sobe, só depois de atualizar.
+  SyncStatus.outdated:
+      'Salvo no aparelho. Vai para a nuvem depois que você atualizar o MAE.',
 };
 
 /// O texto que a E3 não previu.
