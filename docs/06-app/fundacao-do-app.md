@@ -120,7 +120,10 @@ Os dois ambientes (decisão 2 da E6) são arquivos em [`app/env/`](../../app/env
   imprime, como na web.
 - **`production.json`**: contra o projeto na nuvem, os mesmos valores que a
   web usa em produção — URL e chave publicável do painel do projeto
-  Supabase, em Project Settings > API Keys.
+  Supabase, em Project Settings > API Keys. O `WEB_URL` é o endereço da web com o
+  `https://` (`https://mae.rds.dev.br`) — sem ele, o link do e-mail de senha
+  nova sai quebrado. Na release, a Action monta este arquivo a partir das
+  variáveis do repositório ([release e distribuição](release-e-distribuicao.md)).
 
 Os dois arquivos reais são locais e ficam fora do repositório — só os
 `.example.json` são versionados. É a mesma regra de sigilo do `.env` da web,

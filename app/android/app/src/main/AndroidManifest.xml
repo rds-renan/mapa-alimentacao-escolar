@@ -1,4 +1,11 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!--
+      Declarada aqui, e não só nos manifestos de depuração (issue #112): o
+      APK de release é montado só com este manifesto, e sem ela o app não
+      alcança o Supabase. Nenhuma dependência a acrescenta sozinha.
+    -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+
     <application
         android:label="MAE"
         android:name="${applicationName}"

@@ -32,8 +32,9 @@ O que esta CI prova é que o app **compila** — o equivalente, em Flutter, ao
 build da web. Por isso o APK sai em modo debug, assinado com a chave de
 depuração que já vem no `build.gradle.kts`: não exige segredo nenhum e é o
 suficiente para provar a compilação. Ele não é anexado como artefato do fluxo:
-a versão que chega às merendeiras sai só pela release por tag, na issue #112
-(decisão 11), com a chave de assinatura de verdade.
+a versão que chega às merendeiras sai só pela [release por
+tag](release-e-distribuicao.md) (decisão 11, issue #112), com a chave de
+assinatura de verdade.
 
 ## Por que não há ponta a ponta com emulador
 
