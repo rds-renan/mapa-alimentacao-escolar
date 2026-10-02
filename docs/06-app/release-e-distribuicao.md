@@ -34,8 +34,21 @@ A versão mora num lugar só, a linha `version:` do
   release: o Android recusa instalar por cima uma versão de número menor. É
   também o número que a trava da #113 tem para comparar.
 
-A Action recusa a tag que não bate com o pubspec — tag `app-v0.2.0` com
-`version: 0.1.0+1` falha antes de compilar.
+**Os dois sobem à mão, no mesmo PR**, e a Action confere os dois antes de
+compilar: recusa a tag que não bate com o nome (tag `app-v0.2.0` com
+`version: 0.1.0+1`) e recusa o número que não cresceu desde a release
+anterior (`0.2.0+1` depois de `0.1.0+1`). Esquecer qualquer um dos dois
+falha na Action, nunca no aparelho da merendeira.
+
+Qual parte do nome subir:
+
+| Mudou | Exemplo | Sobe |
+|---|---|---|
+| Só correção, nada novo para ela | `0.1.0+1` → `0.1.1+2` | o último número do nome |
+| Algo novo que ela vai ver | `0.1.1+2` → `0.2.0+3` | o do meio, zerando o último |
+
+O número depois do `+` só cresce de um em um, nunca volta, e não tem relação
+com o nome.
 
 ## Como fazer uma release
 
@@ -55,6 +68,22 @@ A Action recusa a tag que não bate com o pubspec — tag `app-v0.2.0` com
 4. Acompanhar em Actions > "Release do app". Ao terminar, a release aparece
    em Releases com o `mae-0.1.0.apk` anexado.
 
+### Se a Action recusar
+
+A mensagem do erro diz o que faltou ("esperava app-v0.2.0" ou "o número da
+versão não cresceu"). A tag errada já está no GitHub e não se move, então o
+caminho é apagá-la, corrigir o pubspec por PR e criar a tag de novo:
+
+```bash
+git push --delete origin app-v0.2.0   # apaga a tag no GitHub
+git tag -d app-v0.2.0                 # e a cópia local
+# PR corrigindo a version: do pubspec, merge, e então o passo 3 de novo
+```
+
+Como a Action falhou antes de criar a release, não há release para apagar.
+
+### Ensaio
+
 Para ensaiar sem atrapalhar ninguém, uma tag com hífen
 (`app-v0.1.0-teste`) vira **pré-release**: aparece na lista, mas fica fora de
 `/releases/latest`, então nenhum aplicativo a oferece como atualização.
@@ -67,6 +96,7 @@ Depois do ensaio, apagar a release e a tag
 |---|---|
 | Confere que a tag está na `main` | cada APK amarrado a um commit que passou por PR e pela CI |
 | Confere a tag contra o pubspec | a release não mente sobre a versão que carrega |
+| Confere que o número depois do `+` cresceu desde a última tag `app-v*` (sem contar as de ensaio) | o Android recusa atualizar para um número que não cresceu |
 | Análise estática e testes | o mesmo Flutter (`3.47.5`) e o mesmo crivo da CI de PR |
 | Escreve `env/production.json` | a partir das variáveis do repositório — ver abaixo |
 | Escreve a chave e o `key.properties` | a partir dos segredos, fora da pasta do projeto |
