@@ -6,6 +6,8 @@ import 'routing/app_router.dart';
 import 'supabase.dart';
 import 'theme/theme.dart';
 import 'theme/theme_preference.dart';
+import 'version/version_gate.dart';
+import 'version/version_providers.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -18,7 +20,8 @@ Future<void> main() async {
     );
   }
 
-  await initSupabase();
+  final build = await loadAppBuild();
+  await initSupabase(build: build.current);
 
   final themePreference = await loadThemePreference();
 
@@ -26,6 +29,7 @@ Future<void> main() async {
     ProviderScope(
       overrides: [
         initialThemePreferenceProvider.overrideWithValue(themePreference),
+        appBuildProvider.overrideWithValue(build),
       ],
       child: const MaeApp(),
     ),

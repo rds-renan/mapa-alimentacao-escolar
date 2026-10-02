@@ -12,6 +12,7 @@ import 'package:mae/local/month_gateway.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
 import 'package:mae/theme/theme_preference.dart';
+import 'package:mae/version/version_providers.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -22,6 +23,7 @@ import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 /// A visão do mês e o menu (issue #104), com o relógio fixado em 9 de
 /// setembro de 2026 (uma quarta-feira) — o mês que a tela abre, o destaque de
@@ -50,6 +52,8 @@ void main() {
         // a fila de envio — sem este falso, o provedor de verdade tentaria
         // o Supabase que este teste nunca inicializa.
         syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
+        // A tela-casa e a fila conferem a versão mínima (issue #113).
+        versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         // A seleção de mapas (issue #108) lê a porta da geração ao abrir.
         generationGatewayProvider.overrideWithValue(FakeGenerationGateway()),
         // "Documentos gerados" lê a lista (issue #109).

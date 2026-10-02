@@ -12,6 +12,7 @@ import 'package:mae/local/documents_gateway.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
+import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
@@ -21,6 +22,7 @@ import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
 import '../local/fake_sync_gateway.dart';
+import '../version/fake_version_gateway.dart';
 
 /// Os documentos gerados (issue #109), com o relógio fixado em 9 de setembro
 /// de 2026, 14h32 — a situação de cada documento depende da data.
@@ -73,6 +75,8 @@ void main() {
         documentSharerProvider.overrideWithValue(sharer),
         monthGatewayProvider.overrideWithValue(FakeMonthGateway()),
         syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
+        // A tela-casa e a fila conferem a versão mínima (issue #113).
+        versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         generationGatewayProvider.overrideWithValue(FakeGenerationGateway()),
         catalogGatewayProvider.overrideWithValue(FakeCatalogGateway()),
         connectivityGatewayProvider.overrideWithValue(connectivity),

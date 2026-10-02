@@ -4,6 +4,7 @@ import '../documents/document_sharer.dart';
 import '../documents/generation_gateway.dart';
 import '../documents/seen_documents.dart';
 import '../supabase.dart';
+import '../version/version_providers.dart';
 import 'app_database.dart';
 import 'catalog_gateway.dart';
 import 'catalog_repository.dart';
@@ -105,6 +106,7 @@ final syncEngineProvider = Provider.family<SyncEngine, String>((
     SyncQueueStore(ref.watch(appDatabaseProvider(profileId))),
     ref.watch(syncGatewayProvider),
     connectivity: ref.watch(connectivityGatewayProvider),
+    version: ref.watch(versionGateProvider),
   );
   engine.start();
   ref.onDispose(engine.stop);

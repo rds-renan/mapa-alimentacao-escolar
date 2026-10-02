@@ -12,6 +12,7 @@ import '../local/month_repository.dart';
 import '../month/day_row.dart';
 import '../month/month.dart';
 import '../theme/theme.dart';
+import '../version/update_notice.dart';
 import '../widgets/app_menu.dart';
 import 'day_register_page.dart';
 import 'generated_documents_page.dart';
@@ -129,6 +130,8 @@ class _HomePageState extends ConsumerState<HomePage> {
               onPrevious: () => _goToMonth(-1),
               onNext: () => _goToMonth(1),
             ),
+            // Abaixo da versão mínima, nada vai para a nuvem (issue #113).
+            const UpdateNotice(),
             // Documento que ficou pronto e ela ainda não viu (issue #110).
             DocumentReadyNotice(
               profileId: profile.id,
