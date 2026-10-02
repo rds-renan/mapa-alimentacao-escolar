@@ -167,7 +167,9 @@ jobs:
           fi
 
       # Tag com hífen (app-v0.2.0-teste) vira pré-release: fica visível, mas
-      # fora de "latest", que é de onde o app busca a atualização (#113).
+      # fora de "latest", que é de onde o app busca a atualização (#113). O
+      # hífen se procura depois do prefixo: o de "app-v" está em toda tag, e
+      # contá-lo fez a app-v0.1.0 sair como pré-release.
       - name: Criar a release
         env:
           GH_TOKEN: ${{ github.token }}
@@ -176,7 +178,7 @@ jobs:
           apk="mae-$NOME.apk"
           cp build/app/outputs/flutter-apk/app-release.apk "$apk"
           extra=()
-          case "$TAG" in *-*) extra+=(--prerelease) ;; esac
+          case "${TAG#app-v}" in *-*) extra+=(--prerelease) ;; esac
           gh release create "$TAG" "$apk" \
             --verify-tag \
             --title "MAE $NOME" \

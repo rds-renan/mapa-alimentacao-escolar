@@ -213,8 +213,8 @@ done
 | | |
 |---|---|
 | Versão | `0.1.0+1` (nome `0.1.0`, `versionCode` 1) |
-| Tag | `app-v0.1.0` — **ainda não criada** |
-| Release | ainda não existe |
+| Tag | `app-v0.1.0`, criada em 02/10/2026 |
+| Release | [MAE 0.1.0](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.0), com `mae-0.1.0.apk` |
 
 A primeira tag sai **depois da #113**, de propósito: a trava de versão mínima
 precisa estar no primeiro APK entregue, porque um aplicativo instalado só
@@ -222,8 +222,17 @@ respeita a trava que já veio com ele (decisão 12). Esta issue deixa a
 esteira pronta e conferida até onde dá sem publicar — o APK de release
 compilado localmente, com a chave de release, o certificado batendo com o
 que a Action espera e a permissão de internet presente. A tag, a release e o
-link entram nesta tabela quando a primeira release for criada, com a
-[trava](versao-minima.md) já na `main`.
+link entraram nesta tabela com a primeira release, que já saiu com a
+[trava](versao-minima.md).
+
+Ela teve dois tropeços, os dois resolvidos sem mexer na tag. O primeiro: o
+segredo `ANDROID_KEYSTORE_BASE64` tinha sido gravado vazio. A Action parou
+antes de compilar, o segredo foi regravado e a mesma execução rodou de novo
+(`gh run rerun`), lendo o valor novo. O segundo: a release saiu como
+pré-release, porque a Action procurava o hífen das tags de ensaio na tag
+inteira, e o prefixo `app-v` já tem um. A marca foi tirada à mão
+(`gh release edit app-v0.1.0 --prerelease=false --latest`), e o workflow
+passou a procurar o hífen só depois do prefixo.
 
 O APK tem 64 MB porque leva o código para as três arquiteturas que o Flutter
 compila (`arm64-v8a`, `armeabi-v7a`, `x86_64`). Um arquivo só, que instala em

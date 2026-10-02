@@ -237,16 +237,34 @@ nova, sem trava, foi descartado na decisão 12.
   release publicada ainda, mostra "Não deu para baixar agora". Com o mínimo de
   volta a 1, o aviso some na abertura seguinte e o dia sobe.
 
-**Não conferido ainda**: o download e a instalação de verdade. Eles dependem
-de uma release publicada assinada com a mesma chave do aplicativo instalado,
-e a primeira (`app-v0.1.0`) sai depois desta issue. Roteiro para quando ela
-existir:
+**A atualização de ponta a ponta**, conferida em 02/10/2026 no mesmo aparelho,
+com a release [`app-v0.1.0`](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.0)
+já publicada. O app tocou "Atualizar", baixou o APK da release, o Android
+pediu a permissão de instalar aplicativos, o Play Protect aprovou e a versão
+da release foi instalada por cima, sem desinstalar.
 
-1. Instalar o APK da release `app-v0.1.0` no aparelho de teste.
-2. Compilar localmente, com `env/local.json` e a chave de release
-   (`key.properties`), o mesmo `0.1.0+1`, e instalar por cima.
-3. No Supabase local, subir o mínimo para 2.
-4. Abrir, tocar em "Atualizar" e acompanhar o download, a permissão do
-   Android e a instalação da release por cima. O Android aceita reinstalar o
-   mesmo versionCode.
-5. Voltar o mínimo para 1.
+Para repetir o teste, o aparelho precisa de um app que se veja desatualizado
+e que aceite a release por cima. Por isso ele tem que ter a mesma chave e o
+mesmo versionCode da release, mas falar com o Supabase local, onde dá para
+subir o mínimo sem tocar na produção:
+
+1. Liberar, **só para esta compilação e sem commit**, o tráfego sem cifra no
+   manifesto principal: `android:usesCleartextTraffic="true"` na
+   `<application>`. O build de release monta só esse manifesto, e sem a
+   liberação ele não fala HTTP com o Supabase local. O de depuração não
+   serve, porque é assinado com outra chave e o Android recusaria a release
+   por cima.
+2. Compilar com a chave de release (`android/key.properties` apontando para
+   a cópia privada) e o ambiente local:
+   `flutter build apk --release --dart-define-from-file=env/local.json`.
+3. Desfazer a liberação (`git checkout android/app/src/main/AndroidManifest.xml`)
+   e conferir que o certificado do APK é o da release, com o mesmo SHA-256 que
+   a Action confere.
+4. Instalar o APK no aparelho e, no Supabase local, subir o mínimo para um
+   número acima do versionCode dele.
+5. Entrar, tocar em "Atualizar" e acompanhar o download, a permissão e a
+   instalação. O Android aceita reinstalar o mesmo versionCode.
+6. Voltar o mínimo do banco local para 1.
+
+Depois da atualização, o app aponta para o ambiente em que a release foi
+compilada, que é a produção.
