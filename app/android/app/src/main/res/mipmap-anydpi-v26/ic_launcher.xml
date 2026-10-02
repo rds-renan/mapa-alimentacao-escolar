@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Ícone adaptável (Android 8+), a partir do logo (issue #112). O logo ocupa
+  76 dp do quadro de 108 dp: grande o bastante para a borda dele ficar fora da
+  máscara do aparelho, pequeno o bastante para a máscara redonda não cortar a
+  maçã e o garfo. Como as imagens foram geradas, a partir do logo em alta
+  resolução: docs/06-app/release-e-distribuicao.md.
+-->
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@color/ic_launcher_background" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+</adaptive-icon>

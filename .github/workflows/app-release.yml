@@ -1,0 +1,184 @@
+# Release do aplicativo Android (decisão 11 da E6, issue #112): uma tag
+# `app-v*` compila o APK de produção, assina com a chave de verdade e cria a
+# release do GitHub com o arquivo anexado e as notas geradas. É daqui que sai
+# o APK que chega às merendeiras — o da CI de PR (app.yml) só prova que
+# compila.
+#
+# Antes de criar a tag, o caminho crítico é percorrido à mão num aparelho de
+# verdade (decisão 13 da E6). O passo a passo, os segredos e a primeira
+# instalação estão em docs/06-app/release-e-distribuicao.md.
+name: Release do app
+
+on:
+  push:
+    tags:
+      - 'app-v*'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: app-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: APK assinado e release
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app
+    env:
+      TAG: ${{ github.ref_name }}
+      # Impressão digital (SHA-256) do certificado da chave de release. Não é
+      # segredo — está em qualquer APK publicado — e é o que prova que o
+      # arquivo foi assinado pela chave certa, e não pela de depuração.
+      CERT_SHA256: a7712f3027eb2e8023ba1c04401343c5e92907ee2515198bc7d767a33a136a2f
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      # Cada APK amarrado a um commit que já passou pela main (decisão 11):
+      # tag em commit de branch, sem PR, não vira release.
+      - name: Conferir que a tag está na main
+        run: |
+          git fetch origin main
+          if ! git merge-base --is-ancestor "$GITHUB_SHA" origin/main; then
+            echo "::error::A tag $TAG aponta para um commit que não está na main."
+            exit 1
+          fi
+
+      # A tag e o pubspec contam a mesma versão, ou a release mente sobre o
+      # que carrega — e a trava de versão mínima (#113) lê a do pubspec.
+      - name: Conferir a versão da tag com a do pubspec
+        id: versao
+        run: |
+          pubspec=$(sed -n 's/^version: *//p' pubspec.yaml)
+          nome=${TAG#app-v}
+          if [ "${nome%%-*}" != "${pubspec%%+*}" ]; then
+            echo "::error::A tag $TAG não bate com a versão do pubspec ($pubspec): esperava app-v${pubspec%%+*}."
+            exit 1
+          fi
+          echo "nome=$nome" >> "$GITHUB_OUTPUT"
+
+      # O número depois do "+" é o versionCode, e o Android recusa instalar
+      # por cima um número que não cresceu. É o esquecimento mais fácil —
+      # subir o nome e não o número — e o único que, sem esta conferência,
+      # sairia como release e só falharia no aparelho da merendeira. Tags de
+      # ensaio (com hífen) não contam como anterior.
+      - name: Conferir que o número da versão cresceu
+        run: |
+          numero=$(sed -n 's/^version: *//p' pubspec.yaml); numero=${numero##*+}
+          anterior=$(git tag --list 'app-v*' --sort=-creatordate --merged "$GITHUB_SHA" \
+            | grep -vx "$TAG" | grep -vE '^app-v[^-]+-' | head -1)
+          if [ -z "$anterior" ]; then
+            echo "Primeira release: nada com que comparar."
+            exit 0
+          fi
+          antes=$(git show "${anterior}:app/pubspec.yaml" | sed -n 's/^version: *//p'); antes=${antes##*+}
+          if ! [[ "$numero" =~ ^[0-9]+$ && "$antes" =~ ^[0-9]+$ ]]; then
+            echo "::error::Não consegui ler o número da versão (agora: '$numero', em $anterior: '$antes')."
+            exit 1
+          fi
+          if [ "$numero" -le "$antes" ]; then
+            echo "::error::O número da versão (+$numero) não cresceu desde $anterior (+$antes). Suba o número depois do + no pubspec."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # Mesma versão de app.yml: a release compila com o Flutter que a CI
+      # verificou.
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          flutter-version: '3.47.5'
+          cache: true
+
+      - name: Instalar dependências
+        run: flutter pub get
+
+      - name: Análise estática
+        run: flutter analyze
+
+      - name: Testes
+        run: flutter test
+
+      # O endereço e a chave publicável do Supabase são os mesmos da web — as
+      # variáveis do repositório que o web.yml já usa —, e o endereço da web
+      # entra pelo APP_WEB_URL. Nada disso é segredo (vai para dentro do APK
+      # de qualquer jeito); o production.json só não é versionado.
+      - name: Escrever env/production.json
+        env:
+          SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ vars.VITE_SUPABASE_PUBLISHABLE_KEY }}
+          WEB_URL: ${{ vars.APP_WEB_URL }}
+        run: |
+          for nome in SUPABASE_URL SUPABASE_PUBLISHABLE_KEY WEB_URL; do
+            if [ -z "${!nome}" ]; then
+              echo "::error::$nome está vazio nas variáveis do repositório."
+              exit 1
+            fi
+          done
+          jq -n --arg url "$SUPABASE_URL" --arg key "$SUPABASE_PUBLISHABLE_KEY" --arg web "$WEB_URL" \
+            '{SUPABASE_URL: $url, SUPABASE_PUBLISHABLE_KEY: $key, WEB_URL: $web}' \
+            > env/production.json
+
+      # A chave vive nos segredos em base64 e só existe no disco do executor,
+      # fora da pasta do projeto, durante esta execução.
+      - name: Preparar a chave de assinatura
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+        run: |
+          if [ -z "$ANDROID_KEYSTORE_BASE64" ] || [ -z "$ANDROID_KEYSTORE_PASSWORD" ]; then
+            echo "::error::Faltam os segredos ANDROID_KEYSTORE_BASE64 e ANDROID_KEYSTORE_PASSWORD."
+            exit 1
+          fi
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/mae-release.jks"
+          {
+            echo "storeFile=$RUNNER_TEMP/mae-release.jks"
+            echo "storePassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyPassword=$ANDROID_KEYSTORE_PASSWORD"
+            echo "keyAlias=mae"
+          } > android/key.properties
+
+      - name: Compilar o APK de release
+        run: flutter build apk --release --dart-define-from-file=env/production.json
+
+      # Sem key.properties o Gradle cai na chave de depuração em silêncio
+      # (android/app/build.gradle.kts). Este passo é o que impede esse APK de
+      # virar release: um aparelho com a versão assinada pela chave certa
+      # recusaria a atualização, e desinstalar apaga o que está no aparelho.
+      - name: Conferir o certificado do APK
+        run: |
+          apksigner=$(ls "$ANDROID_HOME"/build-tools/*/apksigner | sort -V | tail -1)
+          # O prefixo da linha muda entre versões do build-tools ("Signer #1",
+          # "V2 Signer"); o que se compara é só o valor do SHA-256.
+          obtido=$("$apksigner" verify --print-certs build/app/outputs/flutter-apk/app-release.apk \
+            | grep -m1 -oE 'certificate SHA-256 digest: [0-9a-f]+' | awk '{print $NF}')
+          if [ "$obtido" != "$CERT_SHA256" ]; then
+            echo "::error::O APK não foi assinado pela chave de release (obtido: $obtido)."
+            exit 1
+          fi
+
+      # Tag com hífen (app-v0.2.0-teste) vira pré-release: fica visível, mas
+      # fora de "latest", que é de onde o app busca a atualização (#113).
+      - name: Criar a release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          NOME: ${{ steps.versao.outputs.nome }}
+        run: |
+          apk="mae-$NOME.apk"
+          cp build/app/outputs/flutter-apk/app-release.apk "$apk"
+          extra=()
+          case "$TAG" in *-*) extra+=(--prerelease) ;; esac
+          gh release create "$TAG" "$apk" \
+            --verify-tag \
+            --title "MAE $NOME" \
+            --generate-notes \
+            "${extra[@]}"

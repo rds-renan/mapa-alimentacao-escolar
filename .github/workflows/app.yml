@@ -8,7 +8,7 @@
 #
 # O APK sai em modo debug e não é anexado a lugar nenhum: o que ele prova é
 # que compila, não é o que chega às merendeiras — essa é a release por tag,
-# na issue #112 (decisão 11 da E6).
+# na issue #112 (decisão 11 da E6) — ver app-release.yml.
 name: App
 
 on:
@@ -69,6 +69,7 @@ jobs:
 
       # Debug: assina com a chave de debug (build.gradle.kts) e não exige
       # segredo nenhum. O que se prova aqui é que compila — a release
-      # assinada de verdade é outro fluxo, disparado por tag (issue #112).
+      # assinada de verdade é outro fluxo, disparado por tag
+      # (app-release.yml, issue #112).
       - name: Compilação do APK
         run: flutter build apk --debug

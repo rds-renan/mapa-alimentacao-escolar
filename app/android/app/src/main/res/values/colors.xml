@@ -3,4 +3,10 @@
     <!-- O fundo da tela nos dois temas: os mesmos scaffoldBackgroundColor de lib/theme/theme.dart. -->
     <color name="launch_light">#FAFAFA</color>
     <color name="launch_dark">#09090B</color>
+    <!--
+      Fundo do ícone adaptável (issue #112): o azul suave do acento da E3. O
+      logo cobre quase toda a área visível, então este fundo só aparece nas
+      bordas em máscaras quadradas.
+    -->
+    <color name="ic_launcher_background">#EAF2F8</color>
 </resources>
