@@ -11,6 +11,24 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      app_version: {
+        Row: {
+          minimum_build: number
+          singleton: boolean
+          updated_at: string
+        }
+        Insert: {
+          minimum_build: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Update: {
+          minimum_build?: number
+          singleton?: boolean
+          updated_at?: string
+        }
+        Relationships: []
+      }
       document_meal_map: {
         Row: {
           generated_document_id: string
