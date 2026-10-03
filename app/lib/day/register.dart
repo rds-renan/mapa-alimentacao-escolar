@@ -21,7 +21,7 @@ import '../month/month.dart' show mealOrder;
 DayPayload touch(DayPayload day) => DayPayload(
   id: day.id,
   mapDate: day.mapDate,
-  updatedAt: DateTime.now().toIso8601String(),
+  updatedAt: stampNow(),
   nonSchoolDay: day.nonSchoolDay,
   note: day.note,
   mealsServed: day.mealsServed,

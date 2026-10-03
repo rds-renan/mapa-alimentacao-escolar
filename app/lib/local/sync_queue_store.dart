@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:drift/drift.dart';
 
 import 'app_database.dart';
+import 'confirmed_copy.dart';
 import 'day.dart';
 
 /// Por que um dia parou de ser reenviado.
@@ -101,14 +102,23 @@ class SyncQueueStore {
   /// A comparação e a saída acontecem na mesma transação: entre uma e outra
   /// cabe a tecla seguinte, e apagar aí seria descartar o que ela acabou de
   /// digitar.
+  ///
+  /// [confirmed] é o dia que o servidor gravou, e entra na cópia confirmada
+  /// na mesma transação (issue #124): sem isso, o dia sairia do rascunho e
+  /// ficaria, até a próxima leitura do mês, com a cópia de antes do envio —
+  /// e é dela que a tela parte para a edição seguinte, que reenviaria o dia
+  /// velho por cima do novo.
   Future<SettleOutcome> settle(
     String mapDate,
     String sentUpdatedAt,
-    DayPayload Function(DayPayload) adopt,
-  ) async {
+    DayPayload Function(DayPayload) adopt, {
+    ConfirmedDay? confirmed,
+  }) async {
     final key = DateTime.parse(mapDate);
 
     return _db.transaction(() async {
+      if (confirmed != null) await writeConfirmedDay(_db, confirmed);
+
       final row = await _getRow(key);
       if (row == null) return SettleOutcome.gone;
 

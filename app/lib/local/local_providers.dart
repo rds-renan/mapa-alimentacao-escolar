@@ -107,6 +107,9 @@ final syncEngineProvider = Provider.family<SyncEngine, String>((
     ref.watch(syncGatewayProvider),
     connectivity: ref.watch(connectivityGatewayProvider),
     version: ref.watch(versionGateProvider),
+    onSuperseded: (mapDate) => ref
+        .read(monthRepositoryProvider(profileId))
+        .refreshMonth(DateTime.parse(mapDate)),
   );
   engine.start();
   ref.onDispose(engine.stop);
