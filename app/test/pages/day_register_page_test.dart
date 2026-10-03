@@ -9,6 +9,7 @@ import 'package:mae/local/app_database.dart';
 import 'package:mae/local/day.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
+import 'package:mae/local/sync_messages.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
 import 'package:mae/version/version_providers.dart';
@@ -205,10 +206,7 @@ void main() {
         await tester.tap(find.text('Ótimo'));
         await tester.pump();
 
-        expect(
-          find.text('Salvo no aparelho. Envia sozinho quando houver internet.'),
-          findsOneWidget,
-        );
+        expect(find.text(syncMessages[SyncStatus.pending]!), findsOneWidget);
 
         await dispose(tester);
       });
@@ -266,10 +264,7 @@ void main() {
         );
         await tester.pump();
 
-        expect(
-          find.text('Salvo no aparelho. Envia sozinho quando houver internet.'),
-          findsOneWidget,
-        );
+        expect(find.text(syncMessages[SyncStatus.pending]!), findsOneWidget);
 
         await dispose(tester);
       });

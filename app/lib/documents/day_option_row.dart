@@ -9,7 +9,7 @@ import 'selection.dart';
 /// Uma linha da tela 5: o dia, se ele entra, e o que ele é.
 ///
 /// A linha diz sempre o **porquê** quando o dia não pode entrar —
-/// "pendente", "sem registro", "esperando enviar". Sem isso a lista teria
+/// "pendente", "sem registro", "falta ir para a nuvem". Sem isso a lista teria
 /// dias apagados e a merendeira ficaria com a pergunta que este produto
 /// existe para responder: o que falta antes de gerar?
 ///

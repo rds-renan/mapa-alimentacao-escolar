@@ -24,7 +24,7 @@ abstract final class SelectionMessages {
   static const generate = 'Gerar documento';
   static const generating = 'Gerando o documento…';
   static const empty = 'Nenhum dia para mostrar neste mês.';
-  static const sendNow = 'Enviar agora';
+  static const sendNow = 'Salvar na nuvem agora';
 
   /// A saída quando o período não fecha. Dias avulsos é caso previsto (CA#1
   /// da US013), e sem esta frase o aviso viraria uma porta trancada.
@@ -43,11 +43,12 @@ const modeLabels = {
 };
 
 /// Por que o dia está de fora. "Pendente" é a mesma palavra da visão do mês,
-/// de propósito: uma palavra por conceito, em todas as telas.
+/// de propósito: uma palavra por conceito, em todas as telas. E "nuvem" é a
+/// mesma da faixa de salvamento (issue #125).
 const missingLabels = {
   MissingReason.pending: 'Pendente',
   MissingReason.empty: 'Sem registro',
-  MissingReason.unsent: 'Esperando enviar',
+  MissingReason.unsent: 'Falta ir para a nuvem',
 };
 
 String selectionLabel(int count) {
@@ -62,11 +63,10 @@ String missingTitle(String scope, int count) => count == 1
     : 'Ainda faltam $count dias para fechar $scope.';
 
 String unsentNotice(int count) => count == 1
-    ? 'Tem 1 dia salvo neste aparelho que ainda não subiu. Ele sobe sozinho '
-          'quando houver internet, e só depois pode entrar no documento.'
-    : 'Tem $count dias salvos neste aparelho que ainda não subiram. Eles '
-          'sobem sozinhos quando houver internet, e só depois podem entrar no '
-          'documento.';
+    ? 'Tem 1 dia salvo só neste celular. Ele vai para a nuvem quando a '
+          'internet voltar, e só depois pode entrar no documento.'
+    : 'Tem $count dias salvos só neste celular. Eles vão para a nuvem quando '
+          'a internet voltar, e só depois podem entrar no documento.';
 
 String weekMissingLabel(int count) =>
     count == 1 ? 'falta 1 dia' : 'faltam $count dias';

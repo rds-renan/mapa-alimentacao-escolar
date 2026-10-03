@@ -7,7 +7,12 @@ import {
   type DayPayload,
   type SaveResponse,
 } from './day'
-import { SYNC_MESSAGES, conflictMessage, type SyncStatus } from './messages'
+import {
+  REJECTED_MESSAGE,
+  SYNC_MESSAGES,
+  conflictMessage,
+  type SyncStatus,
+} from './messages'
 import {
   dayKey,
   getStoredDay,
@@ -112,7 +117,7 @@ function stateFor(record: StoredDay): DaySyncState {
   if (record.rejection) {
     return {
       status: 'failed',
-      message: SYNC_MESSAGES.failed,
+      message: REJECTED_MESSAGE,
       detail: record.rejection.message,
     }
   }
@@ -310,9 +315,9 @@ export function createSyncEngine(userId: string): SyncEngine {
 
       /*
        * Sem rede não se tenta. A tentativa falharia do mesmo jeito, e a faixa
-       * passaria a dizer "ainda não deu para enviar" quando a verdade é a outra
-       * frase, a que a E3 escreveu para este caso: "salvo no aparelho, envia
-       * sozinho quando houver internet".
+       * passaria a dizer "aguardando internet" quando a verdade é a outra
+       * frase, a que a E3 escreveu para este caso: "salvo neste aparelho, a
+       * gente atualiza na nuvem quando a internet voltar".
        */
       if (typeof navigator !== 'undefined' && navigator.onLine === false) {
         patch({ sending: false })

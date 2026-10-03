@@ -10,9 +10,9 @@ import { missingReason, type DayOption } from './selection'
  * Uma linha da tela 5: o dia, se ele entra, e o que ele é.
  *
  * A linha diz sempre o **porquê** quando o dia não pode entrar — "pendente",
- * "sem registro", "esperando enviar". Sem isso, a lista teria dias apagados e a
- * merendeira ficaria com a pergunta que este produto existe para responder: o
- * que falta antes de gerar?
+ * "sem registro", "falta ir para a nuvem". Sem isso, a lista teria dias
+ * apagados e a merendeira ficaria com a pergunta que este produto existe para
+ * responder: o que falta antes de gerar?
  *
  * O dia já incluído em outro documento aparece marcado como tal e continua
  * selecionável: o bloqueio é sobre editar, não sobre sair de novo.

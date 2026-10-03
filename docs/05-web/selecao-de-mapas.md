@@ -49,7 +49,7 @@ do dia descreve o que existe; aqui ele decide o que vai à prefeitura.
 | **No documento** | **sim** | o bloqueio é sobre editar, nunca sobre sair de novo |
 | Pendente | não | ver a seção seguinte |
 | Sem registro | não | não há mapa no servidor para pedir |
-| Esperando enviar | não | o documento é montado com o que está no servidor |
+| Falta ir para a nuvem | não | o documento é montado com o que está no servidor |
 
 A linha do meio é a que se inverte por descuido, e por isso tem teste próprio:
 **dia bloqueado continua selecionável**. É o que sustenta o CA#4 da US023 —
@@ -105,8 +105,10 @@ aparelho, vale o rascunho — **menos o bloqueio e menos o identificador**, que
 ele não tem como conhecer. Era a mesma exceção que o bloqueio já tinha, pelo
 mesmo motivo.
 
-Na tela, o dia nessa situação aparece como "Esperando enviar" e não é
-selecionável, e a tela oferece **enviar agora** em vez de só informar. O motivo
+Na tela, o dia nessa situação aparece como "Falta ir para a nuvem" e não é
+selecionável, e a tela oferece **salvar na nuvem agora** em vez de só informar
+(os dois textos diziam "enviar" até a issue #125, que tirou a palavra do
+vocabulário dela). O motivo
 aparece antes de qualquer outro, mesmo num dia que também está incompleto:
 mandá-la abrir um dia preenchido para "terminar de preencher" seria mentira — o
 que falta ali é internet, e isso se resolve sozinho.
@@ -199,7 +201,7 @@ num documento, sem React e sem rede:
 | Dia pendente                       | não entra, e o motivo é "pendente"                  |
 | Dia sem registro nenhum            | não entra: não há mapa no servidor                  |
 | Dia preenchido que não subiu       | não entra (RN#3 da US012)                           |
-| Dia que não subiu **e** incompleto | o motivo é "esperando enviar", não "pendente"       |
+| Dia que não subiu **e** incompleto | o motivo é "falta ir para a nuvem", não "pendente"  |
 | Semana com um pendente             | não fecha, e o que impede é nomeado dia a dia       |
 | A mesma semana sem ele             | fecha, e leva o dia bloqueado junto                 |
 | Período vazio                      | não fecha: não há documento de nada                 |
@@ -217,7 +219,7 @@ critérios de aceite da issue, um a um:
 | Mês com um dia sem registro      | idem: buraco é buraco                                 |
 | Modo "Semana"                    | a semana inteira num toque; a incompleta não marca    |
 | Modo "Escolher dias"             | aceita avulsos e recusa o dia pendente                |
-| Dia esperando enviar             | fora do documento, com "Enviar agora" à mão           |
+| Dia que falta ir para a nuvem    | fora do documento, com "Salvar na nuvem agora" à mão  |
 | Sem internet                     | a espera é explicada e o botão fica desabilitado      |
 | Toque em "Gerar documento"       | a confirmação diz o período e o bloqueio              |
 | "Voltar" na confirmação          | nada é gerado                                         |

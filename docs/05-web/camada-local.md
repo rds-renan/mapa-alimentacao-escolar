@@ -63,7 +63,7 @@ vire mapa repetido.
 A rede voltando dispara o envio sozinha — o aplicativo escuta o `online` do
 navegador e a volta da aba ao primeiro plano (CA#1 da US011). Sem rede a fila
 **não tenta**: a tentativa falharia do mesmo jeito, e a faixa passaria a dizer
-"ainda não deu para enviar" quando a frase verdadeira é a outra.
+"aguardando internet" quando a frase verdadeira é a outra: salvo no aparelho.
 
 ### O que ainda não pode subir também espera
 
@@ -122,21 +122,28 @@ carregando, não com estrutura de dados.
 ## As três frases, e a quarta que a E3 não previu
 
 Não há botão "Salvar". Quem diz em que pé está o registro é a faixa da
-[decisão 3 da E3](../03-ux/decisoes-de-design.md), com os três textos dela, ao
-pé da letra:
+[decisão 3 da E3](../03-ux/decisoes-de-design.md), com os três textos dela:
 
 | Estado | Frase |
 |---|---|
-| Salvo no aparelho | "Salvo no aparelho. Envia sozinho quando houver internet." |
-| Enviado | "Enviado. Este mapa já está disponível para gerar o documento." |
-| Falha de envio | "Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo." |
+| Salvo no aparelho | "Salvo neste aparelho. A gente atualiza na nuvem quando a internet voltar." |
+| Salvo na nuvem | "Salvo na nuvem." |
+| Falha de envio | "Aguardando internet para salvar na nuvem. Seus dados estão seguros no aparelho." |
 
-Quando a recusa tem explicação própria — uma quantidade inválida, um mapa já
-dentro de um documento gerado —, a frase do servidor entra depois da terceira.
-Ela já vem legível para quem vai lê-la: não há tradução a fazer no cliente.
+A primeira diz "neste aparelho" onde o aplicativo diz "no seu celular": na web,
+ela pode estar no computador da cozinha. A do meio já prometeu que o mapa
+estava pronto para o documento, e aparecia também com o dia incompleto (issue
+#125) — agora diz só onde o registro está.
 
-Um dia que ela ainda não tocou **não mostra faixa nenhuma**. Dizer "enviado"
-antes da primeira tecla seria a faixa mentindo.
+Quando o banco recusa o dia — uma quantidade inválida, um mapa já dentro de um
+documento gerado —, a terceira frase seria falsa: a internet está lá, e o dia
+só sobe depois que ela corrigir. A faixa diz então **"Ainda não foi para a
+nuvem. Seus dados estão seguros no aparelho."**, e a frase do servidor entra
+logo depois. Ela já vem legível para quem vai lê-la: não há tradução a fazer no
+cliente.
+
+Um dia que ela ainda não tocou **não mostra faixa nenhuma**. Dizer "salvo na
+nuvem" antes da primeira tecla seria a faixa mentindo.
 
 **A quarta frase é o conflito, e a E3 não a desenhou.** O catálogo previu três
 estados, e nenhum deles é "outro aparelho registrou este dia depois de você" —

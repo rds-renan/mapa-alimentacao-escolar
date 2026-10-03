@@ -100,11 +100,9 @@ test('a merendeira registra um dia e chega ao documento oficial', async ({
      * chegou ao servidor. Sem isto o mapa não teria identificador de lá, e a
      * tela seguinte não o deixaria entrar no documento.
      */
-    await expect(
-      page.getByText(
-        'Enviado. Este mapa já está disponível para gerar o documento.'
-      )
-    ).toBeVisible({ timeout: 30_000 })
+    await expect(page.getByText('Salvo na nuvem.')).toBeVisible({
+      timeout: 30_000,
+    })
   })
 
   await test.step('o mês passa a mostrar o dia como preenchido', async () => {

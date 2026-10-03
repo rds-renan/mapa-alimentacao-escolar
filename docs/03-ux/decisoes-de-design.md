@@ -24,11 +24,15 @@
 
 | Estado | Mensagem |
 |---|---|
-| Salvo localmente | "Salvo no aparelho. Envia sozinho quando houver internet." |
-| Sincronizado | "Enviado. Este mapa já está disponível para gerar o documento." |
-| Falha de envio | "Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo." |
+| Salvo localmente | "Salvo no seu celular. A gente atualiza na nuvem quando a internet voltar." |
+| Sincronizado | "Salvo na nuvem." |
+| Falha de envio | "Aguardando internet para salvar na nuvem. Seus dados estão seguros no aparelho." |
 
-**Por quê**: offline-first é o requisito não funcional central do produto (US010/US011) e a maior dor relatada foi perder preenchimento. Um botão de salvar seria promessa falsa num app com autosave; a mensagem de falha afirma explicitamente que nada foi perdido, porque é essa a ansiedade real. O vocabulário evita jargão ("sincronizar") em favor de "salvo no aparelho" / "enviado".
+**Por quê**: offline-first é o requisito não funcional central do produto (US010/US011) e a maior dor relatada foi perder preenchimento. Um botão de salvar seria promessa falsa num app com autosave; a mensagem de falha afirma explicitamente que os dados estão seguros, porque é essa a ansiedade real. O vocabulário evita jargão ("sincronizar", "enviar", "servidor") em favor de "salvo no celular" / "salvo na nuvem".
+
+> **Revisto na E6 (refs #125).** As três frases eram "Salvo no aparelho. Envia sozinho quando houver internet.", "Enviado. Este mapa já está disponível para gerar o documento." e "Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo." A do meio afirmava algo falso: aparecia toda vez que o dia subia, completo ou não, e com só o lanche da manhã registrado prometia um mapa pronto para o documento — a geração continuava bloqueada, o erro era só do texto. Ela confundia "subiu" com "está pronto", e passou a dizer só onde o registro está; o que falta preencher ela já vê na própria tela. As outras duas mudaram junto, pelo mesmo motivo de "enviado": é palavra de quem desenvolve, deixa no ar "enviado para onde?" e pode ser lida como mensagem mandada, e não como algo guardado. "Servidor" tem o mesmo problema. "Nuvem" todo mundo conhece e quer dizer exatamente "salvo na internet". Na web, a primeira frase diz "Salvo neste aparelho", porque lá pode ser o computador da cozinha.
+>
+> A revisão separou também um caso que a frase de falha cobria sem dizer: o banco **recusar** o dia (ele já está num documento gerado, ou uma quantidade não vale). Ali a internet funciona, e "aguardando internet" seria falso. A faixa diz então **"Ainda não foi para a nuvem. Seus dados estão seguros no aparelho."**, seguida da explicação do banco, que diz o que corrigir.
 
 **Histórias**: US010, US011, US001.
 

@@ -239,7 +239,7 @@ describe('o dia não letivo', () => {
 
     /*
      * Enquanto o motivo não existe, o dia fica guardado e não sobe: o servidor
-     * recusaria, e a faixa diria "ainda não deu para enviar" para quem não fez
+     * recusaria, e a faixa diria "ainda não foi para a nuvem" para quem não fez
      * nada de errado.
      */
     await waitFor(async () => {

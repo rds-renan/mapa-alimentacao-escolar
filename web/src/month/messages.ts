@@ -88,6 +88,6 @@ export const MONTH_MESSAGES = {
 /** "1 dia salvo neste computador…", a nota que acompanha a falha de carga. */
 export function keptOnDeviceLabel(pending: number): string {
   return pending === 1
-    ? '1 dia salvo neste computador continua esperando para ser enviado.'
-    : `${pending} dias salvos neste computador continuam esperando para ser enviados.`
+    ? '1 dia salvo neste computador ainda não foi para a nuvem.'
+    : `${pending} dias salvos neste computador ainda não foram para a nuvem.`
 }

@@ -265,7 +265,8 @@ void main() {
   });
 
   testWidgets(
-    'dia esperando enviar fica fora do documento, e "Enviar agora" o sobe',
+    'dia que falta ir para a nuvem fica fora do documento, e "Salvar na '
+    'nuvem agora" o sobe',
     (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
         // O servidor ainda não tem o dia 1; o aparelho tem, completo.
@@ -278,9 +279,9 @@ void main() {
 
         await openSelection(tester);
 
-        expect(find.text('Esperando enviar'), findsOneWidget);
+        expect(find.text('Falta ir para a nuvem'), findsOneWidget);
         expect(
-          find.textContaining('Tem 1 dia salvo neste aparelho'),
+          find.textContaining('Tem 1 dia salvo só neste celular'),
           findsOneWidget,
         );
         expect(find.text('Nenhum mapa selecionado'), findsOneWidget);
@@ -298,11 +299,11 @@ void main() {
           'food_items': <Map<String, dynamic>>[],
         });
 
-        await tester.tap(find.text('Enviar agora'));
+        await tester.tap(find.text('Salvar na nuvem agora'));
         await tester.pumpAndSettle();
 
-        expect(find.text('Esperando enviar'), findsNothing);
-        expect(find.text('Enviar agora'), findsNothing);
+        expect(find.text('Falta ir para a nuvem'), findsNothing);
+        expect(find.text('Salvar na nuvem agora'), findsNothing);
         expect(find.text('22 mapas selecionados'), findsOneWidget);
 
         await dispose(tester);

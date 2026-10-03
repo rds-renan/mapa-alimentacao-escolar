@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { DayPayload, SaveResponse } from './day'
-import { SYNC_MESSAGES } from './messages'
+import { REJECTED_MESSAGE, SYNC_MESSAGES } from './messages'
 import { closeLocalDatabase, getStoredDay } from './store'
 import { createSyncEngine, type SyncEngine } from './sync'
 
@@ -324,7 +324,7 @@ describe('as recusas do servidor', () => {
     expect(await getStoredDay(COOK, DATE)).not.toBeNull()
 
     const day = engine.getState().days[DATE]
-    expect(day.message).toBe(SYNC_MESSAGES.failed)
+    expect(day.message).toBe(REJECTED_MESSAGE)
     expect(day.detail).toBe('A quantidade de "Pão" precisa ser maior que zero.')
   })
 
@@ -368,7 +368,7 @@ describe('as recusas do servidor', () => {
 /*
  * O meio do caminho do dia não letivo: ela marcou a alternância e ainda está
  * indo escrever o motivo. O servidor recusaria isso (23514), e a faixa diria
- * "ainda não deu para enviar" para quem não fez nada de errado — então a fila
+ * "ainda não foi para a nuvem" para quem não fez nada de errado — então a fila
  * guarda e espera.
  */
 describe('o dia que ainda não pode subir', () => {

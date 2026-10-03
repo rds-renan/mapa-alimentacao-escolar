@@ -70,13 +70,16 @@ void main() {
     expect(missingReason(option), MissingReason.unsent);
   });
 
-  test('dia que não subiu e está incompleto: o motivo é esperando enviar', () {
-    final option = toOption(
-      date,
-      day(id: null, unsent: true, meals: meals.sublist(0, 1)),
-    );
-    expect(missingReason(option), MissingReason.unsent);
-  });
+  test(
+    'dia que não subiu e está incompleto: o motivo é falta ir para a nuvem',
+    () {
+      final option = toOption(
+        date,
+        day(id: null, unsent: true, meals: meals.sublist(0, 1)),
+      );
+      expect(missingReason(option), MissingReason.unsent);
+    },
+  );
 
   test(
     'o rascunho vale sobre o servidor, menos o bloqueio e o identificador',

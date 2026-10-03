@@ -207,7 +207,7 @@ refeições nem número de refeições, e sem a observação a gravação é rec
 Daí o detalhe que mudou a camada local. Entre marcar a alternância e escrever o
 motivo passam alguns segundos — procurar o campo, abrir o teclado, pensar na
 frase. Se o dia fosse para a fila nesse intervalo, o servidor devolveria
-`23514` e a faixa passaria a dizer _"ainda não deu para enviar"_ para quem não
+`23514` e a faixa passaria a dizer _"ainda não foi para a nuvem"_ para quem não
 fez nada de errado.
 
 Então a fila passou a perguntar, antes de tentar, se o servidor aceitaria

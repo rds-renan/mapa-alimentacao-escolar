@@ -120,8 +120,8 @@ no meio da rodada mude o que a tela mostra.
 O teste encontrou um defeito na primeira vez que percorreu o caminho inteiro, e
 o defeito é bom o bastante para justificar sozinho o custo dele.
 
-**A merendeira registrava o dia, a faixa dizia "Enviado", ela voltava para o
-mês — e o dia aparecia como Vazio.** O dia estava no servidor; o que a tela
+**A merendeira registrava o dia, a faixa dizia que o dia tinha subido, ela
+voltava para o mês — e o dia aparecia como Vazio.** O dia estava no servidor; o que a tela
 mostrava era o cache da consulta do mês, lido antes do registro.
 
 A invalidação existia, mas morava **dentro da tela**: um efeito em `useMonth`
