@@ -1,20 +1,36 @@
 /*
- * Os textos da sincronização. Os três primeiros são, palavra por palavra, os
- * da faixa de salvamento da decisão 3 da E3 — não há botão "Salvar", e é esta
- * faixa que diz à merendeira em que pé está o registro dela.
+ * Os textos da sincronização. Os três primeiros são os da faixa de salvamento
+ * da decisão 3 da E3 — não há botão "Salvar", e é esta faixa que diz à
+ * merendeira em que pé está o registro dela.
  *
  * Valem aqui as mesmas três regras do catálogo de avisos: nenhuma mensagem
  * culpa a merendeira, o erro diz primeiro o que não se perdeu, e não há jargão
- * ("salvo no aparelho", não "cache local"; "enviado", não "sincronizado").
+ * ("salvo no aparelho", não "cache local"; "salvo na nuvem", não "enviado" nem
+ * "sincronizado"). A frase do dia que subiu já prometeu o documento, e o dia
+ * nem sempre estava pronto para ele (issue #125): agora ela diz só onde o
+ * registro está. A web fala em "aparelho", e não em "celular" como o
+ * aplicativo, porque aqui pode ser o computador da cozinha.
  */
 
 export type SyncStatus = 'pending' | 'sent' | 'failed'
 
 export const SYNC_MESSAGES: Record<SyncStatus, string> = {
-  pending: 'Salvo no aparelho. Envia sozinho quando houver internet.',
-  sent: 'Enviado. Este mapa já está disponível para gerar o documento.',
-  failed: 'Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo.',
+  pending:
+    'Salvo neste aparelho. A gente atualiza na nuvem quando a internet voltar.',
+  sent: 'Salvo na nuvem.',
+  failed:
+    'Aguardando internet para salvar na nuvem. Seus dados estão seguros no aparelho.',
 }
+
+/*
+ * A falha que não é de internet: o banco recusou o dia — ele já está num
+ * documento gerado, ou uma quantidade não vale. A frase de falha de sempre diz
+ * "aguardando internet", e aqui seria falsa: a internet está lá, e o dia só
+ * sobe depois que ela corrigir. Esta vem antes da explicação do banco, que diz
+ * o que corrigir (issue #125).
+ */
+export const REJECTED_MESSAGE =
+  'Ainda não foi para a nuvem. Seus dados estão seguros no aparelho.'
 
 /*
  * O texto que a E3 não previu.
@@ -45,8 +61,8 @@ export function conflictMessage(mapDate: string): string {
  */
 export function pendingOnSignOutMessage(pending: number): string {
   return pending === 1
-    ? 'Ainda tem 1 dia salvo neste computador que não foi enviado. Se sair agora, ele se perde.'
-    : `Ainda tem ${pending} dias salvos neste computador que não foram enviados. Se sair agora, eles se perdem.`
+    ? 'Ainda tem 1 dia salvo neste computador que não foi para a nuvem. Se sair agora, ele se perde.'
+    : `Ainda tem ${pending} dias salvos neste computador que não foram para a nuvem. Se sair agora, eles se perdem.`
 }
 
 /** AAAA-MM-DD como a merendeira lê: 10/09. */

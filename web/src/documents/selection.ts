@@ -88,9 +88,9 @@ export function toOptions(
 /**
  * O motivo de o dia estar de fora, na ordem em que ele é acionável.
  *
- * "Esperando enviar" vem antes de tudo porque é o único que se resolve sozinho
- * — basta haver internet —, e mandá-la abrir um dia que já está preenchido
- * para "terminar de preencher" seria mentira.
+ * "Falta ir para a nuvem" vem antes de tudo porque é o único que se resolve
+ * sozinho — basta haver internet —, e mandá-la abrir um dia que já está
+ * preenchido para "terminar de preencher" seria mentira.
  */
 export function missingReason(option: DayOption): MissingReason | null {
   if (option.eligible) return null

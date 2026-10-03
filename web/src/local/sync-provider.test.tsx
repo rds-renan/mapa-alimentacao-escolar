@@ -158,7 +158,7 @@ describe('a fila ligada à tela', () => {
 
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(
-        'Salvo no aparelho. Envia sozinho quando houver internet.'
+        'Salvo neste aparelho. A gente atualiza na nuvem quando a internet voltar.'
       )
     })
     expect(screen.getByText('Rascunho: 312')).toBeInTheDocument()
@@ -166,9 +166,7 @@ describe('a fila ligada à tela', () => {
     fireEvent.click(screen.getByText('Enviar agora'))
 
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent(
-        'Enviado. Este mapa já está disponível para gerar o documento.'
-      )
+      expect(screen.getByRole('status')).toHaveTextContent('Salvo na nuvem.')
     })
   })
 
@@ -236,7 +234,7 @@ describe('a fila ligada à tela', () => {
     await waitFor(() => screen.getByRole('status'))
     fireEvent.click(screen.getByText('Enviar agora'))
     await waitFor(() => {
-      expect(screen.getByRole('status')).toHaveTextContent('Enviado.')
+      expect(screen.getByRole('status')).toHaveTextContent('Salvo na nuvem.')
     })
 
     // De volta ao mês, a lista é lida de novo: o que está no servidor mudou.

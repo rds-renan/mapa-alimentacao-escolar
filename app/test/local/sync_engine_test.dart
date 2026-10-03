@@ -319,7 +319,7 @@ void main() {
         expect(await store.get(_date), isNotNull);
 
         final day = engine.state.days[_date];
-        expect(day?.message, syncMessages[SyncStatus.failed]);
+        expect(day?.message, rejectedMessage);
         expect(
           day?.detail,
           'A quantidade de "Pão" precisa ser maior que zero.',
@@ -370,7 +370,7 @@ void main() {
   /*
    * O meio do caminho do dia não letivo: ela marcou a alternância e ainda
    * está indo escrever o motivo. O servidor recusaria isso (23514), e a
-   * faixa diria "ainda não deu para enviar" para quem não fez nada de
+   * faixa diria "ainda não foi para a nuvem" para quem não fez nada de
    * errado — então a fila guarda e espera.
    */
   group('o dia que ainda não pode subir', () {

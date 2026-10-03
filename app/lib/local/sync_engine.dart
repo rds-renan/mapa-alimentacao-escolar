@@ -216,13 +216,13 @@ class SyncEngine {
     if (rejection != null) {
       return DaySyncState(
         status: SyncStatus.failed,
-        message: syncMessages[SyncStatus.failed]!,
+        message: rejectedMessage,
         detail: rejection.message,
       );
     }
 
-    // Abaixo do mínimo, a frase de sempre ("envia sozinho quando houver
-    // internet") seria falsa.
+    // Abaixo do mínimo, a frase de sempre ("a gente atualiza na nuvem quando
+    // a internet voltar") seria falsa.
     if (_outdated) return _stateOf(SyncStatus.outdated);
 
     /*
@@ -289,7 +289,7 @@ class SyncEngine {
         record.mapDate,
         DaySyncState(
           status: SyncStatus.failed,
-          message: syncMessages[SyncStatus.failed]!,
+          message: rejectedMessage,
           detail: rejection.message,
         ),
       );
@@ -389,8 +389,8 @@ class SyncEngine {
 
       /*
        * Sem rede não se tenta. A tentativa falharia do mesmo jeito, e a
-       * faixa passaria a dizer "ainda não deu para enviar" quando a verdade
-       * é a outra frase, a que a E3 escreveu para este caso.
+       * faixa passaria a dizer "aguardando internet" quando a verdade é a
+       * outra frase, a que a E3 escreveu para este caso.
        */
       if (!await _connectivity.isOnline()) {
         _patch(sending: false);

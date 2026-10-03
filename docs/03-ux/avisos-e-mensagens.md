@@ -8,15 +8,17 @@
 
 1. **Nenhuma mensagem culpa a merendeira.** O erro é do aplicativo, da internet ou do fornecedor — nunca dela. Não existe "você esqueceu", "campo obrigatório não preenchido", nem código de erro na tela.
 2. **Erro diz primeiro o que não se perdeu.** A dor mais forte relatada na E1 foi perder preenchimento. Antes de oferecer a saída, a mensagem afirma o que continua salvo.
-3. **Nada de jargão.** "Salvo no aparelho", não "cache local". "Enviado", não "sincronizado". "Sai do ar em 9 de setembro", não "expira em D+7".
+3. **Nada de jargão.** "Salvo no aparelho", não "cache local". "Salvo na nuvem", não "enviado" nem "sincronizado". "Sai do ar em 9 de setembro", não "expira em D+7".
+
+> **Revisto na E6 (refs #125).** A regra 3 dizia "'Enviado', não 'sincronizado'". "Enviado" também é palavra de quem desenvolve: deixa no ar "enviado para onde?" e pode ser lida como mensagem mandada. "Nuvem" é de todo mundo. A faixa de salvamento, a seleção de mapas e os avisos da web trocaram "enviar" por "nuvem" — ver a [decisão 3](decisoes-de-design.md).
 
 ## Mensagens dentro da tela
 
 ![Erro de login, faixa de salvamento nos seus estados e aviso de geração sem internet](../assets/e3-avisos-na-tela.png)
 
-Ficam no lugar onde a coisa acontece e permanecem enquanto valem. O erro de login não diz qual dos dois campos está errado: só a direção cria acesso (US016), e apontar o campo certo ajudaria justamente quem não deveria entrar.
+Ficam no lugar onde a coisa acontece e permanecem enquanto valem. A faixa de salvamento tem os três estados da [decisão 3](decisoes-de-design.md) e, desde a E6, a frase própria da recusa do banco (refs #125). A geração sem internet não promete mais que "os mapas sobem e o documento fica pronto": não existe fila de geração (decisão 10), e a frase passou a ser "Sem internet não dá para gerar o documento. Quando voltar, é só tocar em Gerar documento." O erro de login não diz qual dos dois campos está errado: só a direção cria acesso (US016), e apontar o campo certo ajudaria justamente quem não deveria entrar.
 
-> **Acrescentado na E6 (refs #113).** A faixa ganhou um quarto estado, só do aplicativo: **"Salvo no aparelho. Vai para a nuvem depois que você atualizar o MAE."** Aparece quando o aplicativo está abaixo da versão mínima que o banco aceita. O registro continua, mas a frase de sempre, "envia sozinho quando houver internet", seria falsa, porque com internet o dia também não sobe. Ver a [versão mínima do aplicativo](../06-app/versao-minima.md).
+> **Acrescentado na E6 (refs #113).** A faixa ganhou um quarto estado, só do aplicativo: **"Salvo no seu celular. Vai para a nuvem depois que você atualizar o MAE."** Aparece quando o aplicativo está abaixo da versão mínima que o banco aceita. O registro continua, mas a frase de sempre, "a gente atualiza na nuvem quando a internet voltar", seria falsa, porque com internet o dia também não sobe. Ver a [versão mínima do aplicativo](../06-app/versao-minima.md).
 
 ## Mensagens por cima da tela
 

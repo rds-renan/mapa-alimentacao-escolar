@@ -16,13 +16,13 @@ pedido e as peças da tela).
 | Critério | Onde |
 |---|---|
 | Dias avulsos, semana ou mês | `SegmentedButton` com os três modos; abre em "Mês inteiro", já marcado. Trocar de modo limpa a escolha |
-| Dia pendente desabilitado; dia esperando envio fora do documento, com "Enviar agora" | `toOption`/`missingReason` (porto de `selection.ts`); a linha diz o motivo, e a faixa "Enviar agora" aparece quando há dia só no aparelho |
+| Dia pendente desabilitado; dia esperando envio fora do documento, com "Enviar agora" | `toOption`/`missingReason` (porto de `selection.ts`); a linha diz o motivo ("Falta ir para a nuvem"), e a faixa "Salvar na nuvem agora" aparece quando há dia só no aparelho — os textos diziam "enviar" até a #125 |
 | A única confirmação do fluxo, antes do bloqueio | `AlertDialog` com o texto da E3. Não fecha com toque fora; o voltar do Android conta como "Voltar" |
 | Sem rede, a tela explica a espera | o aviso toma o lugar da contagem e o botão fica desabilitado; reage a `ConnectivityGateway.onChange`, sem reabrir a tela |
 
 ## O que muda em relação à web
 
-**O "esperando enviar" vem da fila, não de uma junção de duas leituras.** A
+**O "falta ir para a nuvem" vem da fila, não de uma junção de duas leituras.** A
 web funde o servidor com o rascunho na camada de dados. No aplicativo a visão
 do mês só lê o banco local, e o rascunho mora na fila (`SyncEngine.pendingDays`).
 A tela faz a junção ao desenhar: onde há rascunho vale o rascunho, **menos o
@@ -35,7 +35,7 @@ grava o dia confirmado na cópia local já com o identificador que o servidor
 devolveu; antes disso, um dia que acabou de subir só o tinha depois de um
 `refreshMonth`, e ficaria "sem registro" e fora do documento. A tela continua
 refazendo a leitura do mês ao abrir, quando um dia sai da fila e depois de
-"Enviar agora" — é ela que traz o que mudou por outro aparelho e o bloqueio.
+"Salvar na nuvem agora" — é ela que traz o que mudou por outro aparelho e o bloqueio.
 
 **A geração termina mesmo que ela saia da tela.** O `Future` do pedido não
 depende do widget, e a navegação para os documentos gerados só acontece se a
@@ -53,8 +53,8 @@ atualiza na próxima vez que ela abrir a tela.
 houver, os mapas sobem e o documento fica pronto em Documentos gerados" —
 promete uma geração que acontece sozinha, e essa fila não existe (decisão 7 da
 E6; decisão 10 da E3). A do aplicativo diz o que de fato acontece: sem
-internet não dá para gerar, e é só tocar de novo quando voltar. A web ainda
-carrega a frase da E3.
+internet não dá para gerar, e é só tocar de novo quando voltar. A web passou a
+usar a mesma frase na #125, sem o "tocar".
 
 **A caixa de marcar é desenho próprio.** O `Checkbox` do Material, desabilitado,
 fica cinza mesmo marcado, e nos modos "Mês inteiro" e "Semana" todas as linhas
@@ -91,7 +91,7 @@ desenha o cartão recém-gerado (issue #109).
 - [`select_maps_page_test.dart`](../../app/test/pages/select_maps_page_test.dart) —
   os critérios, um a um: mês inteiro marcado ao abrir, dia bloqueado que vai
   junto, mês com pendente e com dia sem registro, modo semana, dias avulsos, o
-  dia esperando enviar até "Enviar agora" o subir, sem rede, a confirmação (e
+  dia que falta ir para a nuvem até "Salvar na nuvem agora" o subir, sem rede, a confirmação (e
   "Voltar" que não gera nada), a geração com os 22 identificadores e a falha
   com "Tentar de novo".
 

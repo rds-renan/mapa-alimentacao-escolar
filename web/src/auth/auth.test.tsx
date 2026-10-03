@@ -292,7 +292,7 @@ describe('sessão', () => {
 
     const aviso = await screen.findByRole('alertdialog')
     expect(aviso).toHaveTextContent(
-      'Ainda tem 1 dia salvo neste computador que não foi enviado.'
+      'Ainda tem 1 dia salvo neste computador que não foi para a nuvem.'
     )
     // Só o aviso: nada foi apagado nem a sessão encerrada ainda.
     expect(supabase.auth.signOut).not.toHaveBeenCalled()

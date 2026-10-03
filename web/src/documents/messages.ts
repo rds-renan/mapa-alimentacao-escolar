@@ -21,8 +21,14 @@ export const SELECTION_MESSAGES = {
     'Todos os dias escolhidos saem em um único documento, no padrão da prefeitura.',
   lockWarning:
     'Depois de gerar, os mapas incluídos ficam bloqueados para edição.',
+  /*
+   * Não é mais a frase da E3, que prometia "assim que houver, os mapas sobem e
+   * o documento fica pronto": não existe fila de geração (decisão 10 da E3), e
+   * ela precisa pedir de novo. É a frase do aplicativo, sem o "tocar", que no
+   * computador seria "clicar" (issue #125).
+   */
   offline:
-    'Gerar o documento precisa de internet. Assim que houver, os mapas sobem e o documento fica pronto em Documentos gerados.',
+    'Sem internet não dá para gerar o documento. Quando voltar, é só gerar de novo.',
   generate: 'Gerar documento',
   generating: 'Gerando o documento…',
   backToMonth: 'Voltar para o mês',
@@ -31,7 +37,7 @@ export const SELECTION_MESSAGES = {
     'Não deu para carregar os dias deste mês. O que você já registrou continua guardado — foi só a lista que não veio.',
   retry: 'Tentar de novo',
   empty: 'Nenhum dia para mostrar neste mês.',
-  sendNow: 'Enviar agora',
+  sendNow: 'Salvar na nuvem agora',
   /*
    * A saída quando o período não fecha. Ela é oferecida de propósito: dias
    * avulsos é caso previsto (CA#1 da US013), e sem essa frase o aviso viraria
@@ -52,15 +58,16 @@ export const MODE_LABELS: Record<SelectionMode, string> = {
  * "Pendente" é a mesma da visão do mês, e é de propósito: uma palavra por
  * conceito, em todas as telas.
  *
- * "Esperando enviar" é o único que a E3 não escreveu. Ela desenhou o estado do
- * envio como faixa dentro do registro do dia, não como estado de um dia na
- * lista — e aqui ele precisa aparecer, porque é o que separa um dia preenchido
- * de um dia que o servidor conhece.
+ * "Falta ir para a nuvem" é o único que a E3 não escreveu. Ela desenhou o
+ * estado do envio como faixa dentro do registro do dia, não como estado de um
+ * dia na lista — e aqui ele precisa aparecer, porque é o que separa um dia
+ * preenchido de um dia que o servidor conhece. Fala de nuvem como a faixa de
+ * salvamento (issue #125).
  */
 export const MISSING_LABELS: Record<MissingReason, string> = {
   pending: 'Pendente',
   empty: 'Sem registro',
-  unsent: 'Esperando enviar',
+  unsent: 'Falta ir para a nuvem',
 }
 
 export function selectionLabel(count: number): string {
@@ -81,11 +88,11 @@ export function missingTitle(scope: string, count: number): string {
     : `Ainda faltam ${count} dias para fechar ${scope}.`
 }
 
-/** "1 dia ainda está esperando para ser enviado." */
+/** "Tem 1 dia salvo só neste aparelho." */
 export function unsentNotice(count: number): string {
   return count === 1
-    ? 'Tem 1 dia salvo neste computador que ainda não subiu. Ele sobe sozinho quando houver internet, e só depois pode entrar no documento.'
-    : `Tem ${count} dias salvos neste computador que ainda não subiram. Eles sobem sozinhos quando houver internet, e só depois podem entrar no documento.`
+    ? 'Tem 1 dia salvo só neste aparelho. Ele vai para a nuvem quando a internet voltar, e só depois pode entrar no documento.'
+    : `Tem ${count} dias salvos só neste aparelho. Eles vão para a nuvem quando a internet voltar, e só depois podem entrar no documento.`
 }
 
 // ---------------------------------------------------------------------------
@@ -152,10 +159,12 @@ export const DOCUMENT_MESSAGES = {
   title: 'Documentos gerados',
   subtitle: 'O arquivo fica disponível por 7 dias',
   back: 'Voltar para o mês',
-  /* O aviso do alto da tela 2b, adaptado num ponto: na web não há notificação
-   * fora do aplicativo, então o que a frase promete é a própria lista. */
+  /* O aviso do alto da tela 2b, adaptado em dois pontos: na web não há
+   * notificação fora do aplicativo, então o que a frase promete é a própria
+   * lista; e saiu o "os mapas ainda não enviados sobem primeiro", que não era
+   * verdade — o dia que não subiu fica fora da seleção (issue #125). */
   notice:
-    'Gerar um documento precisa de internet, e os mapas ainda não enviados sobem primeiro. Quando ficar pronto, ele aparece aqui — não é preciso esperar na tela.',
+    'Gerar um documento precisa de internet. Quando ficar pronto, ele aparece aqui — não é preciso esperar na tela.',
   loading: 'Carregando os documentos…',
   loadFailed:
     'Não deu para carregar a lista de documentos. Os mapas que você registrou continuam guardados — foi só a lista que não veio.',

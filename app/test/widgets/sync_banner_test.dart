@@ -35,20 +35,21 @@ void main() {
   });
 
   testWidgets(
-    'quando a recusa tem explicação própria, a frase do servidor entra '
-    'depois da terceira',
+    'quando o banco recusa, a frase da recusa vem antes da explicação dele',
     (tester) async {
       await pump(
         tester,
         const DaySyncState(
           status: SyncStatus.failed,
-          message:
-              'Ainda não deu para enviar. Nada foi perdido, vamos '
-              'tentar de novo.',
+          message: rejectedMessage,
           detail: 'A quantidade de "Pão" precisa ser maior que zero.',
         ),
       );
 
+      expect(
+        find.textContaining('Ainda não foi para a nuvem.'),
+        findsOneWidget,
+      );
       expect(
         find.textContaining(
           'A quantidade de "Pão" precisa ser maior que zero.',

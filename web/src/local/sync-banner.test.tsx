@@ -1,7 +1,7 @@
 import { render, screen } from '@testing-library/react'
 import { describe, expect, it } from 'vitest'
 
-import { SYNC_MESSAGES } from './messages'
+import { REJECTED_MESSAGE, SYNC_MESSAGES } from './messages'
 import { SyncBanner } from './sync-banner'
 
 /*
@@ -22,23 +22,21 @@ describe('a faixa de salvamento', () => {
     )
 
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Salvo no aparelho. Envia sozinho quando houver internet.'
+      'Salvo neste aparelho. A gente atualiza na nuvem quando a internet voltar.'
     )
   })
 
-  it('diz que foi enviado e já dá para gerar o documento', () => {
+  it('diz só que está salvo na nuvem, sem prometer o documento', () => {
     render(
       <SyncBanner
         status={{ status: 'sent', message: SYNC_MESSAGES.sent, detail: null }}
       />
     )
 
-    expect(screen.getByRole('status')).toHaveTextContent(
-      'Enviado. Este mapa já está disponível para gerar o documento.'
-    )
+    expect(screen.getByRole('status')).toHaveTextContent('Salvo na nuvem.')
   })
 
-  it('diz, antes de tudo, que nada foi perdido', () => {
+  it('diz que espera a internet e que nada se perdeu', () => {
     render(
       <SyncBanner
         status={{
@@ -50,7 +48,7 @@ describe('a faixa de salvamento', () => {
     )
 
     expect(screen.getByRole('status')).toHaveTextContent(
-      'Ainda não deu para enviar. Nada foi perdido, vamos tentar de novo.'
+      'Aguardando internet para salvar na nuvem. Seus dados estão seguros no aparelho.'
     )
   })
 
@@ -59,13 +57,16 @@ describe('a faixa de salvamento', () => {
       <SyncBanner
         status={{
           status: 'failed',
-          message: SYNC_MESSAGES.failed,
+          message: REJECTED_MESSAGE,
           detail:
             'Este mapa já está em um documento gerado e não pode ser alterado.',
         }}
       />
     )
 
+    expect(screen.getByRole('status')).toHaveTextContent(
+      'Ainda não foi para a nuvem. Seus dados estão seguros no aparelho.'
+    )
     expect(screen.getByRole('status')).toHaveTextContent(
       'Este mapa já está em um documento gerado e não pode ser alterado.'
     )

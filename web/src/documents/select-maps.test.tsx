@@ -254,12 +254,12 @@ describe('o dia que ainda não subiu', () => {
 
     await waitFor(() =>
       expect(dayRow(/^8 de setembro/)).toHaveAccessibleName(
-        '8 de setembro, esperando enviar'
+        '8 de setembro, falta ir para a nuvem'
       )
     )
-    expect(screen.getByText(/ainda não subiu/)).toBeInTheDocument()
+    expect(screen.getByText(/salvo só neste aparelho/)).toBeInTheDocument()
     expect(
-      screen.getByRole('button', { name: 'Enviar agora' })
+      screen.getByRole('button', { name: 'Salvar na nuvem agora' })
     ).toBeInTheDocument()
     expect(generateButton()).toBeDisabled()
   })
@@ -273,7 +273,7 @@ describe('sem internet', () => {
     await screenLoaded()
 
     expect(
-      await screen.findByText(/Gerar o documento precisa de internet/)
+      await screen.findByText(/Sem internet não dá para gerar o documento/)
     ).toBeInTheDocument()
     expect(generateButton()).toBeDisabled()
 
