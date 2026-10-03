@@ -56,24 +56,59 @@ combina duas fontes, a mesma fronteira da web (decisão 4 da E5).
   que `SyncEngine.stateListenable` avisa um `Conflict` novo para esta data, e
   `ConflictNotice` mostra o aviso até ela dizer "Entendi".
 
-### O que ainda não está resolvido: o mês só atualiza no próximo `refreshMonth`
+### O dia confirmado entra na cópia local na hora (issue #124)
 
-A mesma pendência que a doc da fila apontava. `SyncEngine.settle` tira o dia
-confirmado da fila, mas **não escreve** em `meal_maps`/`meals` — quem escreve
-lá é só `MonthRepository.refreshMonth`, chamado pela visão do mês ao abrir a
-tela ou trocar de mês. Voltar da tela do dia para o mês logo depois de um
-envio confirmado pode mostrar o estado antigo até a próxima dessas duas
-coisas acontecer.
+Até a #124, `SyncQueueStore.settle` tirava o dia confirmado da fila **sem
+escrever** em `meal_maps`/`meals` — quem escrevia lá era só
+`MonthRepository.refreshMonth`, chamado pela visão do mês ao abrir a tela ou
+trocar de mês. Isto estava registrado aqui como pendência consciente, com o
+argumento de que a tela do próprio dia não sofria com isso. O teste no
+aparelho (30/09/2026) mostrou que sofria, e que era perda de dado, não só
+atraso visual: registrar, esperar o envio e voltar ao mês mostrava o dia
+vazio; reabri-lo partia da cópia de antes do envio, e a primeira edição
+reenviava esse dia velho com carimbo novo — `save_meal_map` troca a lista de
+refeições inteira, e o que tinha subido se perdia (US010/US011).
 
-Decisão consciente de não resolver agora: escrever a confirmação também nas
-tabelas de leitura duplicaria o caminho de gravação (a fila e o
-`refreshMonth` passariam a concordar sobre o mesmo dado por dois caminhos
-diferentes), e a tela do próprio dia não sofre com isso — quem edita continua
-vendo o que editou, porque `_draft` não depende de `meal_maps`/`meals` para
-mostrar o que está certo. Fica registrado para quem mexer na visão do mês de
-novo: se a lacuna incomodar na prática, o caminho mais simples é a
-`HomePage` escutar `SyncEngine.stateListenable` e chamar `refreshMonth()`
-quando um dia da fila for confirmado.
+Agora o envio confirmado grava também a cópia confirmada, **na mesma
+transação** que tira o dia da fila (`settle(..., confirmed:)`): o aparelho
+nunca fica num estado em que o dia não está nem no rascunho nem na cópia
+confirmada. O que entra é o dia que subiu na forma em que o servidor o
+guardou (`savedDay`, em `app/lib/local/confirmed_copy.dart`): identificadores
+adotados, carimbo de edição do servidor, nome e unidade do gênero como o
+catálogo os tem, texto aparado e gênero repetido numa linha só.
+
+O receio antigo — dois caminhos escrevendo o mesmo dado — ficou resolvido com
+um caminho só: a fila e o `refreshMonth` gravam pela mesma função
+(`writeConfirmedDay`), que substitui o dia pela **data** (não pelo
+identificador) e **não troca cópia mais nova por mais velha**. Esta última
+regra é o que impede a leitura do mês que saiu antes do envio, e chegou depois
+dele, de trazer o dia de antes de volta.
+
+O conflito tem o mesmo buraco por outro caminho: quando o servidor responde
+que tem edição mais recente (`superseded`), ele não devolve o dia, e a cópia
+local continua sendo a de antes da colega mexer. Elas não costumam editar o
+mapa uma da outra, mas a tela grava sozinha — uma passada pelo dia com um
+toque sem intenção reenviaria a cópia velha com carimbo novo, e a edição da
+colega se perderia. Por isso, a cada conflito a fila manda reler o mês
+daquele dia (`onSuperseded`, ligado a `refreshMonth` em `syncEngineProvider`),
+sem esperar a leitura e sem segurar a fila por ela. A tela do dia, que já
+relê o disco quando o conflito chega, passa a mostrar a edição que venceu
+assim que a leitura termina. Sem rede para reler, o aviso aparece do mesmo
+jeito, e a próxima abertura do mês refaz a leitura.
+
+### O carimbo de edição sai com fuso
+
+Achado no teste do conflito da #124 (03/10/2026): o carimbo de edição do app
+saía de `DateTime.now().toIso8601String()`, que numa data local do Dart **não
+traz fuso** (`2026-10-03T00:51:17`). O Postgres do Supabase lê isso em UTC, e
+toda edição feita no aparelho chegava ao servidor três horas no passado:
+qualquer edição da web das últimas três horas vencia, o aparelho via o
+conflito, relia o dia, e a edição seguinte perdia de novo. Existia desde a
+#105; entre edições só do aparelho não aparecia, porque todas erravam pelo
+mesmo tanto.
+
+Agora o carimbo sai em UTC, com `Z`, como o `toISOString()` da web
+(`stampNow`/`stampOf`, em `app/lib/local/day.dart`).
 
 ## `uuid`, para o dia em branco e as refeições que nascem na primeira tecla
 

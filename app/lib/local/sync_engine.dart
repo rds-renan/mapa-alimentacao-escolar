@@ -6,6 +6,7 @@ import 'package:flutter/widgets.dart' show AppLifecycleListener;
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import '../version/version_gate.dart';
+import 'confirmed_copy.dart';
 import 'connectivity_gateway.dart';
 import 'day.dart';
 import 'sync_gateway.dart';
@@ -160,6 +161,7 @@ class SyncEngine {
     this._gateway, {
     ConnectivityGateway? connectivity,
     this._version,
+    this._onSuperseded,
   }) : _connectivity = connectivity ?? ConnectivityPlusGateway();
 
   final SyncQueueStore _store;
@@ -171,6 +173,11 @@ class SyncEngine {
   final VersionGate? _version;
 
   bool get _outdated => _version?.outdated ?? false;
+
+  /// Quem busca o dia de novo no servidor quando ele tem edição mais recente
+  /// (issue #124) — na prática, a leitura do mês daquele dia. Sem ela, a
+  /// fila não relê nada, que é como os testes que não falam disso a montam.
+  final Future<void> Function(String mapDate)? _onSuperseded;
 
   final ValueNotifier<SyncState> _state = ValueNotifier(SyncState.empty);
   ValueListenable<SyncState> get stateListenable => _state;
@@ -305,6 +312,22 @@ class SyncEngine {
 
       if (settled != SettleOutcome.kept) _setDay(record.mapDate, _sentState);
 
+      /*
+       * A resposta não traz o dia que venceu, e a cópia confirmada do
+       * aparelho ainda é a de antes dele. Reaberto nesse estado, o dia
+       * partiria da cópia velha, e qualquer toque sem intenção — a tela
+       * grava sozinha — reenviaria o dia velho com carimbo novo, apagando a
+       * edição da colega (issue #124). Por isso a fila manda buscar o dia
+       * de novo. Sem esperar: é uma leitura de rede, e a fila não tem por que
+       * parar por ela; se falhar, a próxima abertura do mês a refaz.
+       */
+      final refetch = _onSuperseded;
+      if (refetch != null) {
+        unawaited(
+          Future.sync(() => refetch(record.mapDate)).catchError((Object _) {}),
+        );
+      }
+
       _patch(
         conflicts: [
           ..._state.value.conflicts.where(
@@ -326,12 +349,15 @@ class SyncEngine {
     /*
      * Gravou. Antes de sair da fila, o dia adota o identificador do mapa e
      * os dos gêneros que o servidor devolveu — são eles que fazem o próximo
-     * envio encontrar o registro em vez de tentar criá-lo de novo.
+     * envio encontrar o registro em vez de tentar criá-lo de novo. E o que
+     * subiu passa a ser a cópia confirmada do aparelho, para o dia não sumir
+     * entre o rascunho e a próxima leitura do mês (issue #124).
      */
     final outcome = await _store.settle(
       record.mapDate,
       sentUpdatedAt,
       (day) => adoptServerIds(day, parsed),
+      confirmed: savedDay(record.day, parsed),
     );
 
     if (outcome != SettleOutcome.kept) _setDay(record.mapDate, _sentState);

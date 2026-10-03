@@ -39,7 +39,8 @@ esta issue a lacuna fecha:
 - **`DayRepository` devolve tudo.** O `ConfirmedDay.day` que a tela edita já
   vem com os gêneros e a alteração de cada refeição.
 
-O `refreshMonth` apaga os filhos à mão antes de regravar o dia, e não pela
+A gravação do dia (`writeConfirmedDay`, a mesma do `refreshMonth` e, desde a
+#124, da fila ao confirmar um envio) apaga os filhos à mão antes de regravá-lo, e não pela
 cascata do esquema: o SQLite só respeita chave estrangeira com
 `PRAGMA foreign_keys` ligado, e este banco nunca o ligou.
 

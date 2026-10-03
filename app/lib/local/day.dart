@@ -16,6 +16,18 @@ import 'package:uuid/uuid.dart';
 
 const _uuid = Uuid();
 
+/// O instante de agora como o servidor precisa lê-lo: **com fuso**. O
+/// `toIso8601String()` de uma data local do Dart sai sem fuso nenhum
+/// (`2026-10-03T00:51:17`), e o Postgres lê isso como UTC — toda edição do
+/// aparelho chegava três horas no passado e perdia a convergência para
+/// qualquer edição da web das últimas três horas. Em UTC sai com `Z`, como o
+/// `toISOString()` da web.
+String stampNow() => DateTime.now().toUtc().toIso8601String();
+
+/// Uma data guardada no aparelho, de volta ao fio — com fuso, pelo mesmo
+/// motivo de [stampNow].
+String stampOf(DateTime instant) => instant.toUtc().toIso8601String();
+
 String newId() => _uuid.v4();
 
 class FoodItemPayload {
@@ -182,7 +194,7 @@ class DayPayload {
 DayPayload emptyDay(String mapDate) => DayPayload(
   id: newId(),
   mapDate: mapDate,
-  updatedAt: DateTime.now().toIso8601String(),
+  updatedAt: stampNow(),
   nonSchoolDay: false,
   note: null,
   mealsServed: null,

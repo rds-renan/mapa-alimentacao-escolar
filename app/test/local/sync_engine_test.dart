@@ -1,7 +1,11 @@
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/local/app_database.dart';
+import 'package:mae/day/register.dart' show setMealsServed, touch;
 import 'package:mae/local/day.dart';
+import 'package:mae/local/day_repository.dart';
+import 'package:mae/local/month_gateway.dart';
+import 'package:mae/local/month_repository.dart';
 import 'package:mae/local/sync_engine.dart';
 import 'package:mae/local/sync_messages.dart';
 import 'package:mae/local/sync_queue_store.dart';
@@ -9,6 +13,7 @@ import 'package:mae/version/version_gate.dart';
 import 'package:supabase_flutter/supabase_flutter.dart' show PostgrestException;
 
 import 'fake_connectivity_gateway.dart';
+import 'fake_month_gateway.dart';
 import 'fake_sync_gateway.dart';
 import '../version/fake_version_gateway.dart';
 
@@ -51,9 +56,19 @@ DayPayload _dayFor(String updatedAt, {String mapDate = _date}) => DayPayload(
   ],
 );
 
+// O "Pão" de [_dayFor] vai sem identificador, e a resposta de verdade traz
+// todo gênero citado no dia.
+const _bread = {
+  'sent_id': null,
+  'id': '5005748a-0000-4000-8000-000000000001',
+  'name': 'Pão',
+  'unit': 'quilo',
+  'created': true,
+};
+
 Map<String, dynamic> _saved({
   String mealMapId = 'c0000010-0000-4000-8000-000000000010',
-  List<Map<String, dynamic>> foodItems = const [],
+  List<Map<String, dynamic>> foodItems = const [_bread],
 }) => {
   'status': 'saved',
   'meal_map_id': mealMapId,
@@ -504,6 +519,258 @@ void main() {
           expect(stored!.rejection, isNull, reason: date);
           expect(stored.attempts, 0, reason: date);
         }
+      },
+    );
+  });
+
+  group('a cópia confirmada (issue #124)', () {
+    // Um dia com tudo o que a tela reenvia: o gênero que nasce agora, o que
+    // já existe no catálogo e a alteração do cardápio.
+    DayPayload fullDay(String updatedAt) => DayPayload(
+      id: 'a0000000-0000-4000-8000-000000000001',
+      mapDate: _date,
+      updatedAt: updatedAt,
+      nonSchoolDay: false,
+      note: null,
+      mealsServed: 312,
+      meals: const [
+        MealPayload(
+          id: 'b0000000-0000-4000-8000-000000000001',
+          type: 'lunch',
+          description: '  Arroz, feijão e frango  ',
+          acceptance: 'good',
+          foodItems: [
+            FoodItemPayload(
+              foodItemId: null,
+              name: 'pão',
+              unit: 'quilo',
+              quantity: 4,
+            ),
+            FoodItemPayload(
+              foodItemId: 'f0000000-0000-4000-8000-000000000002',
+              name: 'Arroz',
+              unit: 'quilo',
+              quantity: 6,
+            ),
+          ],
+          menuChange: MenuChangePayload(
+            id: 'd0000000-0000-4000-8000-000000000001',
+            reason: 'Faltou carne',
+            foodItems: [
+              FoodItemPayload(
+                foodItemId: 'f0000000-0000-4000-8000-000000000003',
+                name: 'Frango',
+                unit: 'quilo',
+                quantity: 5,
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+
+    Map<String, dynamic> savedFull() => _saved(
+      foodItems: [
+        {..._bread, 'name': 'Pão'},
+        {
+          'sent_id': 'f0000000-0000-4000-8000-000000000002',
+          'id': 'f0000000-0000-4000-8000-000000000002',
+          'name': 'Arroz',
+          'unit': 'quilo',
+          'created': false,
+        },
+        {
+          'sent_id': 'f0000000-0000-4000-8000-000000000003',
+          'id': 'f0000000-0000-4000-8000-000000000003',
+          'name': 'Frango',
+          'unit': 'quilo',
+          'created': false,
+        },
+      ],
+    );
+
+    test('o dia enviado aparece no mês ao voltar, sem buscar o mês de '
+        'novo', () async {
+      final month = FakeMonthGateway();
+      gateway.enqueueSaved(savedFull());
+
+      await engine.save(fullDay('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      final days = await MonthRepository(
+        db,
+        month,
+      ).watchMonth(DateTime(2026, 9)).first;
+      expect(month.fetchCalls, 0);
+      expect(days.single.mealMap.id, 'c0000010-0000-4000-8000-000000000010');
+      expect(days.single.mealMap.mealsServed, 312);
+      expect(days.single.meals.single.acceptance, 'good');
+    });
+
+    test('reabrir o dia logo após o envio mostra o que subiu, gêneros e '
+        'alteração inclusive, como o servidor guardou', () async {
+      gateway.enqueueSaved(savedFull());
+
+      await engine.save(fullDay('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      expect(await engine.load(_date), isNull);
+      final confirmed = await DayRepository(db).watchDay(_date).first;
+      final day = confirmed!.day;
+      expect(day.id, 'c0000010-0000-4000-8000-000000000010');
+      // O carimbo é o do servidor, o mesmo instante das 18:30 de Brasília.
+      expect(
+        DateTime.parse(day.updatedAt)
+            .isAtSameMomentAs(DateTime.utc(2026, 9, 10, 21, 30)),
+        isTrue,
+      );
+
+      final meal = day.meals.single;
+      expect(meal.description, 'Arroz, feijão e frango');
+      expect(meal.foodItems.map((item) => (item.foodItemId, item.name)), [
+        ('5005748a-0000-4000-8000-000000000001', 'Pão'),
+        ('f0000000-0000-4000-8000-000000000002', 'Arroz'),
+      ]);
+      expect(meal.menuChange?.reason, 'Faltou carne');
+      expect(meal.menuChange?.foodItems.single.name, 'Frango');
+    });
+
+    test('enviar, reabrir e editar: o reenvio carrega o dia inteiro', () async {
+      gateway.enqueueSaved(savedFull());
+      gateway.enqueueSaved(savedFull());
+
+      await engine.save(fullDay('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      // A tela, sem rascunho, parte da cópia confirmada.
+      final reopened = (await DayRepository(db).watchDay(_date).first)!.day;
+      await engine.save(touch(setMealsServed(reopened, 315)));
+      await engine.flush();
+
+      final resent = gateway.calls[1];
+      expect(resent['id'], 'c0000010-0000-4000-8000-000000000010');
+      expect(resent['meals_served'], 315);
+      final meal = (resent['meals'] as List).single as Map<String, dynamic>;
+      expect(meal['food_items'], hasLength(2));
+      expect(
+        (meal['food_items'] as List).first['food_item_id'],
+        '5005748a-0000-4000-8000-000000000001',
+      );
+      expect(
+        (meal['menu_change'] as Map<String, dynamic>)['food_items'],
+        hasLength(1),
+      );
+    });
+
+    test('com a tecla que veio no meio, a cópia confirmada é o que subiu e o '
+        'rascunho é o mais novo', () async {
+      gateway.beforeRespond = () => engine.save(
+        setMealsServed(_dayFor('2026-09-10T18:35:00-03:00'), 320),
+      );
+      gateway.enqueueSaved(_saved());
+
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      expect((await engine.load(_date))?.mealsServed, 320);
+      final confirmed = await DayRepository(db).watchDay(_date).first;
+      expect(confirmed?.day.mealsServed, 312);
+    });
+
+    test('a leitura do mês que saiu antes do envio e chegou depois não '
+        'traz o dia velho de volta', () async {
+      final month = FakeMonthGateway()
+        ..maps = [
+          RemoteMealMap(
+            id: 'c0000010-0000-4000-8000-000000000010',
+            mapDate: DateTime(2026, 9, 10),
+            nonSchoolDay: false,
+            note: null,
+            mealsServed: 100,
+            locked: false,
+            updatedAt: DateTime.utc(2026, 9, 10, 12),
+            meals: const [],
+          ),
+        ];
+      gateway.enqueueSaved(_saved());
+
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+      await MonthRepository(db, month).refreshMonth(DateTime(2026, 9));
+
+      final confirmed = await DayRepository(db).watchDay(_date).first;
+      expect(confirmed?.day.mealsServed, 312);
+      expect(confirmed?.day.meals, hasLength(1));
+    });
+
+    test('quando o servidor tem edição mais recente, a fila busca o dia de '
+        'novo, e reabri-lo mostra a edição que venceu', () async {
+      // O dia que o aparelho já tinha confirmado, de antes da colega mexer.
+      gateway.enqueueSaved(_saved());
+      await engine.save(_dayFor('2026-09-10T18:30:00-03:00'));
+      await engine.flush();
+
+      final month = FakeMonthGateway()
+        ..maps = [
+          RemoteMealMap(
+            id: 'c0000010-0000-4000-8000-000000000010',
+            mapDate: DateTime(2026, 9, 10),
+            nonSchoolDay: false,
+            note: null,
+            mealsServed: 400,
+            locked: false,
+            updatedAt: DateTime.utc(2026, 9, 11, 10),
+            meals: const [],
+          ),
+        ];
+      final refetched = <String>[];
+      final withRefetch = SyncEngine(
+        store,
+        gateway,
+        connectivity: connectivity,
+        onSuperseded: (mapDate) async {
+          refetched.add(mapDate);
+          await MonthRepository(
+            db,
+            month,
+          ).refreshMonth(DateTime.parse(mapDate));
+        },
+      );
+      addTearDown(withRefetch.stop);
+
+      // Uma passada pelo dia, com um toque sem intenção, e o servidor diz que
+      // a colega editou depois.
+      gateway.enqueueSaved(_superseded(updatedAt: '2026-09-11T10:00:00+00:00'));
+      await withRefetch.save(_dayFor('2026-09-10T19:00:00-03:00'));
+      await withRefetch.flush();
+      await pumpEventQueue();
+
+      expect(refetched, [_date]);
+      expect(withRefetch.state.conflicts, hasLength(1));
+      final confirmed = await DayRepository(db).watchDay(_date).first;
+      expect(confirmed?.day.mealsServed, 400);
+    });
+
+    test(
+      'sem rede para buscar o dia de novo, o conflito ainda é avisado',
+      () async {
+        final withRefetch = SyncEngine(
+          store,
+          gateway,
+          connectivity: connectivity,
+          onSuperseded: (_) async => throw Exception('Failed to fetch'),
+        );
+        addTearDown(withRefetch.stop);
+
+        gateway.enqueueSaved(
+          _superseded(updatedAt: '2026-09-11T10:00:00+00:00'),
+        );
+        await withRefetch.save(_dayFor('2026-09-10T19:00:00-03:00'));
+        await withRefetch.flush();
+        await pumpEventQueue();
+
+        expect(withRefetch.state.conflicts, hasLength(1));
+        expect(await store.get(_date), isNull);
       },
     );
   });

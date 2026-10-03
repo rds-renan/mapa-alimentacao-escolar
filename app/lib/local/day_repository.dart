@@ -1,25 +1,15 @@
 import 'package:drift/drift.dart';
 
 import 'app_database.dart';
+import 'confirmed_copy.dart';
 import 'day.dart';
 
-/// O dia como o banco local o tem — a cópia já convergida pelo servidor via
-/// [MonthRepository.refreshMonth] — mais o único fato que só ele conhece:
-/// se o mapa está bloqueado.
-///
-/// O dia vem inteiro, com os gêneros utilizados e a alteração do cardápio de
-/// cada refeição (issue #106): é isto que a tela reenvia a cada tecla, e o
-/// contrato de `save_meal_map` substitui a lista inteira — ler o dia sem os
-/// gêneros e reenviá-lo os apagaria do servidor.
-class ConfirmedDay {
-  const ConfirmedDay({required this.day, required this.locked});
-
-  final DayPayload day;
-  final bool locked;
-}
+export 'confirmed_copy.dart' show ConfirmedDay;
 
 /// A leitura de um dia só, para a tela do registro — ao lado de
-/// [MonthRepository], que lê o mês inteiro para a visão dele (US008).
+/// [MonthRepository], que lê o mês inteiro para a visão dele (US008). O que
+/// sai daqui é a cópia confirmada: a que [MonthRepository.refreshMonth] baixa
+/// e a que a fila grava ao sair o dia dela ([SyncQueueStore.settle]).
 class DayRepository {
   DayRepository(this._db);
 
@@ -80,7 +70,7 @@ class DayRepository {
         day: DayPayload(
           id: map.id,
           mapDate: mapDate,
-          updatedAt: map.updatedAt.toIso8601String(),
+          updatedAt: stampOf(map.updatedAt),
           nonSchoolDay: map.nonSchoolDay,
           note: map.note,
           mealsServed: map.mealsServed,

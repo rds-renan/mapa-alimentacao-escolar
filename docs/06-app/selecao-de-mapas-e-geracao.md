@@ -30,12 +30,12 @@ bloqueio e o identificador** (`DayRecord.withDraft`) — a mesma regra da web.
 `DayRecord` ganhou `id` e `unsent` por isso; a visão do mês não os usa.
 
 **O identificador do mapa precisa estar na cópia local.** A geração recebe os
-identificadores **do servidor**, e um dia que acabou de subir só os tem na cópia
-local depois de um `refreshMonth` — nada escreve em `meal_maps` quando a fila
-confirma (a pendência já registrada na [#105](registro-do-dia.md)). A tela
-refaz a leitura do mês ao abrir, quando um dia sai da fila e depois de "Enviar
-agora". É aqui que essa pendência deixa de ser só desconforto: sem isso, o dia
-recém-enviado ficaria "sem registro" e fora do documento.
+identificadores **do servidor**. Desde a [#124](registro-do-dia.md), a fila
+grava o dia confirmado na cópia local já com o identificador que o servidor
+devolveu; antes disso, um dia que acabou de subir só o tinha depois de um
+`refreshMonth`, e ficaria "sem registro" e fora do documento. A tela continua
+refazendo a leitura do mês ao abrir, quando um dia sai da fila e depois de
+"Enviar agora" — é ela que traz o que mudou por outro aparelho e o bloqueio.
 
 **A geração termina mesmo que ela saia da tela.** O `Future` do pedido não
 depende do widget, e a navegação para os documentos gerados só acontece se a

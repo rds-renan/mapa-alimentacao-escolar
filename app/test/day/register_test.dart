@@ -91,6 +91,19 @@ void main() {
 
       expect(touch(before).updatedAt.compareTo(before.updatedAt) > 0, isTrue);
     });
+
+    test('o carimbo sai com fuso, e é o instante de agora', () {
+      // Sem fuso, o Postgres lê a hora local como UTC, e a edição do
+      // aparelho chega três horas no passado — perdendo a convergência para
+      // a edição da web que veio depois dela.
+      final stamp = touch(emptyDay(_date)).updatedAt;
+
+      expect(stamp, endsWith('Z'));
+      expect(
+        DateTime.parse(stamp).difference(DateTime.now()).inSeconds.abs(),
+        lessThan(5),
+      );
+    });
   });
 
   group('o dia não letivo', () {
