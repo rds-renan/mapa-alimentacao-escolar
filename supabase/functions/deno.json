@@ -9,6 +9,7 @@
     "@std/assert": "jsr:@std/assert@1",
     "@std/cli": "jsr:@std/cli@1",
     "@supabase/supabase-js": "npm:@supabase/supabase-js@2",
+    "@supabase/supabase-js/cors": "npm:@supabase/supabase-js@2/cors",
     "fflate": "npm:fflate@0.8.2",
     "xmldom": "npm:@xmldom/xmldom@0.9.8"
   },

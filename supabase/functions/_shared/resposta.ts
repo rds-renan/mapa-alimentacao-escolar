@@ -1,15 +1,23 @@
 // O que as duas funções têm em comum na borda HTTP: a resposta em JSON, o
 // cabeçalho de CORS e a tradução de um erro do banco em código de situação.
 
+import { corsHeaders } from "@supabase/supabase-js/cors";
+
 /**
  * A web é servida de outro endereço que não o do Supabase, então toda chamada
  * passa por CORS. O `*` é o que o `Authorization` permite: a autorização vem
  * do token que a própria chamada leva, não de cookie de sessão — não há o que
  * um site de terceiro consiga fazer aqui sem ter o token da merendeira.
+ *
+ * Os cabeçalhos liberados vêm da própria supabase-js, que mantém a lista do que
+ * o cliente manda. A lista escrita à mão aqui tinha só `authorization` e
+ * `content-type`; o cliente manda também `apikey` e `x-client-info`, e o
+ * navegador barrava toda chamada no pré-voo — só no sistema publicado, porque
+ * no Supabase local quem responde o CORS é o gateway. Os métodos continuam os
+ * nossos: estas funções só atendem POST.
  */
 const CORS = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, content-type",
+  ...corsHeaders,
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
