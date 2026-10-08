@@ -122,12 +122,12 @@ O aplicativo nunca abre esse link, mas o e-mail é o mesmo dos dois lugares:
 se alguém abrir o link sem querer — ou pela web, como plano B —, ele precisa
 continuar levando a algum lugar que funcione.
 
-**Pendente no projeto da nuvem**: o texto de *Authentication > Emails* de lá
-foi colado antes desta issue existir ([ambiente de
-produção](../05-web/autenticacao-e-sessao.md#no-projeto-da-nuvem)) e por
-enquanto só tem o link — o código não chega a quem pedir senha nova em
-produção até alguém colar o modelo novo por cima. O `config.toml` não viaja
-sozinho para lá.
+**No projeto da nuvem**: o texto de *Authentication > Emails* de lá tinha
+sido colado antes desta issue existir ([ambiente de
+produção](../05-web/autenticacao-e-sessao.md#no-projeto-da-nuvem)), só com o
+link. O modelo novo, com o código, foi colado por cima — o `config.toml` não
+viaja sozinho para lá, e a cada mudança em
+`supabase/templates/senha-nova.html` o painel precisa ser atualizado à mão.
 
 ## O que o aplicativo não tem, e por quê
 
