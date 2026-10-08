@@ -139,9 +139,12 @@ Cada etapa vira uma **milestone** no GitHub, com suas issues, e é commitada/mer
 ### E7 — Validação: testes e qualidade (semana 11)
 
 **Entregáveis (`docs/07-testes/`):**
-- Testes com 5 colegas no template da faculdade (nome, data, o que funcionou, o que corrigir, o que faltou).
-- Correções derivadas dos feedbacks (issues `bug`/`melhoria`).
+- Plano de testes registrado antes do primeiro teste: quem testa, o roteiro de tarefas, a medição de tempo e a regra das evidências.
+- Ensaio geral no sistema publicado e varredura técnica, com o sistema zerado antes dos testes.
+- Testes com quatro pessoas no template da faculdade (nome, data, o que funcionou, o que corrigir, o que faltou): as duas merendeiras no aplicativo, a direção e um colega no fluxo da direção na web. A atividade pede cinco colegas; o teste foi montado em torno de quem usa o sistema — o porquê está no plano de testes.
+- Correções derivadas dos feedbacks (issues `bug`/`melhoria`), conferidas de novo por quem encontrou o problema.
 - Laudo de qualidade com evidências (prints antes/depois, erros e correções).
+- Vídeo da solução atualizada, apresentando as correções feitas.
 
 **Concluída quando:** correções pertinentes aplicadas e laudo fechado.
 
