@@ -1,0 +1,16 @@
+-- O mínimo do aplicativo sobe para 3 (issue #155).
+--
+-- O APK 0.1.2+3 está publicado em app-v0.1.2, como a regra pede: a release
+-- antes da migration (docs/06-app/versao-minima.md#como-subir-o-mínimo).
+--
+-- Desta vez nenhuma mudança de contrato motiva a subida: a 0.1.1 continua
+-- gravando como antes. O motivo é a revalidação prevista no plano de testes
+-- da E7: a 0.1.2 leva às merendeiras as correções do ensaio (#140, #150 a
+-- #154), e a trava é o único caminho que oferece a atualização pelo próprio
+-- aplicativo. Sem ela, quem tem a 0.1.1 só recebe a 0.1.2 por WhatsApp.
+--
+-- A produção estava em 2 desde 02/10, quando a atualização pelo aplicativo
+-- foi testada de ponta a ponta com a 0.1.0. Essa subida foi feita à mão e
+-- não entrou no git, que ficou em 1. Esta migration põe os dois no mesmo
+-- número.
+update public.app_version set minimum_build = 3, updated_at = now();

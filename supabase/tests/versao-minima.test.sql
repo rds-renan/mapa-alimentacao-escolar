@@ -71,8 +71,8 @@ grant execute on all functions in schema public to authenticated;
 
 select results_eq(
   $$ select minimum_build from public.app_version $$,
-  array[1],
-  'A trava nasce no 1, sem recusar o primeiro APK');
+  array[3],
+  'O mínimo é o da última subida por migration (0.1.2+3, issue #155)');
 
 select throws_ok(
   $$ insert into public.app_version (singleton, minimum_build) values (true, 2) $$,
@@ -89,7 +89,7 @@ select act_as(merendeira_1());
 
 select results_eq(
   $$ select minimum_build from public.app_version $$,
-  array[1],
+  array[3],
   'Quem está logado lê a versão mínima');
 
 select throws_ok(
