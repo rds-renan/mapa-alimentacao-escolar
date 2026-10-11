@@ -159,7 +159,7 @@ ThemeData get maeLightTheme => _buildTheme(
     onSurface: Color(0xFF09090B),
     surfaceContainerHighest: Color(0xFFF4F4F5), // muted
     onSurfaceVariant: Color(0xFF71717A), // muted-foreground
-    error: Color(0xFFDC2626),
+    error: Color(0xFFB91C1C),
     onError: Color(0xFFFFFFFF),
     outline: Color(0xFFE4E4E7), // border / input
     outlineVariant: Color(0xFFE4E4E7),

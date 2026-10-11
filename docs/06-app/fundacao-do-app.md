@@ -73,7 +73,7 @@ atravessa as plataformas, o arquivo não.
 |---|---|
 | Acento | `#397ba1`, o azul do logo; `#2c5f7e` no toque e `#eaf2f8` como fundo suave |
 | Neutros | escala zinc — fundo `#fafafa`, cartão branco, texto `#09090b`, apoio `#71717a`, borda `#e4e4e7` |
-| Semânticos | confirmação `#15803d`, atenção `#a16207`, erro `#dc2626`, cada um com fundo e borda próprios |
+| Semânticos | confirmação `#15803d`, atenção `#a16207`, erro `#b91c1c`, cada um com fundo e borda próprios |
 | Tipografia | Roboto (padrão do Material); 11, 12, 13, **14 (corpo)**, 16, 17, 22 e 30 px |
 | Espaçamento | grade de 4 px, como as telas foram desenhadas |
 | Raios | 6, 8, **10** e 12 px — o cartão é 12, o botão e o campo são 8 |

@@ -109,7 +109,7 @@ vem do navegador, sem código.
 ## Contraste: o escuro passa com folga
 
 Cada par de cor usado nas telas foi medido nas duas paletas. **No tema escuro,
-todo par de texto passa o AA, e o menor deles é 5,25** — o escuro é
+todo par de texto passa o AA, e o menor deles é 6,24** — o escuro é
 confortavelmente melhor que o claro, que tem pares raspando no limite.
 
 | Par                           | Claro    | Escuro |
@@ -119,14 +119,30 @@ confortavelmente melhor que o claro, que tem pares raspando no limite.
 | Texto do botão principal      | 4,64     | 8,77   |
 | Etiqueta "Preenchido"         | 4,79     | 9,35   |
 | Etiqueta "Pendente"           | 4,76     | 12,27  |
-| Erro sobre o fundo dele       | **4,41** | 6,24   |
-| Aba ativa da direção          | **4,10** | 5,25   |
+| Erro sobre o fundo dele       | 5,91     | 6,24   |
+| Aba ativa da direção          | 6,09     | 6,76   |
+| Dia de hoje na visão do mês   | 6,53     | 8,64   |
 | Gráfico: "bom" sobre o cartão | **1,15** | 2,29   |
 
-Os três números em negrito são do **tema claro** e são anteriores a esta issue
-— vêm da paleta fechada na fundação. Ficam registrados aqui porque foi esta
-medição que os encontrou, e porque mexer neles é mexer nos tokens da E3, que é
-decisão de design e não de implementação.
+Esta medição encontrou três pares do **tema claro** abaixo do AA, todos
+anteriores a esta issue — vinham da paleta fechada na fundação, e mexer neles
+era mexer nos tokens da E3, decisão de design e não de implementação. A
+decisão veio na varredura da E7 (#140):
+
+- **Erro sobre o fundo dele**, 4,41: o vermelho de erro escureceu de
+  `#dc2626` para `#b91c1c`, o mesmo passo da escala que o verde e o âmbar já
+  usavam. Vale para a web, o aplicativo e as telas do desenho, e o botão de
+  ação destrutiva, de texto branco, ganhou junto (de 4,83 para 6,47).
+- **Aba ativa da direção**, 4,10: o texto passou do azul do logo para
+  `#2c5f7e`, o `--accent-foreground`, que é o texto que a paleta já previa
+  sobre o fundo azul suave. A varredura achou o mesmo par num lugar que esta
+  tabela não tinha: o **dia de hoje na visão do mês**, 4,40 na web e 4,10 no
+  aplicativo, na tela principal da merendeira. Ele recebeu a mesma troca. No
+  escuro os dois também melhoram, porque o `--accent-foreground` escuro é mais
+  claro que o azul do logo clareado. Ícone sobre o fundo suave continua no azul
+  do logo: para o que não é texto, o AA pede 3:1.
+- **"Bom" no gráfico**, 1,15: fica. É uma área de cor, não texto, e
+  [não carrega a informação sozinha](#os-gráficos-do-painel).
 
 ### Os gráficos do painel
 

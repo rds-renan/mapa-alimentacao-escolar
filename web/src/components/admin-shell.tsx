@@ -83,7 +83,7 @@ export function AdminShell({
               className={({ isActive }) =>
                 `flex min-h-touch flex-1 items-center gap-2.5 rounded-lg px-3 text-sm font-medium md:flex-none ${
                   isActive
-                    ? 'bg-accent font-semibold text-primary'
+                    ? 'bg-accent font-semibold text-accent-foreground'
                     : 'text-secondary-foreground hover:bg-muted'
                 }`
               }

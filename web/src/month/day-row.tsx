@@ -51,12 +51,12 @@ export function DayRow({
         className="flex w-10.5 shrink-0 flex-col items-center"
       >
         <span
-          className={`text-2xs font-medium uppercase ${isToday ? 'text-primary' : 'text-muted-foreground'}`}
+          className={`text-2xs font-medium uppercase ${isToday ? 'text-accent-foreground' : 'text-muted-foreground'}`}
         >
           {weekdayLabel(date)}
         </span>
         <span
-          className={`text-xl font-semibold ${isToday ? 'text-primary' : ''}`}
+          className={`text-xl font-semibold ${isToday ? 'text-accent-foreground' : ''}`}
         >
           {dayNumber}
         </span>
