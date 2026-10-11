@@ -147,8 +147,12 @@ jobs:
             echo "keyAlias=mae"
           } > android/key.properties
 
+      # Só arm64 (issue #140): os aparelhos das merendeiras são arm64, e as
+      # outras duas arquiteturas eram 41 dos 64 MB que elas baixam pelo 4G. É
+      # um APK só, e não --split-per-abi, porque a atualização pelo app pega
+      # o .apk anexado — a 0.1.1, já instalada, pega o primeiro que achar.
       - name: Compilar o APK de release
-        run: flutter build apk --release --dart-define-from-file=env/production.json
+        run: flutter build apk --release --target-platform android-arm64 --dart-define-from-file=env/production.json
 
       # Sem key.properties o Gradle cai na chave de depuração em silêncio
       # (android/app/build.gradle.kts). Este passo é o que impede esse APK de

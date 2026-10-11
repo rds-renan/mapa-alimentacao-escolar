@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Nada do MAE sai do aparelho por backup nem por transferência para um
+  aparelho novo (issue #140). No Android 12 em diante o allowBackup="false"
+  desliga só o backup na nuvem do Google; a cópia de aparelho para aparelho
+  obedece a estas regras. O que importa está na nuvem do MAE, e o que voltaria
+  de uma cópia é pior que nada: a sessão cifrada sem a chave do Keystore, que
+  não é copiada, e um banco local de outro momento, com fila que já subiu.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <exclude domain="root" path="."/>
+        <exclude domain="file" path="."/>
+        <exclude domain="database" path="."/>
+        <exclude domain="sharedpref" path="."/>
+        <exclude domain="external" path="."/>
+    </cloud-backup>
+    <device-transfer>
+        <exclude domain="root" path="."/>
+        <exclude domain="file" path="."/>
+        <exclude domain="database" path="."/>
+        <exclude domain="sharedpref" path="."/>
+        <exclude domain="external" path="."/>
+    </device-transfer>
+</data-extraction-rules>
