@@ -46,7 +46,7 @@ rodado no ambiente publicado:
    no sistema publicado — do acesso criado pela direção ao documento aberto no
    Word Online —, com os registros do aparelho, do navegador e do servidor
    colhidos no mesmo dia.
-2. **Varredura técnica** (#140): o que o ensaio revelou, mais os avisos de
+2. **[Varredura técnica](varredura-tecnica.md)** (#140): o que o ensaio revelou, mais os avisos de
    segurança e desempenho do banco, as dependências e o contraste das cores.
    O que for risco é corrigido antes; o resto entra no laudo como achado
    interno.
