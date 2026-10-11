@@ -64,11 +64,11 @@ export function DayBadge({ state }: { state: DayState }) {
 /*
  * O dia reaberto pela direção (CA#2 da US023).
  *
- * Vem ao lado da etiqueta de estado, e não no lugar dela: o dia reaberto
- * continua completo ou pendente, e o que ele tem de diferente é ser o dia que
- * voltou para a mão dela. Mesma regra da etiqueta ao lado — cor **e** ícone —,
- * e o cadeado aberto é de propósito o mesmo cadeado do "no documento", do outro
- * lado.
+ * Vem junto da etiqueta de estado, acima dela, e não no lugar dela: o dia
+ * reaberto continua completo ou pendente, e o que ele tem de diferente é ser o
+ * dia que voltou para a mão dela. Mesma regra da etiqueta de baixo — cor **e**
+ * ícone —, e o cadeado aberto é de propósito o mesmo cadeado do "no
+ * documento", do outro lado.
  */
 export function ReopenedBadge() {
   return (

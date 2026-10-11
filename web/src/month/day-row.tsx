@@ -69,8 +69,18 @@ export function DayRow({
         {summary}
       </span>
 
-      {reopened ? <ReopenedBadge /> : null}
-      <DayBadge state={state} />
+      {/*
+       * Os dois selos um abaixo do outro, e não lado a lado: em largura de
+       * celular, lado a lado eles espremem o texto do dia (issue #153).
+       */}
+      {reopened ? (
+        <span className="flex shrink-0 flex-col items-end gap-1">
+          <ReopenedBadge />
+          <DayBadge state={state} />
+        </span>
+      ) : (
+        <DayBadge state={state} />
+      )}
     </Link>
   )
 }
