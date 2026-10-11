@@ -181,12 +181,24 @@ equivalentes que o Word calcula sozinho. São desvios conscientes — o resultad
   `cantSplit`). Sem isso — e acontece no arquivo original — a linha da
   justificativa fica órfã no alto da página seguinte, sob uma célula de dia
   vazia, e quem lê não sabe de que dia ela é.
-- **As assinaturas passam a se apoiar em paradas de tabulação** centralizadas,
-  calculadas a partir da largura útil da página. No modelo, os dois traços e os
-  rótulos "Cozinheiro(a) responsável pelo mapa" e "Diretor(a)" foram
-  posicionados com sequências de espaço contadas a olho — e em fonte
-  proporcional isso nunca alinha: o "Diretor(a)" sai à direita do traço dele. A
-  tabulação centralizada é o mecanismo que o Word tem para exatamente isso.
+- **As assinaturas passam a ficar numa tabela sem borda**, uma coluna por
+  assinatura, com o traço e o rótulo centralizados na célula. No modelo, os
+  dois traços e os rótulos "Cozinheiro(a) responsável pelo mapa" e
+  "Diretor(a)" foram posicionados com sequências de espaço contadas a olho — e
+  em fonte proporcional isso nunca alinha: o "Diretor(a)" sai à direita do
+  traço dele. A primeira correção usou paradas de tabulação centralizadas, que
+  o LibreOffice e o PDF do Word desenham certo, mas **o editor do Word Online
+  não** (#154): o primeiro traço caía na linha de baixo, encostado na margem, e
+  os dois rótulos se juntavam no meio. Tabela, todo editor desenha igual.
+
+  E o rodapé passa a ser **a última linha da tabela do mapa** — uma célula sem
+  borda, da largura da tabela, que não se parte —, com a última linha do último
+  dia grudada nela. Sem isso, num período que enche a página, o respiro ficava
+  no pé da página e os traços e rótulos iam **sozinhos** para o alto da
+  seguinte, colados no cabeçalho. Deixar o rodapé em parágrafos fora da tabela
+  não resolve: o Word sabe grudar a última linha de uma tabela no parágrafo
+  seguinte, mas o LibreOffice só sabe grudar a tabela **inteira**, e ela
+  pularia toda para a página 2.
 - **A lacuna preenchida perde o rabicho.** "ESCOLA:" e "MÊS/ANO" são lacunas
   tracejadas, e o valor entra por cima delas; o que sobra vira espaço, não mais
   tracejado. Linha preenchida não precisa do convite a preencher, e o
@@ -199,7 +211,9 @@ correções de robustez — sem eles o documento sai errado. Os dois últimos s�
 acabamento, e se comportam como tal: reconhecem o rodapé pela forma (o
 parágrafo que só tem traço e espaço, e o próximo com texto) e, se não
 reconhecerem, **deixam como está em silêncio**. Não vale reprovar uma geração
-por causa de estética.
+por causa de estética. Se os traços forem reconhecidos mas não casarem com os
+rótulos, só o alinhamento desiste: o rodapé, como veio, vai para a última
+linha da tabela e continua mudando de página junto com o último dia.
 
 ## O que foi testado e descartado
 
@@ -269,8 +283,8 @@ declara `compatibilityMode` **11** — Word 2003 — e o gerador o repassa
 intocado, como faz com todo o resto do pacote. O arquivo que a escola usa hoje
 abre com o mesmo aviso. Mudar para o modo atual tiraria o aviso e não traria
 nada: o documento não usa um único recurso posterior ao Word 2003 — tabela,
-mescla vertical, tabulação centralizada, repetição de cabeçalho e `keepNext`
-existem desde o Word 97. Em troca, mudaria as regras de layout de tabela que o
+mescla vertical, repetição de cabeçalho e `keepNext` existem desde o Word 97, e
+a tabela dentro de célula, das assinaturas, desde o Word 2000. Em troca, mudaria as regras de layout de tabela que o
 Word aplica, invalidando a conferência acima. Um documento nosso que se
 comportasse **diferente** do modelo é que seria o defeito.
 
