@@ -11,6 +11,8 @@ import { assert, assertEquals, assertStringIncludes, assertThrows } from "@std/a
 import {
   children,
   closePackage,
+  descendants,
+  elementChildren,
   firstChild,
   getAttribute,
   openPackage,
@@ -82,8 +84,18 @@ function tableOf(filled: Uint8Array): XmlElement {
   return firstChild(body, "tbl")!;
 }
 
+/** As linhas do mapa — o cabeçalho e os dias, sem a do rodapé de assinaturas. */
 function rowsOf(filled: Uint8Array): XmlElement[] {
-  return children(tableOf(filled), "tr");
+  return children(tableOf(filled), "tr").filter((row) => !isFooterRow(row));
+}
+
+/** O rodapé é a linha de célula única, que atravessa as cinco colunas. */
+function isFooterRow(row: XmlElement): boolean {
+  return children(row, "tc").length === 1;
+}
+
+function footerOf(filled: Uint8Array): XmlElement {
+  return children(tableOf(filled), "tr").at(-1)!;
 }
 
 function cellText(row: XmlElement, column: number): string {
@@ -116,37 +128,87 @@ Deno.test("a escola e o período entram na lacuna do cabeçalho, sem sobra de tr
   assert(heading.length > "ESCOLA:  Escola Exemplo  MÊS/ANO: Setembro/2026 ".length);
 });
 
-Deno.test("cada rótulo de assinatura se apoia na parada do seu traço", () => {
+function keepsNext(paragraph: XmlElement): boolean {
+  const properties = firstChild(paragraph, "pPr");
+  return properties !== null && firstChild(properties, "keepNext") !== null;
+}
+
+Deno.test("cada rótulo de assinatura fica centralizado sob o seu traço", () => {
+  const footer = footerOf(fill(documentWith([schoolDay("2026-09-01")])));
+  const signatures = descendants(footer, "tbl")[0];
+
+  // Uma coluna por assinatura, cada uma com metade da largura da tabela do
+  // mapa (16126 twips) menos as margens internas da célula (108 de cada lado).
+  const grid = children(firstChild(signatures, "tblGrid")!, "gridCol")
+    .map((column) => getAttribute(column, "w"));
+  assertEquals(grid, ["7955", "7955"]);
+
+  // Sem borda nenhuma: no papel, só os traços aparecem.
+  const borders = firstChild(firstChild(signatures, "tblPr")!, "tblBorders")!;
+  for (const border of elementChildren(borders)) {
+    assertEquals(getAttribute(border, "val"), "nil");
+  }
+
+  // Em cada célula, o traço e embaixo o rótulo, ambos centralizados, sem
+  // tabulação nenhuma — o editor do Word Online não as respeita.
+  const cells = children(children(signatures, "tr")[0], "tc").map((cell) =>
+    children(cell, "p")
+  );
+  assertEquals(cells.map((paragraphs) => paragraphs.map(textOf)), [
+    ["_".repeat(51), "Cozinheiro(a) responsável pelo mapa"],
+    ["_".repeat(51), "Diretor(a)"],
+  ]);
+  for (const paragraph of cells.flat()) {
+    const alignment = firstChild(firstChild(paragraph, "pPr")!, "jc")!;
+    assertEquals(getAttribute(alignment, "val"), "center");
+    assertEquals(descendants(paragraph, "tab").length, 0);
+  }
+});
+
+Deno.test("o rodapé de assinaturas muda de página inteiro, com o último dia", () => {
+  const filled = fill(documentWith([schoolDay("2026-09-01"), schoolDay("2026-09-02")]));
+  const footer = footerOf(filled);
+
+  // O rodapé inteiro — o respiro, os traços e os rótulos — mora numa linha da
+  // tabela do mapa que não se parte…
+  assert(isFooterRow(footer));
+  assert(firstChild(firstChild(footer, "trPr")!, "cantSplit") !== null);
+  const cell = children(footer, "tc")[0];
+  assertEquals(
+    getAttribute(firstChild(firstChild(cell, "tcPr")!, "gridSpan")!, "val"),
+    "5",
+  );
+  assert(children(cell, "p").length > 1, "o respiro antes das assinaturas continua");
+  assertStringIncludes(textOf(cell), "Diretor(a)");
+
+  // …sem borda, para não parecer mais um dia…
+  const borders = firstChild(firstChild(cell, "tcPr")!, "tcBorders")!;
+  for (const border of elementChildren(borders)) {
+    assertEquals(getAttribute(border, "val"), "nil");
+  }
+
+  // …e o último dia inteiro gruda nela, inclusive a justificativa, que é a
+  // linha que no meio da tabela não gruda em nada.
+  for (const row of rowsOf(filled).slice(-4)) {
+    for (const dayCell of children(row, "tc")) {
+      for (const paragraph of children(dayCell, "p")) assert(keepsNext(paragraph));
+    }
+  }
+
+  // Fora da tabela não sobra nada do rodapé, nem os espaços contados a olho.
   const body = firstChild(
-    readXml(
-      openPackage(fill(documentWith([schoolDay("2026-09-01")]))),
-      "word/document.xml",
-    ).documentElement as XmlElement,
+    readXml(openPackage(filled), "word/document.xml").documentElement as XmlElement,
     "body",
   )!;
-  const paragraphs = children(body, "p");
-  const rules = paragraphs.find((p) =>
-    /^[\s_]+$/.test(textOf(p)) && textOf(p).includes("__")
-  )!;
-  const labels = paragraphs.find((p) => textOf(p).includes("Diretor(a)"))!;
-
-  // Duas paradas centralizadas, nos centros das duas metades da largura útil:
-  // a página tem 16838 twips e 284 de margem de cada lado.
-  const stopsOf = (paragraph: XmlElement) =>
-    children(firstChild(paragraph, "pPr")!, "tabs").flatMap((tabs) =>
-      children(tabs, "tab").map((
-        tab,
-      ) => [getAttribute(tab, "val"), getAttribute(tab, "pos")])
-    );
-  const expected = [["center", "4068"], ["center", "12203"]];
-  assertEquals(stopsOf(rules), expected);
-  assertEquals(stopsOf(labels), expected);
-
-  // E cada parte passa a ser precedida da sua tabulação, em vez de espaços.
-  assertEquals(children(labels, "r").length, 2);
-  for (const run of children(labels, "r")) assert(firstChild(run, "tab") !== null);
-  assertStringIncludes(textOf(labels), "Cozinheiro(a) responsável pelo mapa");
-  assertEquals(textOf(labels).includes("   "), false);
+  const leftovers = children(body, "p").map(textOf).filter((text) =>
+    text.includes("__") || text.includes("Diretor(a)")
+  );
+  assertEquals(leftovers, []);
+  assertEquals(
+    elementChildren(body).at(-2)?.localName,
+    "p",
+    "o corpo não termina em tabela",
+  );
 });
 
 Deno.test("o período do cabeçalho sai das datas, mesmo em seleção avulsa", () => {
@@ -267,7 +329,11 @@ Deno.test("as alturas travadas viram mínimos e o cabeçalho passa a repetir", (
 });
 
 Deno.test("as três primeiras linhas do dia grudam na seguinte", () => {
-  const rows = rowsOf(fill(documentWith([schoolDay("2026-09-01")])));
+  // Dois dias: o último do período gruda inteiro no rodapé de assinaturas, e o
+  // que se observa aqui é o comportamento de um dia no meio da tabela.
+  const rows = rowsOf(
+    fill(documentWith([schoolDay("2026-09-01"), schoolDay("2026-09-02")])),
+  );
   const keepsNext = (row: XmlElement) =>
     children(row, "tc").every((cell) =>
       children(cell, "p").every((p) =>

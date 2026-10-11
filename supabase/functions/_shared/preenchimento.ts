@@ -75,7 +75,7 @@ export function fillOfficialTemplate(
 
   const template = extractDayTemplate(table);
   rebuildTable(table, template, data.mealMaps);
-  alignSignatures(body);
+  layOutSignatures(body, table);
 
   writeXml(pkg, DOCUMENT_PART, xml);
   stripPersonalMetadata(pkg);
@@ -204,40 +204,107 @@ function replaceInParagraph(
 // --- assinaturas -----------------------------------------------------------
 
 /**
- * Centraliza cada rótulo de assinatura sob o seu traço.
+ * Centraliza cada rótulo de assinatura sob o seu traço e amarra o rodapé ao
+ * último dia da tabela.
  *
- * No modelo, os dois traços e os dois rótimos — "Cozinheiro(a) responsável pelo
+ * No modelo, os dois traços e os dois rótulos — "Cozinheiro(a) responsável pelo
  * mapa" e "Diretor(a)" — foram posicionados com sequências de espaço, contadas
  * a olho. Em fonte proporcional isso nunca alinha: o "Diretor(a)" sai muito à
- * direita do traço dele. Aqui os dois parágrafos passam a se apoiar em
- * **paradas de tabulação centralizadas**, calculadas a partir da largura útil
- * da página, que é o mecanismo que o Word tem para exatamente isto.
+ * direita do traço dele. Aqui os dois parágrafos viram uma **tabela sem borda
+ * de uma coluna por assinatura**, com traço e rótulo centralizados na célula.
+ * Paradas de tabulação centralizadas seriam o mecanismo "certo" do Word, mas o
+ * editor do Word Online não as respeita (#154): o primeiro traço caía na linha
+ * de baixo e os rótulos se juntavam no meio. Tabela, todo editor desenha igual.
  *
  * O reconhecimento é pela forma, não pela posição: o parágrafo dos traços é o
  * que só tem `_` e espaço, com mais de um grupo; o dos rótulos é o próximo com
  * texto. Quantidades diferentes de traço e de rótulo fazem a função desistir
- * em silêncio e deixar o rodapé como estava — é acabamento, não conteúdo, e
- * não vale falhar uma geração por causa dele.
+ * em silêncio de alinhar e deixar os parágrafos como estavam — é acabamento,
+ * não conteúdo, e não vale falhar uma geração por causa dele. A amarração com
+ * o último dia acontece de todo jeito.
  */
-function alignSignatures(body: XmlElement): void {
+function layOutSignatures(body: XmlElement, mapTable: XmlElement): void {
   const paragraphs = trailingParagraphs(body);
   const rulesIndex = paragraphs.findIndex(isRuleParagraph);
   if (rulesIndex < 0) return;
 
-  const rules = textOf(paragraphs[rulesIndex]).match(/_+/g) ?? [];
-  if (rules.length < 2) return;
+  const rulesParagraph = paragraphs[rulesIndex];
+  const labelIndex = paragraphs.findIndex((paragraph, index) =>
+    index > rulesIndex && textOf(paragraph).trim().length > 0
+  );
+  const footer = paragraphs.slice(0, labelIndex < 0 ? rulesIndex + 1 : labelIndex + 1);
 
-  const stops = centeredTabStops(usableWidth(body), rules.length);
-  layOutOnTabs(paragraphs[rulesIndex], rules, stops);
+  const rules = textOf(rulesParagraph).match(/_+/g) ?? [];
+  const labels = labelIndex < 0
+    ? []
+    : textOf(paragraphs[labelIndex]).trim().split(/\s{2,}/);
+  const aligned = rules.length >= 2 && labels.length === rules.length;
 
-  const labelParagraph = paragraphs
-    .slice(rulesIndex + 1)
-    .find((paragraph) => textOf(paragraph).trim().length > 0);
-  if (!labelParagraph) return;
+  const content = aligned
+    ? [
+      ...paragraphs.slice(0, rulesIndex), // o respiro
+      signatureTable(
+        rulesParagraph,
+        paragraphs[labelIndex],
+        rules,
+        labels,
+        footerTextWidth(mapTable),
+      ),
+      // Toda célula termina em parágrafo; este não pode ocupar espaço.
+      emptyParagraph(rulesParagraph),
+    ]
+    : footer;
+  for (const paragraph of footer) removeElement(paragraph);
+  keepFooterWithLastDay(mapTable, content);
+}
 
-  const labels = textOf(labelParagraph).trim().split(/\s{2,}/);
-  if (labels.length !== rules.length) return;
-  layOutOnTabs(labelParagraph, labels, stops);
+/**
+ * O rodapé — o respiro de parágrafos vazios, os traços e os rótulos — não se
+ * separa, e leva o último dia junto. Sem isso, num período que enche a página,
+ * o respiro ficava no pé da página 1 e as assinaturas iam sozinhas para o
+ * alto da página 2, coladas no cabeçalho, sem nada do mapa que elas assinam.
+ *
+ * Por isso o rodapé passa a ser **a última linha da tabela do mapa**: uma
+ * célula sem borda, da largura da tabela, que não se parte (`cantSplit`), e a
+ * última linha do último dia gruda nela como as outras linhas do dia já grudam
+ * entre si. Parágrafos fora da tabela não serviriam: o Word sabe grudar a
+ * última linha de uma tabela no parágrafo seguinte, mas o LibreOffice só sabe
+ * grudar a tabela **inteira** — e aí ela pularia toda para a página 2.
+ */
+function keepFooterWithLastDay(mapTable: XmlElement, content: XmlElement[]): void {
+  const lastRow = children(mapTable, "tr").at(-1);
+  if (lastRow) {
+    for (const cell of children(lastRow, "tc")) {
+      for (const paragraph of children(cell, "p")) {
+        paragraphProperty(paragraph, "keepNext");
+      }
+    }
+  }
+
+  const columns = gridColumns(mapTable);
+  const row = makeElement(mapTable, "tr");
+  addRowProperty(row, "cantSplit");
+  const cell = makeElement(mapTable, "tc");
+  const properties = makeElement(mapTable, "tcPr");
+  properties.appendChild(widthElement(mapTable, "tcW", sum(columns)));
+  const span = makeElement(mapTable, "gridSpan");
+  setAttribute(span, "val", String(columns.length));
+  properties.appendChild(span);
+  properties.appendChild(
+    noBorders(mapTable, "tcBorders", ["top", "left", "bottom", "right"]),
+  );
+  cell.appendChild(properties);
+  for (const node of content) cell.appendChild(node);
+  row.appendChild(cell);
+  mapTable.appendChild(row);
+
+  // O documento não pode terminar numa tabela: o Word exige um parágrafo
+  // depois dela. Se o rodapé era o que vinha depois, entra um sem altura.
+  let next = mapTable.nextSibling;
+  while (next && next.nodeType !== 1) next = next.nextSibling;
+  if ((next as XmlElement | null)?.localName !== "p") {
+    mapTable.parentNode!.insertBefore(emptyParagraph(mapTable), next);
+  }
 }
 
 /** Os parágrafos que vêm depois da tabela — o rodapé de assinaturas. */
@@ -254,54 +321,142 @@ function isRuleParagraph(paragraph: XmlElement): boolean {
   return text.includes("__") && /^[\s_]+$/.test(text);
 }
 
-function usableWidth(body: XmlElement): number {
-  const section = firstChild(body, "sectPr");
-  const size = section ? firstChild(section, "pgSz") : null;
-  const margins = section ? firstChild(section, "pgMar") : null;
-  const number = (el: XmlElement | null, name: string) =>
-    el ? Number(getAttribute(el, name) ?? 0) || 0 : 0;
-
-  const width = number(size, "w") || 16838; // A4 deitado, se o modelo não disser
-  return width - number(margins, "left") - number(margins, "right");
+function gridColumns(table: XmlElement): number[] {
+  const grid = firstChild(table, "tblGrid");
+  return (grid ? children(grid, "gridCol") : [])
+    .map((column) => Number(getAttribute(column, "w") ?? 0) || 0);
 }
 
-/** O centro de cada uma de `count` colunas iguais dentro da largura útil. */
-function centeredTabStops(width: number, count: number): number[] {
-  return Array.from(
-    { length: count },
-    (_unused, index) => Math.round((width * (2 * index + 1)) / (2 * count)),
+function sum(values: number[]): number {
+  return values.reduce((total, value) => total + value, 0);
+}
+
+/**
+ * A largura onde cabe texto na célula do rodapé: a da tabela menos as margens
+ * internas da célula, que o modelo declara em `w:tblCellMar` (108 twips de
+ * cada lado, o padrão do Word, se não declarar).
+ */
+function footerTextWidth(mapTable: XmlElement): number {
+  const properties = firstChild(mapTable, "tblPr");
+  const margins = properties ? firstChild(properties, "tblCellMar") : null;
+  const margin = (side: string) => {
+    const el = margins ? firstChild(margins, side) : null;
+    const value = el ? Number(getAttribute(el, "w")) : NaN;
+    return Number.isFinite(value) ? value : 108;
+  };
+  return sum(gridColumns(mapTable)) - margin("left") - margin("right");
+}
+
+function widthElement(reference: XmlElement, local: string, width: number): XmlElement {
+  const element = makeElement(reference, local);
+  setAttribute(element, "w", String(width));
+  setAttribute(element, "type", "dxa");
+  return element;
+}
+
+function noBorders(reference: XmlElement, local: string, sides: string[]): XmlElement {
+  const borders = makeElement(reference, local);
+  for (const side of sides) {
+    const border = makeElement(reference, side);
+    setAttribute(border, "val", "nil");
+    borders.appendChild(border);
+  }
+  return borders;
+}
+
+/** Um parágrafo vazio de altura desprezível, para fechar célula ou documento. */
+function emptyParagraph(reference: XmlElement): XmlElement {
+  const paragraph = makeElement(reference, "p");
+  const spacing = paragraphProperty(paragraph, "spacing");
+  setAttribute(spacing, "before", "0");
+  setAttribute(spacing, "after", "0");
+  setAttribute(spacing, "line", "20");
+  setAttribute(spacing, "lineRule", "exact");
+  const mark = paragraphProperty(paragraph, "rPr");
+  const size = makeElement(reference, "sz");
+  setAttribute(size, "val", "2");
+  mark.appendChild(size);
+  return paragraph;
+}
+
+/**
+ * A tabela das assinaturas: uma linha, uma coluna por assinatura, todas da
+ * mesma largura, sem borda. Cada célula leva o traço e, embaixo, o rótulo,
+ * centralizados — com o espaçamento e a fonte que os dois parágrafos tinham no
+ * modelo.
+ */
+function signatureTable(
+  rulesParagraph: XmlElement,
+  labelParagraph: XmlElement,
+  rules: string[],
+  labels: string[],
+  width: number,
+): XmlElement {
+  const columnWidth = Math.floor(width / rules.length);
+  const table = makeElement(rulesParagraph, "tbl");
+
+  // A ordem dentro de `w:tblPr` é normativa: largura, alinhamento, bordas, layout.
+  const properties = makeElement(table, "tblPr");
+  properties.appendChild(widthElement(table, "tblW", columnWidth * rules.length));
+  const alignment = makeElement(table, "jc");
+  setAttribute(alignment, "val", "center");
+  properties.appendChild(alignment);
+  properties.appendChild(
+    noBorders(table, "tblBorders", [
+      "top",
+      "left",
+      "bottom",
+      "right",
+      "insideH",
+      "insideV",
+    ]),
   );
+  const layout = makeElement(table, "tblLayout");
+  setAttribute(layout, "type", "fixed");
+  properties.appendChild(layout);
+  table.appendChild(properties);
+
+  const grid = makeElement(table, "tblGrid");
+  for (const _rule of rules) {
+    const column = makeElement(table, "gridCol");
+    setAttribute(column, "w", String(columnWidth));
+    grid.appendChild(column);
+  }
+  table.appendChild(grid);
+
+  const row = makeElement(table, "tr");
+  rules.forEach((rule, index) => {
+    const cell = makeElement(table, "tc");
+    const cellProperties = makeElement(table, "tcPr");
+    cellProperties.appendChild(widthElement(table, "tcW", columnWidth));
+    cell.appendChild(cellProperties);
+    cell.appendChild(centeredCopy(rulesParagraph, rule));
+    cell.appendChild(centeredCopy(labelParagraph, labels[index]));
+    row.appendChild(cell);
+  });
+  table.appendChild(row);
+  return table;
 }
 
-/** Reescreve o parágrafo como `<tab>parte<tab>parte`, uma parte por parada. */
-function layOutOnTabs(
-  paragraph: XmlElement,
-  parts: string[],
-  stops: number[],
-): void {
+/**
+ * Uma cópia do parágrafo com só `text`, centralizada. O `w:pPr` (estilo e
+ * espaçamento) e o `w:rPr` da primeira run vêm do modelo; recuo e tabulação,
+ * que serviam para posicionar na página, não fazem sentido dentro da célula.
+ */
+function centeredCopy(paragraph: XmlElement, text: string): XmlElement {
   const style = firstChild(children(paragraph, "r")[0] ?? paragraph, "rPr");
+  const copy = makeElement(paragraph, "p");
+  const properties = firstChild(paragraph, "pPr");
+  if (properties) copy.appendChild(properties.cloneNode(true));
 
-  const tabs = paragraphProperty(paragraph, "tabs");
-  for (const existing of elementChildren(tabs)) removeElement(existing);
-  for (const position of stops) {
-    const tab = makeElement(paragraph, "tab");
-    setAttribute(tab, "val", "center");
-    setAttribute(tab, "pos", String(position));
-    tabs.appendChild(tab);
+  for (const local of ["tabs", "ind"]) {
+    const existing = firstChild(firstChild(copy, "pPr") ?? copy, local);
+    if (existing) removeElement(existing);
   }
-  // Um alinhamento de parágrafo herdado do modelo brigaria com as paradas.
-  const alignment = paragraphProperty(paragraph, "jc");
-  setAttribute(alignment, "val", "left");
+  setAttribute(paragraphProperty(copy, "jc"), "val", "center");
 
-  for (const run of children(paragraph, "r")) removeElement(run);
-  for (const part of parts) {
-    // Cada parte é precedida da sua tabulação: `w:rPr`, `w:tab`, `w:t`.
-    const run = makeElement(paragraph, "r");
-    if (style) run.appendChild(style.cloneNode(true));
-    run.appendChild(makeElement(paragraph, "tab"));
-    run.appendChild(makeText(paragraph, part));
-    paragraph.appendChild(run);
-  }
+  copy.appendChild(makeRun(copy, style, text));
+  return copy;
 }
 
 // --- leitura do gabarito ---------------------------------------------------
