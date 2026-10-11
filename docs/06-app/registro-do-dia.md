@@ -28,10 +28,11 @@ entraram `mealState`, `firstUnfinishedMeal`, `dayProgress`, `touch`,
 
 ## Uma origem só, e o encontro que a visão do mês esperava
 
-A [visão do mês](visao-do-mes-e-menu.md#uma-origem-só-não-duas) tinha
+A [visão do mês](visao-do-mes-e-menu.md#as-duas-origens-como-na-web) tinha
 deixado registrado que ler o rascunho por cima do banco convergido — o par
 de origens que a web já resolvia — era decisão desta issue. Aqui está: a tela
-combina duas fontes, a mesma fronteira da web (decisão 4 da E5).
+combina duas fontes, a mesma fronteira da web (decisão 4 da E5). A visão do
+mês só passou a fazer o mesmo na E7 (issue #150).
 
 - **[`DayRepository`](../../app/lib/local/day_repository.dart)** lê o banco
   já convergido (`meal_maps`/`meals`, issue #102) para um dia só, em

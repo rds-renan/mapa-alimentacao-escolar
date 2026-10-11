@@ -13,7 +13,9 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
 import '../documents/fake_documents.dart';
+import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
+import '../local/fake_sync_gateway.dart';
 import '../version/fake_version_gateway.dart';
 
 void main() {
@@ -32,6 +34,11 @@ void main() {
         // A tela-casa lê a lista de documentos ao abrir, para o aviso de
         // documento pronto (issue #110).
         documentsGatewayProvider.overrideWithValue(FakeDocumentsGateway()),
+        // E lê a fila de envio, que liga ao abrir (issue #150).
+        syncGatewayProvider.overrideWithValue(FakeSyncGateway()),
+        connectivityGatewayProvider.overrideWithValue(
+          FakeConnectivityGateway(),
+        ),
         // A visão do mês abre um arquivo Drift por perfil (decisão 6 da
         // E6); nos testes de widget, sempre um banco em memória, como
         // `month_repository_test.dart` já faz sem Riverpod nenhum.

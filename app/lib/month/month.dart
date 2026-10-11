@@ -12,11 +12,10 @@
 /// dois sempre em local é o que evita aqui o mesmo problema que a web
 /// preveniu obrigando UTC.
 ///
-/// A outra diferença da web: não há duas origens para fundir. `DayRecord`
-/// nasce só do banco local (já convergido pelo servidor via `refreshMonth`);
-/// o rascunho por enviar entra com a fila (issue #103) e a leitura dele
-/// pela visão do mês fica para a #105, como a documentação da fila já
-/// registra.
+/// As duas origens são as mesmas da web: a cópia confirmada no banco local
+/// (já convergida pelo servidor via `refreshMonth`) e o rascunho que espera
+/// na fila (issue #103). Quem junta as duas é [mergeDrafts] — a visão do
+/// mês e a seleção de mapas leem o mesmo resultado (issue #150).
 library;
 
 import '../local/day.dart';
@@ -152,6 +151,25 @@ class DayRecord {
 /// Zera a hora — a chave de comparação e de agrupamento por dia em todo este
 /// arquivo.
 DateTime dateOnly(DateTime date) => DateTime(date.year, date.month, date.day);
+
+/// Os dias do mês por data, com o que espera na fila por cima da cópia
+/// confirmada ([DayRecord.withDraft]). Um dia preenchido sem rede já é um
+/// dia preenchido: deixá-lo de fora faria o mês dizer que nada foi feito
+/// justamente na escola sem sinal (issue #150).
+Map<DateTime, DayRecord> mergeDrafts(
+  List<MealMapWithMeals> rows,
+  List<DayPayload> drafts,
+) {
+  final byDate = <DateTime, DayRecord>{
+    for (final row in rows)
+      dateOnly(row.mealMap.mapDate): DayRecord.fromLocal(row),
+  };
+  for (final draft in drafts) {
+    final date = dateOnly(DateTime.parse(draft.mapDate));
+    byDate[date] = byDate[date]?.withDraft(draft) ?? DayRecord.fromDraft(draft);
+  }
+  return byDate;
+}
 
 // ---------------------------------------------------------------------------
 // O estado de cada dia (decisão 4 da E4, decisão 4 da E3)
@@ -413,6 +431,12 @@ String progressBreakdown(Map<DayState, int> counts) {
 
 String schoolDaysLabel(int days) =>
     days == 1 ? '1 dia letivo' : '$days dias letivos';
+
+/// Abaixo do andamento, quando há dia esperando a internet. O vocabulário é
+/// o da faixa de salvamento: "salvo no seu celular", "nuvem".
+String unsentDaysLabel(int days) => days == 1
+    ? '1 dia salvo no seu celular ainda não foi para a nuvem.'
+    : '$days dias salvos no seu celular ainda não foram para a nuvem.';
 
 String progressLabel(int done, int schoolDays) =>
     '$done de $schoolDays ${schoolDays == 1 ? 'dia' : 'dias'}';

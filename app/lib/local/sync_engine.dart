@@ -498,6 +498,15 @@ class SyncEngine {
         .toList();
   }
 
+  /// [pendingDays], avisando de novo a cada mudança na fila.
+  Stream<List<DayPayload>> watchPendingDays(String prefix) =>
+      _store.watch().map(
+        (records) => records
+            .where((record) => record.mapDate.startsWith(prefix))
+            .map((record) => record.day)
+            .toList(),
+      );
+
   void dismissConflict(String mapDate) {
     _patch(
       conflicts: _state.value.conflicts

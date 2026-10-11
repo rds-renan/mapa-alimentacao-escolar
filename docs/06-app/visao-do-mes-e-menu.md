@@ -28,25 +28,35 @@ todas as datas em hora local — `DateTime(ano, mês)` para os limites do mês,
 `DateTime.parse` para o que vem do servidor —, e `month.dart` faz o mesmo em
 toda parte. Não há UTC neste arquivo porque não precisa haver.
 
-## Uma origem só, não duas
+## As duas origens, como na web
 
 Na web, a visão do mês é onde a TanStack Query (o servidor) e a camada local
 (o rascunho por enviar) se encontram pela primeira vez, e o rascunho vence
 — menos o bloqueio, que só o servidor sabe.
 
-Esta tela ainda não tem esse encontro: `DayRecord` nasce só do banco local
-(`meal_maps`/`meals`, issue #102), que já é a cópia convergida do servidor
-via `refreshMonth`. O rascunho por enviar mora em `pending_meal_maps` (issue
-#103), numa tabela separada que ninguém aqui lê — um dia editado e ainda na
-fila aparece **vazio** nesta lista, a mesma lacuna que a web teve até a
-própria visão do mês entrar (veja o histórico do PR #83).
+Aqui o encontro chegou tarde. Na E6, `DayRecord` nascia só do banco local
+(`meal_maps`/`meals`, issue #102), a cópia convergida do servidor via
+`refreshMonth`, e o rascunho por enviar, em `pending_meal_maps` (issue
+#103), ficava numa tabela que esta tela não lia. A lacuna estava anotada
+aqui como "em aberto", e o [ensaio geral](../07-testes/plano-de-testes.md)
+da E7 mostrou o tamanho dela: na escola sem sinal, os dias preenchidos
+inteiros apareciam no mês como "faltam as três refeições" até a rede voltar
+(issue #150).
 
-A tela do [registro do dia](registro-do-dia.md#uma-origem-só-e-o-encontro-que-a-visão-do-mês-esperava)
-já faz esse encontro, para o dia que ela abre — é lá que `DayRepository` e
-`SyncEngine` se juntam. Trazê-lo também para **esta** lista (para o mês
-inteiro, não um dia por vez) continua em aberto, e a mesma página do
-registro do dia explica por que não foi resolvido junto: escrever a
-confirmação da fila nas tabelas de leitura duplicaria o caminho de gravação.
+Agora a tela lê as duas, com a mesma junção da seleção de mapas —
+[`mergeDrafts`](../../app/lib/month/month.dart), que leva a regra de
+`DayRecord.withDraft`: vale o rascunho, menos o bloqueio e o identificador.
+O que permitiu juntar sem duplicar o caminho de gravação (a objeção que o
+[registro do dia](registro-do-dia.md#uma-origem-só-e-o-encontro-que-a-visão-do-mês-esperava)
+fazia) foi ler, não escrever: `SyncQueueStore.watch` é uma consulta do
+Drift sobre a fila, e avisa de novo a cada dia que entra ou sai dela. O dia
+que sobe sai da fila e entra na cópia confirmada na mesma transação (issue
+#124), e o mês se acerta sozinho, sem ela sair e voltar.
+
+Ler a fila daqui tem um efeito a mais: a tela-casa passa a criar o
+`SyncEngine`, e ele tenta enviar ao nascer. Antes, ele só nascia quando ela
+abria um dia ou a seleção de mapas, e a fila esperava esse toque para subir,
+ao contrário do que a decisão 8 da E6 pedia ("ao abrir").
 
 ## O banco abre com o perfil e não fecha com a sessão
 
@@ -82,12 +92,11 @@ depende da rede para aparecer.
 por `_ensureMonthStream` em `home_page.dart` — mas por baixo, sem bloquear a
 leitura: uma falha (`catchError((_) {})`) é silenciosa de propósito, porque a
 lista já mostra o que está no aparelho e a rede só melhora o que já apareceu,
-nunca condiciona a tela a aparecer. Não há faixa de erro, nem contagem de
-"dias salvos esperando envio" como a web tem para a falha de carga — esse
-aviso é sobre o **rascunho** que ainda não subiu (issue #103). A tela do
-[registro do dia](registro-do-dia.md) já o mostra, mas só para o dia que
-está aberta nela; esta lista continua sem um resumo do que está pendente no
-mês inteiro.
+nunca condiciona a tela a aparecer. Não há faixa de erro. O que a tela diz do
+**rascunho** que ainda não subiu (issue #103) é uma linha no cartão de
+andamento, só quando há algum: "2 dias salvos no seu celular ainda não
+foram para a nuvem." — a frase da web para o mesmo caso, com o vocabulário
+da faixa de salvamento do aplicativo (issue #150).
 
 ## `package:clock`, para "hoje" ser um dado e não uma chamada global
 

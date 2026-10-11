@@ -7,8 +7,10 @@ import 'package:mae/auth/auth_controller.dart';
 import 'package:mae/auth/profile.dart';
 import 'package:mae/day/messages.dart' show dayTitle;
 import 'package:mae/local/app_database.dart';
+import 'package:mae/local/day.dart';
 import 'package:mae/local/local_providers.dart';
 import 'package:mae/local/month_gateway.dart';
+import 'package:mae/local/sync_queue_store.dart';
 import 'package:mae/routing/app_router.dart';
 import 'package:mae/theme/theme.dart';
 import 'package:mae/theme/theme_preference.dart';
@@ -207,6 +209,80 @@ void main() {
 
         expect(find.text('Preenchido'), findsOneWidget);
 
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets(
+    'dia preenchido sem rede aparece preenchido, e sai da conta ao subir (#150)',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        MealPayload meal(String type, String description) => MealPayload(
+          id: 'meal-$type',
+          type: type,
+          description: description,
+          acceptance: 'great',
+          foodItems: const [],
+          menuChange: null,
+        );
+
+        // O ensaio da #139: um dia inteiro e um não letivo, os dois só no
+        // aparelho — nenhum chegou à cópia confirmada.
+        final store = SyncQueueStore(
+          container.read(appDatabaseProvider(cook.id)),
+        );
+        await store.put(
+          DayPayload(
+            id: 'draft-1',
+            mapDate: '2026-09-01',
+            updatedAt: '2026-09-01T12:00:00.000',
+            nonSchoolDay: false,
+            note: null,
+            mealsServed: 300,
+            meals: [
+              meal('morning_snack', 'Pão'),
+              meal('lunch', 'Arroz e feijão'),
+              meal('afternoon_snack', 'Fruta'),
+            ],
+          ),
+        );
+        await store.put(
+          const DayPayload(
+            id: 'draft-2',
+            mapDate: '2026-09-02',
+            updatedAt: '2026-09-02T12:00:00.000',
+            nonSchoolDay: true,
+            note: 'Conselho de classe',
+            mealsServed: null,
+            meals: [],
+          ),
+        );
+
+        await pumpHome(tester);
+
+        expect(find.text('Preenchido'), findsOneWidget);
+        expect(find.text('Não letivo'), findsOneWidget);
+        expect(find.text('Conselho de classe'), findsOneWidget);
+        expect(
+          find.text(
+            '2 dias salvos no seu celular ainda não foram para a nuvem.',
+          ),
+          findsOneWidget,
+        );
+
+        // O dia subiu: a linha avisa de novo, sem ela sair e voltar.
+        await tester.runAsync(
+          () => store.settle('2026-09-02', '2026-09-02T12:00:00.000', (d) => d),
+        );
+        await tester.pumpAndSettle();
+
+        expect(
+          find.text('1 dia salvo no seu celular ainda não foi para a nuvem.'),
+          findsOneWidget,
+        );
+
+        container.read(syncEngineProvider(cook.id)).stop();
         await dispose(tester);
       });
     },
