@@ -327,7 +327,10 @@ void main() {
 
       expect(find.text('Gerar documento'), findsNothing);
 
-      await tester.pageBack();
+      // O botão do aparelho, e não uma seta do cabeçalho: o lugar da seta
+      // de voltar é da seta de dia anterior (issue #151).
+      expect(find.byType(BackButton), findsNothing);
+      await tester.binding.handlePopRoute();
       await tester.pumpAndSettle();
 
       expect(find.text('Gerar documento'), findsOneWidget);
@@ -335,6 +338,51 @@ void main() {
       await dispose(tester);
     });
   });
+
+  testWidgets(
+    'as setas andam entre dias sem perder o que foi digitado, e o voltar '
+    'continua indo ao mês (issue #151)',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await openDay(tester, 1);
+        expect(find.text('Terça, 1 de setembro'), findsOneWidget);
+
+        await tester.enterText(
+          find.widgetWithText(
+            TextField,
+            'Toque para escrever o cardápio '
+            'da refeição',
+          ),
+          'Pão com manteiga',
+        );
+        await tester.pump();
+
+        await tester.tap(find.byTooltip('Próximo dia, 2 de setembro'));
+        await tester.pumpAndSettle();
+        expect(find.text('Quarta, 2 de setembro'), findsOneWidget);
+        expect(find.text('Pão com manteiga'), findsNothing);
+
+        await tester.tap(find.byTooltip('Dia anterior, 1 de setembro'));
+        await tester.pumpAndSettle();
+        expect(find.text('Terça, 1 de setembro'), findsOneWidget);
+        expect(find.text('Pão com manteiga'), findsOneWidget);
+
+        // A seta anterior vira o mês, e o subtítulo mostra a virada.
+        await tester.tap(find.byTooltip('Dia anterior, 31 de agosto'));
+        await tester.pumpAndSettle();
+        expect(find.text('Segunda, 31 de agosto'), findsOneWidget);
+        expect(find.text('Agosto de 2026'), findsOneWidget);
+
+        // Três dias andados pelas setas, um voltar só até o mês: as setas
+        // trocam a tela em vez de empilhar.
+        await tester.binding.handlePopRoute();
+        await tester.pumpAndSettle();
+        expect(find.text('Gerar documento'), findsOneWidget);
+
+        await dispose(tester);
+      });
+    },
+  );
 
   testWidgets(
     'gêneros entram pela folha com busca, em 1, e o stepper anda em inteiros',
