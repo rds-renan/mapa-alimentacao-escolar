@@ -98,6 +98,28 @@ void main() {
     expect(meals.map((meal) => meal.id), ['meal-colleague']);
   });
 
+  test('o dia corrigido continua reaberto: a resposta do envio não diz se '
+      'foi reaberto, e a cópia mantém o que tinha (issue #152)', () async {
+    await writeConfirmedDay(
+      db,
+      ConfirmedDay(
+        locked: false,
+        reopened: true,
+        day: _day(updatedAt: '2026-09-10T12:00:00Z'),
+      ),
+    );
+
+    await writeConfirmedDay(db, ConfirmedDay(locked: false, day: _day()));
+    expect((await db.select(db.mealMaps).get()).single.reopened, isTrue);
+
+    // Voltando a um documento, o bloqueio vence.
+    await writeConfirmedDay(
+      db,
+      ConfirmedDay(locked: true, day: _day(updatedAt: '2026-09-10T23:00:00Z')),
+    );
+    expect((await db.select(db.mealMaps).get()).single.reopened, isFalse);
+  });
+
   test('cópia mais velha não substitui a mais nova', () async {
     await writeConfirmedDay(db, ConfirmedDay(locked: false, day: _day()));
 

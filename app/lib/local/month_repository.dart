@@ -66,6 +66,7 @@ class MonthRepository {
           _db,
           ConfirmedDay(
             locked: map.locked,
+            reopened: map.reopened,
             day: DayPayload(
               id: map.id,
               mapDate: map.mapDate.toIso8601String().substring(0, 10),

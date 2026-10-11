@@ -31,10 +31,12 @@ class DayRow extends StatelessWidget {
     final tokens = theme.extension<MaeColors>()!;
     final state = dayState(record);
     final summary = daySummary(record, isToday: isToday);
+    final reopened = record?.reopened ?? false;
 
     return Semantics(
       label:
-          '${dayAndMonth(date)}, ${dayStateLabels[state]!.toLowerCase()}. '
+          '${dayAndMonth(date)}, ${dayStateLabels[state]!.toLowerCase()}'
+          '${reopened ? ', ${reopenedLabel.toLowerCase()} para correção' : ''}. '
           '$summary',
       button: true,
       child: InkWell(
@@ -84,7 +86,21 @@ class DayRow extends StatelessWidget {
                     ),
                   ),
                 ),
-                DayBadge(state: state),
+                // Os dois selos um abaixo do outro, e não lado a lado: em
+                // largura de celular, lado a lado eles espremem o texto do
+                // dia — o achado da web na issue #153.
+                if (reopened)
+                  Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    spacing: kSpacingUnit,
+                    children: [
+                      const ReopenedBadge(),
+                      DayBadge(state: state),
+                    ],
+                  )
+                else
+                  DayBadge(state: state),
               ],
             ),
           ),

@@ -5,17 +5,23 @@ import 'day.dart';
 
 /// O dia como o servidor o tem — a cópia confirmada que mora nas tabelas de
 /// leitura (`meal_maps`, `meals` e as dos gêneros e da alteração) — mais o
-/// único fato que só ele conhece: se o mapa está bloqueado.
+/// os dois fatos que só ele conhece: se o mapa está bloqueado e se a direção
+/// o reabriu (issue #152).
 ///
 /// O dia vem inteiro, com os gêneros utilizados e a alteração do cardápio de
 /// cada refeição (issue #106): é isto que a tela reenvia a cada tecla, e o
 /// contrato de `save_meal_map` substitui a lista inteira — ler o dia sem os
 /// gêneros e reenviá-lo os apagaria do servidor.
 class ConfirmedDay {
-  const ConfirmedDay({required this.day, required this.locked});
+  const ConfirmedDay({required this.day, required this.locked, this.reopened});
 
   final DayPayload day;
   final bool locked;
+
+  /// Nulo quando quem grava não sabe: a resposta de `save_meal_map` não diz
+  /// se o dia foi reaberto, e o dia corrigido continua reaberto até voltar a
+  /// um documento — [writeConfirmedDay] mantém o que a cópia já tinha.
+  final bool? reopened;
 }
 
 /// O dia que `save_meal_map` acabou de gravar, na forma em que o servidor o
@@ -140,6 +146,10 @@ Future<bool> writeConfirmedDay(AppDatabase db, ConfirmedDay confirmed) async {
           mealsServed: Value(day.mealsServed),
           locked: confirmed.locked,
           updatedAt: updatedAt,
+          reopened: Value(
+            !confirmed.locked &&
+                (confirmed.reopened ?? previous.any((map) => map.reopened)),
+          ),
         ),
       );
 

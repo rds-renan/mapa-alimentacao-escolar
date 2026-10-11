@@ -67,6 +67,7 @@ class DayRepository {
 
       return ConfirmedDay(
         locked: map.locked,
+        reopened: map.reopened,
         day: DayPayload(
           id: map.id,
           mapDate: mapDate,

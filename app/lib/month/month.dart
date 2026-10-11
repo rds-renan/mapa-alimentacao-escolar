@@ -44,6 +44,11 @@ const Map<DayState, String> dayStateLabels = {
   DayState.empty: 'Vazio',
 };
 
+/// O dia reaberto pela direção (issue #152) não é um estado, e tem rótulo
+/// próprio. "Reaberto" e não "desbloqueado", como na web: o que ela precisa
+/// saber é que o dia voltou para a mão dela.
+const String reopenedLabel = 'Reaberto';
+
 const Map<DayState, String> _dayStatePlural = {
   DayState.complete: 'preenchidos',
   DayState.pending: 'pendentes',
@@ -80,6 +85,7 @@ class DayRecord {
     required this.meals,
     this.id,
     this.unsent = false,
+    this.reopened = false,
   });
 
   factory DayRecord.fromLocal(MealMapWithMeals row) => DayRecord(
@@ -88,6 +94,7 @@ class DayRecord {
     note: row.mealMap.note,
     mealsServed: row.mealMap.mealsServed,
     locked: row.mealMap.locked,
+    reopened: row.mealMap.reopened,
     meals: row.meals
         .map(
           (meal) => MealRecord(
@@ -120,8 +127,8 @@ class DayRecord {
   );
 
   /// Quando o mesmo dia existe no servidor e no aparelho, vale o rascunho —
-  /// **menos o bloqueio e o identificador**, que ele não tem como conhecer
-  /// (a mesma regra da web, em `selection`).
+  /// **menos o bloqueio, a reabertura e o identificador**, que ele não tem
+  /// como conhecer (a mesma regra da web, em `mergeDays`).
   DayRecord withDraft(DayPayload draft) {
     final fromDraft = DayRecord.fromDraft(draft);
     return DayRecord(
@@ -130,6 +137,7 @@ class DayRecord {
       note: fromDraft.note,
       mealsServed: fromDraft.mealsServed,
       locked: locked,
+      reopened: reopened,
       unsent: true,
       meals: fromDraft.meals,
     );
@@ -140,6 +148,11 @@ class DayRecord {
 
   /// Guardado no aparelho, ainda esperando subir.
   final bool unsent;
+
+  /// Reaberto pela direção e ainda fora de documento (CA#2 da US023, issue
+  /// #152). Não é um sexto estado: o dia reaberto continua preenchido ou
+  /// pendente, e conta no andamento como o que é.
+  final bool reopened;
 
   final bool nonSchoolDay;
   final String? note;

@@ -28,6 +28,12 @@ class MealMaps extends Table {
   BoolColumn get locked => boolean()();
   DateTimeColumn get updatedAt => dateTime()();
 
+  /// Reaberto pela direção e ainda fora de documento (CA#2 da US023, issue
+  /// #152) — a mesma regra da web: `locked = false` e pelo menos uma linha
+  /// em `meal_map_unlock`. Não é tabela espelhada porque o histórico das
+  /// reaberturas é da direção; aqui só importa o sinal.
+  BoolColumn get reopened => boolean().withDefault(const Constant(false))();
+
   @override
   Set<Column> get primaryKey => {id};
 
@@ -175,7 +181,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -184,7 +190,15 @@ class AppDatabase extends _$AppDatabase {
     // local de desenvolvimento para migrar de verdade. Os dias baixados antes
     // da #106 ficam sem gêneros até o próximo `refreshMonth` do mês deles —
     // que é a primeira coisa que a visão do mês faz ao abrir.
-    onUpgrade: (m, from, to) async => m.createAll(),
+    //
+    // A #152 é a primeira a mexer numa tabela que já existe, e agora já há
+    // aparelho com dado de verdade (a 0.1.1, no ensaio da E7): a coluna
+    // entra com `addColumn`, valendo falso, e o sinal aparece no próximo
+    // `refreshMonth` — de novo, a primeira coisa que a visão do mês faz.
+    onUpgrade: (m, from, to) async {
+      await m.createAll();
+      if (from < 5) await m.addColumn(mealMaps, mealMaps.reopened);
+    },
   );
 }
 

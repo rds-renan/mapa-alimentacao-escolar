@@ -52,6 +52,59 @@ class DayBadge extends StatelessWidget {
       ),
     };
 
+    return _Pill(
+      icon: icon,
+      label: dayStateLabels[state]!,
+      background: background,
+      border: border,
+      foreground: foreground,
+    );
+  }
+}
+
+/// O dia reaberto pela direção (CA#2 da US023, issue #152) — o
+/// `ReopenedBadge` da web.
+///
+/// Vem junto da etiqueta de estado, e não no lugar dela: o dia reaberto
+/// continua preenchido ou pendente, e o que ele tem de diferente é ser o dia
+/// que voltou para a mão dela. Cor **e** ícone, como a do lado, e o cadeado
+/// aberto é de propósito o mesmo cadeado do "No documento".
+class ReopenedBadge extends StatelessWidget {
+  const ReopenedBadge({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final tokens = Theme.of(context).extension<MaeColors>()!;
+
+    return _Pill(
+      icon: Icons.lock_open,
+      label: reopenedLabel,
+      background: tokens.warningSubtle,
+      border: tokens.warningBorder,
+      foreground: tokens.warning,
+    );
+  }
+}
+
+class _Pill extends StatelessWidget {
+  const _Pill({
+    required this.icon,
+    required this.label,
+    required this.background,
+    required this.border,
+    required this.foreground,
+  });
+
+  final IconData icon;
+  final String label;
+  final Color background;
+  final Color border;
+  final Color foreground;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Semantics(
       // O rótulo já é dito na etiqueta de acessibilidade da linha inteira
       // (DayRow) — repeti-lo aqui faria o leitor de tela anunciar o estado
@@ -73,7 +126,7 @@ class DayBadge extends StatelessWidget {
             Icon(icon, size: 14, color: foreground),
             const SizedBox(width: 6),
             Text(
-              dayStateLabels[state]!,
+              label,
               style: theme.textTheme.labelSmall?.copyWith(
                 color: foreground,
                 fontWeight: FontWeight.w500,

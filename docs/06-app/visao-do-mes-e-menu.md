@@ -58,6 +58,41 @@ Ler a fila daqui tem um efeito a mais: a tela-casa passa a criar o
 abria um dia ou a seleção de mapas, e a fila esperava esse toque para subir,
 ao contrário do que a decisão 8 da E6 pedia ("ao abrir").
 
+## O selo Reaberto, que a E6 não trouxe
+
+Na web, o dia que a direção reabre para correção (US023) aparece no mês com
+o selo **Reaberto** ao lado do estado
+([desbloqueio de mapa](../05-web/desbloqueio-de-mapa.md#o-que-a-merendeira-vê)).
+O app não trazia o selo: a consulta do mês dele não lia `meal_map_unlock`, e
+o banco local não tinha onde guardar o sinal. O
+[ensaio geral](../07-testes/plano-de-testes.md) da E7 mostrou a falta, com o
+dia reaberto igual a qualquer outro (issue #152).
+
+Agora a consulta traz as reaberturas no mesmo vínculo da web, e a regra é a
+mesma: reaberto é `locked = false` **e** pelo menos uma reabertura no
+histórico (`RemoteMealMap.fromRow`). O sinal mora numa coluna nova de
+`meal_maps`, `reopened`. Ele não é um sexto estado: o dia reaberto continua
+preenchido ou pendente, conta no andamento como o que é, e o leitor de tela
+lê "reaberto para correção" depois do estado.
+
+Dois cuidados que a web não precisou ter, porque relê o mês do servidor a
+cada vez:
+
+- **O envio não apaga o selo.** A resposta de `save_meal_map` diz se o mapa
+  está bloqueado, mas não se foi reaberto, e o dia corrigido continua
+  reaberto até voltar a um documento. Quando quem grava não sabe
+  (`ConfirmedDay.reopened` nulo), `writeConfirmedDay` mantém o que a cópia
+  já tinha; bloqueado, o selo sai.
+- **A coluna chega por migração.** É a primeira mudança numa tabela que já
+  existe, e já há aparelho com dado de verdade (a 0.1.1 do ensaio): o
+  `schemaVersion` vai a 5 e a coluna entra com `addColumn`, valendo falso.
+  O selo aparece no próximo `refreshMonth`, a primeira coisa que esta tela
+  faz ao abrir.
+
+Os dois selos ficam **um abaixo do outro**, e não lado a lado: em largura de
+celular, lado a lado eles espremem o texto do dia, o achado da web na issue
+#153.
+
 ## O banco abre com o perfil e não fecha com a sessão
 
 [`local_providers.dart`](../../app/lib/local/local_providers.dart) resolve as
@@ -165,6 +200,7 @@ raciocínio do `vi.setSystemTime` da web):
 | Cenário | O que se afirma |
 | --- | --- |
 | Os cinco estados na lista | cada etiqueta tem texto próprio (RNF#1 da US008) |
+| Dia reaberto pela direção | ganha o selo Reaberto, continua "Preenchido", e o leitor de tela diz "reaberto para correção" (issue #152) |
 | Funciona sem rede com o que já está no aparelho | reabrir a tela com o gateway falhando continua mostrando o que convergiu antes (CA#3 da issue #104) |
 | Toque num dia | abre o registro daquele dia (CA#2 da US008) |
 | Toque num dia bloqueado | também abre: somente leitura não é inalcançável |
@@ -174,6 +210,16 @@ raciocínio do `vi.setSystemTime` da web):
 | Menu | nenhum caminho para a direção (RN#1 da US020) |
 | Menu → Documentos gerados / Gerenciar gêneros | levam à lista de documentos e à manutenção do catálogo |
 | Menu → Sair | encerra a sessão e volta ao login |
+
+Do selo Reaberto (issue #152), também: a regra da consulta em
+[`month_gateway_test.dart`](../../app/test/local/month_gateway_test.dart)
+(reaberto, nunca reaberto, reaberto e de volta a um documento), o selo que
+sobrevive ao envio em
+[`confirmed_copy_test.dart`](../../app/test/local/confirmed_copy_test.dart),
+e a migração em
+[`app_database_test.dart`](../../app/test/local/app_database_test.dart): um
+banco da versão 4 com um dia já baixado abre na 5 com o dia inteiro e a
+coluna nova valendo falso.
 
 `flutter build apk --debug` compila com o Drift ligado ao SQLite nativo do
 Android.
