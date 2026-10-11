@@ -82,6 +82,7 @@ class RemoteMealMap {
     required this.locked,
     required this.updatedAt,
     required this.meals,
+    this.reopened = false,
   });
 
   factory RemoteMealMap.fromRow(Map<String, dynamic> row) => RemoteMealMap(
@@ -92,6 +93,12 @@ class RemoteMealMap {
     mealsServed: row['meals_served'] as int?,
     locked: row['locked'] as bool,
     updatedAt: DateTime.parse(row['updated_at'] as String),
+    // Reaberto é o que está fora do bloqueio e já passou por uma reabertura
+    // — a regra de `fetchMonth` na web. Voltando a um documento, o que ela
+    // precisa ver é o bloqueio; o histórico continua lá, e é da direção.
+    reopened:
+        !(row['locked'] as bool) &&
+        (row['meal_map_unlock'] as List<dynamic>? ?? const []).isNotEmpty,
     meals: (row['meal'] as List<dynamic>)
         .map((meal) => RemoteMeal.fromRow(meal as Map<String, dynamic>))
         .toList(),
@@ -105,4 +112,7 @@ class RemoteMealMap {
   final bool locked;
   final DateTime updatedAt;
   final List<RemoteMeal> meals;
+
+  /// Reaberto pela direção e ainda fora de documento (issue #152).
+  final bool reopened;
 }

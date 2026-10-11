@@ -119,6 +119,7 @@ void main() {
     String? note,
     int? mealsServed,
     bool locked = false,
+    bool reopened = false,
     List<RemoteMeal> meals = const [],
   }) => RemoteMealMap(
     id: id,
@@ -129,6 +130,7 @@ void main() {
     locked: locked,
     updatedAt: mapDate,
     meals: meals,
+    reopened: reopened,
   );
 
   const threeMeals = [
@@ -180,6 +182,39 @@ void main() {
         expect(find.text('No documento'), findsOneWidget);
         expect(find.text('Pendente'), findsNothing);
         expect(find.text('Vazio'), findsWidgets);
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets(
+    'o dia reaberto pela direção ganha o selo Reaberto, junto do estado '
+    '(issue #152)',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        monthGateway.maps = [
+          map(
+            id: 'reopened',
+            mapDate: DateTime(2026, 9, 1),
+            mealsServed: 300,
+            meals: threeMeals,
+            reopened: true,
+          ),
+          map(id: 'never-reopened', mapDate: DateTime(2026, 9, 2)),
+        ];
+
+        await pumpHome(tester);
+
+        // Um selo só, e o dia continua preenchido: reaberto não é estado.
+        expect(find.text('Reaberto'), findsOneWidget);
+        expect(find.text('Preenchido'), findsOneWidget);
+        expect(
+          find.bySemanticsLabel(
+            RegExp(r'^1 de setembro, preenchido, reaberto para correção\.'),
+          ),
+          findsOneWidget,
+        );
 
         await dispose(tester);
       });

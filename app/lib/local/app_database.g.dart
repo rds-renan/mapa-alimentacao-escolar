@@ -388,6 +388,21 @@ class $MealMapsTable extends MealMaps with TableInfo<$MealMapsTable, MealMap> {
     type: DriftSqlType.dateTime,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _reopenedMeta = const VerificationMeta(
+    'reopened',
+  );
+  @override
+  late final GeneratedColumn<bool> reopened = GeneratedColumn<bool>(
+    'reopened',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("reopened" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     id,
@@ -397,6 +412,7 @@ class $MealMapsTable extends MealMaps with TableInfo<$MealMapsTable, MealMap> {
     mealsServed,
     locked,
     updatedAt,
+    reopened,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -465,6 +481,12 @@ class $MealMapsTable extends MealMaps with TableInfo<$MealMapsTable, MealMap> {
     } else if (isInserting) {
       context.missing(_updatedAtMeta);
     }
+    if (data.containsKey('reopened')) {
+      context.handle(
+        _reopenedMeta,
+        reopened.isAcceptableOrUnknown(data['reopened']!, _reopenedMeta),
+      );
+    }
     return context;
   }
 
@@ -506,6 +528,10 @@ class $MealMapsTable extends MealMaps with TableInfo<$MealMapsTable, MealMap> {
         DriftSqlType.dateTime,
         data['${effectivePrefix}updated_at'],
       )!,
+      reopened: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}reopened'],
+      )!,
     );
   }
 
@@ -523,6 +549,12 @@ class MealMap extends DataClass implements Insertable<MealMap> {
   final int? mealsServed;
   final bool locked;
   final DateTime updatedAt;
+
+  /// Reaberto pela direção e ainda fora de documento (CA#2 da US023, issue
+  /// #152) — a mesma regra da web: `locked = false` e pelo menos uma linha
+  /// em `meal_map_unlock`. Não é tabela espelhada porque o histórico das
+  /// reaberturas é da direção; aqui só importa o sinal.
+  final bool reopened;
   const MealMap({
     required this.id,
     required this.mapDate,
@@ -531,6 +563,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
     this.mealsServed,
     required this.locked,
     required this.updatedAt,
+    required this.reopened,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -546,6 +579,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
     }
     map['locked'] = Variable<bool>(locked);
     map['updated_at'] = Variable<DateTime>(updatedAt);
+    map['reopened'] = Variable<bool>(reopened);
     return map;
   }
 
@@ -560,6 +594,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
           : Value(mealsServed),
       locked: Value(locked),
       updatedAt: Value(updatedAt),
+      reopened: Value(reopened),
     );
   }
 
@@ -576,6 +611,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
       mealsServed: serializer.fromJson<int?>(json['mealsServed']),
       locked: serializer.fromJson<bool>(json['locked']),
       updatedAt: serializer.fromJson<DateTime>(json['updatedAt']),
+      reopened: serializer.fromJson<bool>(json['reopened']),
     );
   }
   @override
@@ -589,6 +625,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
       'mealsServed': serializer.toJson<int?>(mealsServed),
       'locked': serializer.toJson<bool>(locked),
       'updatedAt': serializer.toJson<DateTime>(updatedAt),
+      'reopened': serializer.toJson<bool>(reopened),
     };
   }
 
@@ -600,6 +637,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
     Value<int?> mealsServed = const Value.absent(),
     bool? locked,
     DateTime? updatedAt,
+    bool? reopened,
   }) => MealMap(
     id: id ?? this.id,
     mapDate: mapDate ?? this.mapDate,
@@ -608,6 +646,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
     mealsServed: mealsServed.present ? mealsServed.value : this.mealsServed,
     locked: locked ?? this.locked,
     updatedAt: updatedAt ?? this.updatedAt,
+    reopened: reopened ?? this.reopened,
   );
   MealMap copyWithCompanion(MealMapsCompanion data) {
     return MealMap(
@@ -622,6 +661,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
           : this.mealsServed,
       locked: data.locked.present ? data.locked.value : this.locked,
       updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      reopened: data.reopened.present ? data.reopened.value : this.reopened,
     );
   }
 
@@ -634,7 +674,8 @@ class MealMap extends DataClass implements Insertable<MealMap> {
           ..write('note: $note, ')
           ..write('mealsServed: $mealsServed, ')
           ..write('locked: $locked, ')
-          ..write('updatedAt: $updatedAt')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('reopened: $reopened')
           ..write(')'))
         .toString();
   }
@@ -648,6 +689,7 @@ class MealMap extends DataClass implements Insertable<MealMap> {
     mealsServed,
     locked,
     updatedAt,
+    reopened,
   );
   @override
   bool operator ==(Object other) =>
@@ -659,7 +701,8 @@ class MealMap extends DataClass implements Insertable<MealMap> {
           other.note == this.note &&
           other.mealsServed == this.mealsServed &&
           other.locked == this.locked &&
-          other.updatedAt == this.updatedAt);
+          other.updatedAt == this.updatedAt &&
+          other.reopened == this.reopened);
 }
 
 class MealMapsCompanion extends UpdateCompanion<MealMap> {
@@ -670,6 +713,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
   final Value<int?> mealsServed;
   final Value<bool> locked;
   final Value<DateTime> updatedAt;
+  final Value<bool> reopened;
   final Value<int> rowid;
   const MealMapsCompanion({
     this.id = const Value.absent(),
@@ -679,6 +723,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
     this.mealsServed = const Value.absent(),
     this.locked = const Value.absent(),
     this.updatedAt = const Value.absent(),
+    this.reopened = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   MealMapsCompanion.insert({
@@ -689,6 +734,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
     this.mealsServed = const Value.absent(),
     required bool locked,
     required DateTime updatedAt,
+    this.reopened = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        mapDate = Value(mapDate),
@@ -703,6 +749,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
     Expression<int>? mealsServed,
     Expression<bool>? locked,
     Expression<DateTime>? updatedAt,
+    Expression<bool>? reopened,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -713,6 +760,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
       if (mealsServed != null) 'meals_served': mealsServed,
       if (locked != null) 'locked': locked,
       if (updatedAt != null) 'updated_at': updatedAt,
+      if (reopened != null) 'reopened': reopened,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -725,6 +773,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
     Value<int?>? mealsServed,
     Value<bool>? locked,
     Value<DateTime>? updatedAt,
+    Value<bool>? reopened,
     Value<int>? rowid,
   }) {
     return MealMapsCompanion(
@@ -735,6 +784,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
       mealsServed: mealsServed ?? this.mealsServed,
       locked: locked ?? this.locked,
       updatedAt: updatedAt ?? this.updatedAt,
+      reopened: reopened ?? this.reopened,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -763,6 +813,9 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
     if (updatedAt.present) {
       map['updated_at'] = Variable<DateTime>(updatedAt.value);
     }
+    if (reopened.present) {
+      map['reopened'] = Variable<bool>(reopened.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -779,6 +832,7 @@ class MealMapsCompanion extends UpdateCompanion<MealMap> {
           ..write('mealsServed: $mealsServed, ')
           ..write('locked: $locked, ')
           ..write('updatedAt: $updatedAt, ')
+          ..write('reopened: $reopened, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -3485,6 +3539,7 @@ typedef $$MealMapsTableCreateCompanionBuilder = MealMapsCompanion Function({
   Value<int?> mealsServed,
   required bool locked,
   required DateTime updatedAt,
+  Value<bool> reopened,
   Value<int> rowid,
 });
 typedef $$MealMapsTableUpdateCompanionBuilder = MealMapsCompanion Function({
@@ -3495,6 +3550,7 @@ typedef $$MealMapsTableUpdateCompanionBuilder = MealMapsCompanion Function({
   Value<int?> mealsServed,
   Value<bool> locked,
   Value<DateTime> updatedAt,
+  Value<bool> reopened,
   Value<int> rowid,
 });
 
@@ -3563,6 +3619,11 @@ class $$MealMapsTableFilterComposer
 
   ColumnFilters<DateTime> get updatedAt => $composableBuilder(
     column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get reopened => $composableBuilder(
+    column: $table.reopened,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -3635,6 +3696,11 @@ class $$MealMapsTableOrderingComposer
     column: $table.updatedAt,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<bool> get reopened => $composableBuilder(
+    column: $table.reopened,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$MealMapsTableAnnotationComposer
@@ -3670,6 +3736,9 @@ class $$MealMapsTableAnnotationComposer
 
   GeneratedColumn<DateTime> get updatedAt =>
       $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  GeneratedColumn<bool> get reopened =>
+      $composableBuilder(column: $table.reopened, builder: (column) => column);
 
   Expression<T> mealsRefs<T extends Object>(
     Expression<T> Function($$MealsTableAnnotationComposer a) f,
@@ -3732,6 +3801,7 @@ class $$MealMapsTableTableManager
                 Value<int?> mealsServed = const Value.absent(),
                 Value<bool> locked = const Value.absent(),
                 Value<DateTime> updatedAt = const Value.absent(),
+                Value<bool> reopened = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealMapsCompanion(
                 id: id,
@@ -3741,6 +3811,7 @@ class $$MealMapsTableTableManager
                 mealsServed: mealsServed,
                 locked: locked,
                 updatedAt: updatedAt,
+                reopened: reopened,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -3752,6 +3823,7 @@ class $$MealMapsTableTableManager
                 Value<int?> mealsServed = const Value.absent(),
                 required bool locked,
                 required DateTime updatedAt,
+                Value<bool> reopened = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MealMapsCompanion.insert(
                 id: id,
@@ -3761,6 +3833,7 @@ class $$MealMapsTableTableManager
                 mealsServed: mealsServed,
                 locked: locked,
                 updatedAt: updatedAt,
+                reopened: reopened,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

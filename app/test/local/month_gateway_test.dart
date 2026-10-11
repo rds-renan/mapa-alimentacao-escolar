@@ -67,4 +67,29 @@ void main() {
     expect(snack.foodItems, isEmpty);
     expect(snack.menuChange, isNull);
   });
+
+  test('reaberto é fora do bloqueio e com reabertura no histórico — a regra '
+      'da web (issue #152)', () {
+    RemoteMealMap read({
+      required bool locked,
+      required List<dynamic> unlocks,
+    }) => RemoteMealMap.fromRow({
+      'id': 'map-1',
+      'map_date': '2026-09-13',
+      'non_school_day': false,
+      'note': null,
+      'meals_served': null,
+      'locked': locked,
+      'updated_at': '2026-09-13T18:00:00+00:00',
+      'meal_map_unlock': unlocks,
+      'meal': <dynamic>[],
+    });
+    const unlock = {'unlocked_at': '2026-10-08T10:00:00+00:00'};
+
+    expect(read(locked: false, unlocks: [unlock]).reopened, isTrue);
+    // Nunca reaberto.
+    expect(read(locked: false, unlocks: []).reopened, isFalse);
+    // Reaberto e já de volta a um documento: o que ela vê é o bloqueio.
+    expect(read(locked: true, unlocks: [unlock]).reopened, isFalse);
+  });
 }

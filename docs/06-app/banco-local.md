@@ -78,6 +78,9 @@ mês. `CatalogRepository.refresh` entrou em uso com a folha de escolher gênero
 - **Gêneros usados e alteração do cardápio.** Entraram com a #106
   (`schemaVersion` 3, migração só aditiva) — ver
   [gêneros e alteração do cardápio](generos-e-alteracao-do-cardapio.md#o-dia-agora-sobe-inteiro).
+- **Se o dia foi reaberto pela direção.** Entrou na E7, com a #152
+  (`schemaVersion` 5, a primeira coluna nova numa tabela que já existia) —
+  ver [visão do mês e menu](visao-do-mes-e-menu.md#o-selo-reaberto-que-a-e6-não-trouxe).
 
 A tela-casa (#104) resolveu as outras duas pendências que este documento
 deixava em aberto — ver
