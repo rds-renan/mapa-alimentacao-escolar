@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
 import '../day/food_item_list.dart';
@@ -16,7 +17,7 @@ import '../local/day.dart';
 import '../local/day_repository.dart';
 import '../local/local_providers.dart';
 import '../local/sync_engine.dart';
-import '../month/month.dart' show mealOrder;
+import '../month/month.dart' show mealOrder, monthLabel, shiftDate;
 import '../theme/theme.dart';
 import '../widgets/conflict_notice.dart';
 import '../widgets/sync_banner.dart';
@@ -27,9 +28,9 @@ import '../widgets/sync_banner.dart';
 ///
 /// Não há botão de salvar (decisão 3 da E3): cada tecla vira rascunho no
 /// aparelho na hora — [SyncEngine.save] —, e quem leva ao servidor é a fila
-/// da issue #103. Ao contrário da web, não há setas de dia anterior/próximo
-/// dia no cabeçalho: no aplicativo quem volta à visão do mês é o botão do
-/// aparelho (CA#5), e o `AppBar` já lhe dá a seta equivalente de graça.
+/// da issue #103. As setas do cabeçalho são dia anterior e próximo dia, como
+/// no desenho da E3 e na web (issue #151); quem volta à visão do mês é o
+/// botão do aparelho (CA#5).
 class DayRegisterPage extends ConsumerStatefulWidget {
   const DayRegisterPage({super.key, required this.mapDate});
 
@@ -224,6 +225,15 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
     }
   }
 
+  /// Troca a tela, em vez de empilhar: andar dez dias pelas setas não pode
+  /// custar dez toques no voltar para chegar ao mês. Nada do dia que sai se
+  /// perde, porque cada tecla já foi gravada no aparelho em [_change].
+  void _goToDay(int days) {
+    context.pushReplacement(
+      DayRegisterPage.pathFor(shiftDate(widget.mapDate, days)),
+    );
+  }
+
   void _toggleNonSchoolDay(DayPayload day, bool on) {
     if (on) _preserved = schoolDayContent(day);
     _change(setNonSchoolDay(day, on, restored: _preserved ?? nothingToRestore));
@@ -271,7 +281,26 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
         if (day != null && !identical(day, _shown)) _shown = day;
 
         return Scaffold(
-          appBar: AppBar(title: Text(dayTitle(widget.mapDate))),
+          appBar: AppBar(
+            // Sem a seta de voltar automática: o lugar dela é da seta de dia
+            // anterior, e duas setas para a esquerda lado a lado fariam
+            // coisas diferentes com o mesmo desenho.
+            automaticallyImplyLeading: false,
+            leading: IconButton(
+              icon: const Icon(Icons.chevron_left),
+              tooltip: DayMessages.previousDay(widget.mapDate),
+              onPressed: () => _goToDay(-1),
+            ),
+            centerTitle: true,
+            title: _DayHeading(mapDate: widget.mapDate),
+            actions: [
+              IconButton(
+                icon: const Icon(Icons.chevron_right),
+                tooltip: DayMessages.nextDay(widget.mapDate),
+                onPressed: () => _goToDay(1),
+              ),
+            ],
+          ),
           body: Column(
             children: [
               SyncBanner(status: engine.state.days[widget.mapDate]),
@@ -327,6 +356,32 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
                 ),
         );
       },
+    );
+  }
+}
+
+/// O título do cabeçalho: o dia e, embaixo, o mês — andando pelas setas, a
+/// virada de mês fica à vista.
+class _DayHeading extends StatelessWidget {
+  const _DayHeading({required this.mapDate});
+
+  final String mapDate;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text(dayTitle(mapDate), overflow: TextOverflow.ellipsis),
+        Text(
+          monthLabel(DateTime.parse(mapDate)),
+          style: theme.textTheme.bodySmall?.copyWith(
+            color: theme.colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     );
   }
 }

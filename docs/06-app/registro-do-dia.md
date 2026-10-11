@@ -118,16 +118,32 @@ aparelho — o mesmo `crypto.randomUUID()` que a web usa. O Dart não tem
 equivalente na biblioteca padrão; entrou `package:uuid` (só ele, sem
 dependência transitiva nova de peso) como dependência direta.
 
-## O cabeçalho: sem setas de dia, com o botão do sistema
+## O cabeçalho: setas de dia, e o voltar do sistema
 
-A web tem setas de dia anterior/próximo dia no cabeçalho porque não existe
-botão de voltar do navegador dentro do fluxo dela. No aplicativo é o
-contrário: o `AppBar` já desenha a seta de voltar sozinho quando há o que
-desempilhar (a tela sempre chega por `context.push`, da visão do mês), e o
-botão físico do Android faz a mesma coisa de graça — não há código nenhum
-para o CA#5 além de deixar o `Navigator` fazer o que já faz. Por isso não há
-andar entre dias pelas setas nesta tela: não estava nos critérios de aceite
-da #105, e a issue não antecipa o que não foi pedido.
+Na E6 esta tela saiu sem as setas de dia anterior/próximo dia. O relato
+da #105 as leu como a forma que a web achou de voltar ao mês, e concluiu
+que o aplicativo não precisava delas, porque o `AppBar` já desenha a seta de
+voltar e o botão físico do Android faz o mesmo. A leitura estava errada: o
+desenho da E3 nunca teve botão de voltar, e as setas do cabeçalho são para
+**andar entre dias** — é com elas que ela transcreve o cardápio da semana,
+seguindo em frente sem passar pelo mês a cada dia
+([registro do dia na web](../05-web/registro-do-dia.md)). O
+[ensaio geral](../07-testes/plano-de-testes.md) da E7 mostrou a falta: para
+ir ao dia seguinte era preciso voltar ao mês e tocar no outro dia (issue
+#151).
+
+Agora o cabeçalho é o do desenho: seta de dia anterior, o dia com o mês
+embaixo, seta de próximo dia. O voltar ao mês continua sendo do sistema
+(CA#5), e por isso a seta de voltar automática do `AppBar` saiu
+(`automaticallyImplyLeading: false`) — duas setas para a esquerda lado a
+lado fariam coisas diferentes com o mesmo desenho. Como na web, as setas
+andam um dia de calendário ([`shiftDate`](../../app/lib/month/month.dart)),
+fim de semana inclusive, e o leitor de tela lê o dia de destino.
+
+Trocar de dia é `context.pushReplacement`, não `push`: a tela do dia é
+trocada em vez de empilhada, e dez dias andados pelas setas continuam a um
+voltar só do mês. Nada do dia que sai se perde, porque cada tecla já foi
+gravada no aparelho na hora em que foi digitada.
 
 ## O acordeão dos três cartões
 

@@ -313,6 +313,15 @@ String monthLabel(DateTime month) {
 String dayAndMonth(DateTime date) =>
     '${date.day} de ${_monthNames[date.month - 1]}';
 
+/// O dia [days] dias depois de [mapDate] (antes, se negativo), na forma de
+/// [isoDate] — as setas do registro do dia. Pelo construtor, e não somando
+/// uma `Duration`, para a virada do horário de verão não pular nem repetir
+/// dia.
+String shiftDate(String mapDate, int days) {
+  final date = DateTime.parse(mapDate);
+  return isoDate(DateTime(date.year, date.month, date.day + days));
+}
+
 /// "2026-09-10": a forma que a rota do registro do dia usa.
 String isoDate(DateTime date) {
   String pad(int value) => value.toString().padLeft(2, '0');

@@ -8,7 +8,7 @@
 /// que é quem sabe em que pé está o envio.
 library;
 
-import '../month/month.dart' show dayAndMonth, mealLabels, mealOrder;
+import '../month/month.dart' show dayAndMonth, mealLabels, mealOrder, shiftDate;
 import 'register.dart' show MealState;
 
 const List<String> _weekdays = [
@@ -57,6 +57,13 @@ const Map<String, String> acceptanceLabels = {
 
 class DayMessages {
   const DayMessages._();
+
+  /// As setas do cabeçalho dizem para onde levam: o leitor de tela lê o
+  /// dia de destino, como o `aria-label` das setas da web.
+  static String previousDay(String mapDate) =>
+      'Dia anterior, ${dayAndMonth(DateTime.parse(shiftDate(mapDate, -1)))}';
+  static String nextDay(String mapDate) =>
+      'Próximo dia, ${dayAndMonth(DateTime.parse(shiftDate(mapDate, 1)))}';
 
   static const loading = 'Carregando o dia…';
 
