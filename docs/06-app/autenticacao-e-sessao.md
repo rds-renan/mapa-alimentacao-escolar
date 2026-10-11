@@ -35,6 +35,13 @@ mesmo motivo da web: não depender do endereço do projeto Supabase, que se
 mudasse faria a sessão de quem já tinha o aplicativo instalado sumir em
 silêncio.
 
+O cofre não vai para o backup do Android (#140). A chave do Keystore nunca sai
+do aparelho, então a sessão cifrada que o Auto Backup devolvia depois de
+reinstalar não abria: no ensaio, foram cerca de cem linhas de `Stored key
+cannot be decrypted` no logcat, e a merendeira simplesmente entrava de novo.
+Com o backup desligado no manifesto, a reinstalação começa sem sessão, sem
+ruído — o mesmo resultado, agora de propósito.
+
 ## O perfil, e os dois desfechos ruins — mais um terceiro
 
 A leitura de `profile` tem os mesmos dois desfechos que a web já documentou

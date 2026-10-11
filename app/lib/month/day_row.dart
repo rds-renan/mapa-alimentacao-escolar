@@ -60,14 +60,14 @@ class DayRow extends StatelessWidget {
                         style: theme.textTheme.labelSmall?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: isToday
-                              ? theme.colorScheme.primary
+                              ? tokens.accentForeground
                               : theme.colorScheme.onSurfaceVariant,
                         ),
                       ),
                       Text(
                         '${date.day}',
                         style: theme.textTheme.titleLarge?.copyWith(
-                          color: isToday ? theme.colorScheme.primary : null,
+                          color: isToday ? tokens.accentForeground : null,
                         ),
                       ),
                     ],

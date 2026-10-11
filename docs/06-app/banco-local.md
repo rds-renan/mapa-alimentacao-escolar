@@ -24,6 +24,17 @@ arquivo nasce do identificador do perfil —
 existe depois do login (decisão 6 da E6): duas merendeiras no mesmo aparelho
 não dividem arquivo, mesmo dividindo a mesma escola e o mesmo mapa.
 
+O arquivo **não entra em backup** nem passa para um aparelho novo (#140): o
+manifesto desliga o Auto Backup do Android e as
+[regras de extração](../../app/android/app/src/main/res/xml/data_extraction_rules.xml)
+excluem tudo da transferência de aparelho para aparelho. Um banco restaurado
+seria o de outro momento, com a [fila](fila-de-envio-e-convergencia.md)
+daquela hora. A nuvem não deixaria a versão antiga passar por cima da nova —
+`save_meal_map` recusa a edição mais velha que a gravada —, mas a merendeira
+veria avisos de conflito de dias que ela não mexeu. Sem a cópia, o aparelho
+novo começa vazio e reconstrói tudo da nuvem no primeiro acesso, como
+qualquer login.
+
 As tabelas que espelham o servidor, hoje (a fila de envio, #103, tem a sua
 própria):
 

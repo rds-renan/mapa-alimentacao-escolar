@@ -27,10 +27,19 @@
     <uses-permission android:name="android.permission.INSTALL_PACKAGES" tools:node="remove"/>
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" tools:node="remove"/>
 
+    <!--
+      Sem backup (issue #140): o Auto Backup vem ligado e, ao reinstalar,
+      devolvia a sessão cifrada sem a chave do Keystore ("Stored key cannot be
+      decrypted") e devolveria o banco local de outro momento, com a fila
+      daquela hora. As regras de data_extraction_rules.xml cobrem a
+      transferência para um aparelho novo, que o allowBackup não desliga.
+    -->
     <application
         android:label="MAE"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:allowBackup="false"
+        android:dataExtractionRules="@xml/data_extraction_rules">
         <activity
             android:name=".MainActivity"
             android:exported="true"

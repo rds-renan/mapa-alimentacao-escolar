@@ -101,7 +101,7 @@ Depois do ensaio, apagar a release e a tag
 | Análise estática e testes | o mesmo Flutter (`3.47.5`) e o mesmo crivo da CI de PR |
 | Escreve `env/production.json` | a partir das variáveis do repositório — ver abaixo |
 | Escreve a chave e o `key.properties` | a partir dos segredos, fora da pasta do projeto |
-| `flutter build apk --release` | o APK de produção |
+| `flutter build apk --release --target-platform android-arm64` | o APK de produção, só para arm64 (ver abaixo) |
 | Confere o certificado do APK | compara o SHA-256 com o da chave de release e recusa qualquer outro |
 | `gh release create --generate-notes` | cria a release, anexa `mae-<versão>.apk` e escreve as notas a partir dos PRs desde a release anterior |
 
@@ -234,10 +234,18 @@ inteira, e o prefixo `app-v` já tem um. A marca foi tirada à mão
 (`gh release edit app-v0.1.0 --prerelease=false --latest`), e o workflow
 passou a procurar o hífen só depois do prefixo.
 
-O APK tem 64 MB porque leva o código para as três arquiteturas que o Flutter
-compila (`arm64-v8a`, `armeabi-v7a`, `x86_64`). Um arquivo só, que instala em
-qualquer aparelho, vale mais aqui do que um arquivo menor por arquitetura,
-que obrigaria a escolher qual mandar pelo WhatsApp.
+A 0.1.0 e a 0.1.1 têm 64 MB porque levam o código para as três arquiteturas
+que o Flutter compila: `arm64-v8a` (21 MB), `armeabi-v7a` (19 MB) e `x86_64`
+(23 MB, a dos emuladores). A partir da 0.1.2 (#140), a Action compila só
+`arm64-v8a`, e o APK fica em torno de 23 MB: é o arquivo que elas baixam pelo
+WhatsApp e pela atualização, no 4G da escola, e os aparelhos delas são todos
+arm64. Continua sendo **um** arquivo, e não um por arquitetura
+(`--split-per-abi`): assim não há o que escolher na hora de mandar pelo
+WhatsApp, e a [atualização pelo app](versao-minima.md#a-atualização), que pega
+o `.apk` anexado à release, não precisa saber a arquitetura do aparelho — a
+0.1.1, já instalada, pega o primeiro que encontrar. O custo: um aparelho com
+Android de 32 bits não instala o MAE. Se um dia aparecer um, a Action volta a
+compilar `android-arm,android-arm64`, ainda num arquivo só.
 
 ## A primeira instalação
 
