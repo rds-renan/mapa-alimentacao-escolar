@@ -244,15 +244,7 @@ class _SelectMapsPageState extends ConsumerState<SelectMapsPage> {
         stream: _monthStream,
         builder: (context, snapshot) {
           final rows = snapshot.data ?? const <MealMapWithMeals>[];
-          final byDate = <DateTime, DayRecord>{
-            for (final row in rows)
-              dateOnly(row.mealMap.mapDate): DayRecord.fromLocal(row),
-          };
-          for (final draft in _drafts) {
-            final date = dateOnly(DateTime.parse(draft.mapDate));
-            byDate[date] =
-                byDate[date]?.withDraft(draft) ?? DayRecord.fromDraft(draft);
-          }
+          final byDate = mergeDrafts(rows, _drafts);
 
           final days = listedDays(_month, byDate.keys.toSet());
           final options = toOptions(days, byDate);

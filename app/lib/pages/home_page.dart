@@ -7,8 +7,10 @@ import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
 import '../documents/ready_notice.dart';
+import '../local/day.dart';
 import '../local/local_providers.dart';
 import '../local/month_repository.dart';
+import '../local/sync_engine.dart';
 import '../month/day_row.dart';
 import '../month/month.dart';
 import '../theme/theme.dart';
@@ -27,8 +29,8 @@ import 'select_maps_page.dart';
 /// o que decide o que ela vai fazer é a linha ao lado dele.
 ///
 /// Ao contrário da web (decisão 2 da E5), esta tela **não promete rede**: o
-/// que ela mostra é sempre o banco local, que já é a cópia convergida do
-/// servidor (issue #102). Abrir uma rede que não responde não degrada a
+/// que ela mostra é sempre o banco local — a cópia convergida do servidor
+/// (issue #102) com o que espera na fila por cima (issue #150). Abrir uma rede que não responde não degrada a
 /// leitura — só atrasa o quanto essa cópia está em dia, e é por isso que não
 /// há estado de "carregando" nem de "falhou": só o que já está no aparelho.
 class HomePage extends ConsumerStatefulWidget {
@@ -46,6 +48,7 @@ class _HomePageState extends ConsumerState<HomePage> {
   MonthRepository? _streamRepository;
   DateTime? _streamMonth;
   Stream<List<MealMapWithMeals>>? _monthStream;
+  Stream<List<DayPayload>>? _draftStream;
 
   @override
   void initState() {
@@ -64,7 +67,11 @@ class _HomePageState extends ConsumerState<HomePage> {
   /// Uma falha de rede aqui é silenciosa de propósito: a lista já mostra o
   /// que está no aparelho, e a rede só melhora o que já apareceu, nunca
   /// condiciona a tela a aparecer (CA#3 da issue #104).
-  void _ensureMonthStream(MonthRepository repository) {
+  ///
+  /// A fila entra junto: o dia preenchido sem rede aparece preenchido, e sai
+  /// dela sozinho quando sobe. Ler a fila daqui também liga o envio ao abrir
+  /// o aplicativo (decisão 8 da E6) — antes ele só ligava ao abrir um dia.
+  void _ensureMonthStream(MonthRepository repository, SyncEngine engine) {
     if (identical(_streamRepository, repository) && _streamMonth == _month) {
       return;
     }
@@ -72,6 +79,9 @@ class _HomePageState extends ConsumerState<HomePage> {
     _streamRepository = repository;
     _streamMonth = _month;
     _monthStream = repository.watchMonth(_month);
+    _draftStream = engine.watchPendingDays(
+      isoDate(firstDayOfMonth(_month)).substring(0, 7),
+    );
     unawaited(repository.refreshMonth(_month).catchError((_) {}));
   }
 
@@ -115,7 +125,7 @@ class _HomePageState extends ConsumerState<HomePage> {
     }
 
     final repository = ref.watch(monthRepositoryProvider(profile.id));
-    _ensureMonthStream(repository);
+    _ensureMonthStream(repository, ref.watch(syncEngineProvider(profile.id)));
 
     final theme = Theme.of(context);
     final today = dateOnly(clock.now());
@@ -141,61 +151,65 @@ class _HomePageState extends ConsumerState<HomePage> {
             Expanded(
               child: StreamBuilder<List<MealMapWithMeals>>(
                 stream: _monthStream,
-                builder: (context, snapshot) {
-                  final rows = snapshot.data ?? const <MealMapWithMeals>[];
-                  final byDate = {
-                    for (final row in rows)
-                      dateOnly(row.mealMap.mapDate): DayRecord.fromLocal(row),
-                  };
-                  final days = listedDays(_month, byDate.keys.toSet());
-                  final weeks = groupIntoWeeks(days);
-                  final progress = monthProgress(days, byDate);
+                builder: (context, snapshot) => StreamBuilder<List<DayPayload>>(
+                  stream: _draftStream,
+                  builder: (context, draftSnapshot) {
+                    final rows = snapshot.data ?? const <MealMapWithMeals>[];
+                    final drafts = draftSnapshot.data ?? const <DayPayload>[];
+                    final byDate = mergeDrafts(rows, drafts);
+                    final unsent = byDate.values
+                        .where((record) => record.unsent)
+                        .length;
+                    final days = listedDays(_month, byDate.keys.toSet());
+                    final weeks = groupIntoWeeks(days);
+                    final progress = monthProgress(days, byDate);
 
-                  if (days.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Nenhum dia para mostrar neste mês.',
-                        style: theme.textTheme.bodyLarge,
+                    if (days.isEmpty) {
+                      return Center(
+                        child: Text(
+                          'Nenhum dia para mostrar neste mês.',
+                          style: theme.textTheme.bodyLarge,
+                        ),
+                      );
+                    }
+
+                    return ListView(
+                      padding: const EdgeInsets.fromLTRB(
+                        kSpacingUnit * 4,
+                        kSpacingUnit * 3.5,
+                        kSpacingUnit * 4,
+                        kSpacingUnit * 6,
                       ),
-                    );
-                  }
-
-                  return ListView(
-                    padding: const EdgeInsets.fromLTRB(
-                      kSpacingUnit * 4,
-                      kSpacingUnit * 3.5,
-                      kSpacingUnit * 4,
-                      kSpacingUnit * 6,
-                    ),
-                    children: [
-                      _ProgressCard(progress: progress),
-                      for (final week in weeks) ...[
-                        Padding(
-                          padding: const EdgeInsets.fromLTRB(
-                            kSpacingUnit,
-                            kSpacingUnit * 3.5,
-                            kSpacingUnit,
-                            kSpacingUnit * 2,
-                          ),
-                          child: Text(
-                            week.label,
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              fontWeight: FontWeight.w600,
+                      children: [
+                        _ProgressCard(progress: progress, unsent: unsent),
+                        for (final week in weeks) ...[
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(
+                              kSpacingUnit,
+                              kSpacingUnit * 3.5,
+                              kSpacingUnit,
+                              kSpacingUnit * 2,
+                            ),
+                            child: Text(
+                              week.label,
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
                             ),
                           ),
-                        ),
-                        _WeekCard(
-                          week: week,
-                          byDate: byDate,
-                          today: today,
-                          onTapDay: (date) => context.push(
-                            DayRegisterPage.pathFor(isoDate(date)),
+                          _WeekCard(
+                            week: week,
+                            byDate: byDate,
+                            today: today,
+                            onTapDay: (date) => context.push(
+                              DayRegisterPage.pathFor(isoDate(date)),
+                            ),
                           ),
-                        ),
+                        ],
                       ],
-                    ],
-                  );
-                },
+                    );
+                  },
+                ),
               ),
             ),
           ],
@@ -265,9 +279,12 @@ class _MonthHeader extends StatelessWidget {
 }
 
 class _ProgressCard extends StatelessWidget {
-  const _ProgressCard({required this.progress});
+  const _ProgressCard({required this.progress, required this.unsent});
 
   final MonthProgress progress;
+
+  /// Dias do mês que só estão no aparelho (issue #150).
+  final int unsent;
 
   @override
   Widget build(BuildContext context) {
@@ -309,6 +326,8 @@ class _ProgressCard extends StatelessWidget {
               progressBreakdown(progress.counts),
               style: theme.textTheme.bodySmall,
             ),
+            if (unsent > 0)
+              Text(unsentDaysLabel(unsent), style: theme.textTheme.bodySmall),
           ],
         ),
       ),

@@ -94,6 +94,15 @@ class SyncQueueStore {
     return rows.map(_fromRow).toList();
   }
 
+  /// [list], avisando de novo a cada mudança na fila — o dia que entra, o
+  /// que sai confirmado. É o que deixa a visão do mês em dia sem ela sair e
+  /// voltar (issue #150).
+  Stream<List<StoredDay>> watch() =>
+      (_db.select(_db.pendingMealMaps)
+            ..orderBy([(t) => OrderingTerm(expression: t.queuedAtMicros)]))
+          .watch()
+          .map((rows) => rows.map(_fromRow).toList());
+
   /// O servidor confirmou. O dia sai do aparelho — **a não ser** que ela
   /// tenha continuado digitando enquanto aquilo subia: nesse caso o que está
   /// aqui já é mais novo que o confirmado, e fica na fila, com os
