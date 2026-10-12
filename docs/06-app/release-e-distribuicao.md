@@ -269,6 +269,24 @@ para o APK da release. Percorrer antes exigiria instalar um build local da
 atualizar. A conferência no aparelho está em
 [a atualização de ponta a ponta](versao-minima.md#a-atualização-de-ponta-a-ponta).
 
+## A 0.1.3
+
+| | |
+|---|---|
+| Versão | `0.1.3+4` |
+| Tag | `app-v0.1.3`, criada em 11/10/2026 |
+| Release | [MAE 0.1.3](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.3), com `mae-0.1.3.apk` (22,9 MB, só `arm64-v8a`) |
+
+Leva a correção da #164: aberto do zero sem internet, o app ia para o login,
+com a sessão guardada o tempo todo. Agora o perfil da última leitura fica no
+aparelho e o mês abre sem rede
+([autenticação e sessão](autenticacao-e-sessao.md#aberto-sem-rede-vale-o-perfil-da-última-leitura)).
+O mínimo subiu para 4 pelo mesmo motivo da 0.1.2: é a trava que oferece a
+atualização a quem já tem o MAE, antes do teste das merendeiras.
+
+Conferida no A52 em 11/10, com o APK da release e a conta de produção: app
+fechado pelos recentes, Wi-Fi e dados desligados, abrir levou direto ao mês.
+
 ## O registro de desenvolvedor
 
 Desde 30/09/2026, aparelhos Android certificados no Brasil só instalam e

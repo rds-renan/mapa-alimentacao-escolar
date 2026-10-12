@@ -1,0 +1,12 @@
+-- O mínimo do aplicativo sobe para 4 (issue #164).
+--
+-- O APK 0.1.3+4 está publicado em app-v0.1.3, como a regra pede: a release
+-- antes da migration (docs/06-app/versao-minima.md#como-subir-o-mínimo).
+--
+-- Nenhuma mudança de contrato motiva a subida: a 0.1.2 continua gravando
+-- como antes. O motivo é a correção da #164: até a 0.1.2, o aplicativo aberto
+-- do zero sem internet caía no login, e é exatamente assim que a merendeira
+-- abre o MAE de manhã, na cozinha. A trava é o único caminho que oferece a
+-- atualização pelo próprio aplicativo antes do teste das merendeiras (#143,
+-- #144).
+update public.app_version set minimum_build = 4, updated_at = now();

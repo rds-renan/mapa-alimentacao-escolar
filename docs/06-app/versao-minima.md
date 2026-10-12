@@ -40,6 +40,7 @@ ninguém.
 | 1 | 01/10/2026, a migration da trava | o número do primeiro APK, que não recusa ninguém |
 | 2 | 02/10/2026, só na produção | subido à mão no teste da atualização de ponta a ponta, sem migration: o repositório ficou em 1 até a linha de baixo |
 | 3 | 11/10/2026, [`20261011130000_versao_minima_3.sql`](../../supabase/migrations/20261011130000_versao_minima_3.sql) | a 0.1.2 com as correções da E7 (#155); iguala o repositório e a produção |
+| 4 | 12/10/2026, [`20261012030000_versao_minima_4.sql`](../../supabase/migrations/20261012030000_versao_minima_4.sql) | a 0.1.3, que abre no mês sem internet (#164) |
 
 Quem está logado lê. Ninguém escreve pela API: não há política de escrita, e
 os privilégios que o Supabase concede por padrão foram revogados, para que a
