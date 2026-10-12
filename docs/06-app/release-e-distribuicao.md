@@ -247,6 +247,59 @@ o `.apk` anexado à release, não precisa saber a arquitetura do aparelho — a
 Android de 32 bits não instala o MAE. Se um dia aparecer um, a Action volta a
 compilar `android-arm,android-arm64`, ainda num arquivo só.
 
+## A 0.1.2
+
+| | |
+|---|---|
+| Versão | `0.1.2+3` |
+| Tag | `app-v0.1.2`, criada em 11/10/2026 |
+| Release | [MAE 0.1.2](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.2), com `mae-0.1.2.apk` (22,9 MB, só `arm64-v8a`) |
+
+É a release que leva às merendeiras as correções do ensaio (#140, #150 a
+#154), issue #155. Também foi a primeira a chegar a um aparelho pela
+[atualização pelo app](versao-minima.md#a-atualização) já com o
+[registro de desenvolvedor](#o-registro-de-desenvolvedor), e a primeira a
+subir o mínimo, porque a trava é o único caminho que oferece a atualização
+a quem já tem o MAE.
+
+Ela inverteu o passo 2 de [como fazer uma release](#como-fazer-uma-release):
+o caminho crítico foi percorrido **depois** da tag, no A52 já atualizado
+para o APK da release. Percorrer antes exigiria instalar um build local da
+0.1.2 no único aparelho que estava na 0.1.1, e aí não haveria de onde
+atualizar. A conferência no aparelho está em
+[a atualização de ponta a ponta](versao-minima.md#a-atualização-de-ponta-a-ponta).
+
+## O registro de desenvolvedor
+
+Desde 30/09/2026, aparelhos Android certificados no Brasil só instalam e
+atualizam aplicativos de desenvolvedor verificado
+([anúncio do Google](https://android-developers.googleblog.com/2026/06/android-developer-verification.html)).
+Isso vale para a primeira instalação pelo WhatsApp e também para a
+atualização pelo próprio aplicativo, que para o Android é uma instalação
+como outra qualquer. Sem o registro, a [trava de versão mínima](versao-minima.md)
+deixaria de funcionar. Achado na #138, quando o Play Protect barrou a
+`app-v0.1.1` no aparelho de teste, e resolvido na #147.
+
+- **A conta**: conta completa e pessoal no Android Developer Console (US$ 25,
+  pagamento único, sem limite de aparelhos), com a identidade do autor
+  verificada. Os dados da conta e os documentos ficam fora do repositório.
+- **O registro**: o pacote `br.dev.rds.mae`, ligado ao certificado da
+  [chave de assinatura](#a-chave-de-assinatura) das releases, a mesma dos
+  segredos do GitHub.
+
+**A cada release, nada a fazer no console.** Mesmo pacote e mesma chave:
+quem confere é o Play Protect, no aparelho, na hora de instalar. Na 0.1.2,
+isso levou uns 15 segundos e não pediu nada a ela. Pelo logcat da
+atualização, primeiro a verificação de desenvolvedor (`VERIFICATION_ALLOW`),
+depois a varredura do arquivo novo (`{"verdict":"SAFE"}`). Só trocar a chave
+ou o nome do pacote exigiria registrar de novo, e trocar a chave já é
+proibido por outro motivo: o Android recusa a atualização assinada por outra
+chave.
+
+**A conta é fechada se ficar parada.** Entrar no Android Developer Console
+**ao menos uma vez por ano**. Conta fechada é pacote sem registro, e o MAE
+volta a ser barrado nos aparelhos delas, inclusive na atualização.
+
 ## A primeira instalação
 
 Feita uma vez por aparelho, com o arquivo mandado pelo WhatsApp. Daí em
@@ -259,10 +312,12 @@ diante, a atualização vem pelo próprio aplicativo
 3. O Android avisa que, por segurança, o WhatsApp não pode instalar
    aplicativos. Tocar em **Configurações**, ligar **Permitir desta fonte** e
    voltar.
-4. Tocar em **Instalar**. Se o Play Protect avisar que não conhece o
-   aplicativo, tocar em **Mais detalhes** > **Instalar mesmo assim** — o aviso
-   aparece porque o MAE não vem da Play Store, não por haver algo errado com
-   ele.
+4. Tocar em **Instalar**. O Play Protect verifica o aplicativo antes de
+   instalar e aprova, porque o MAE tem o
+   [registro de desenvolvedor](#o-registro-de-desenvolvedor). Se mesmo
+   assim ele avisar que não conhece o aplicativo, tocar em **Mais detalhes** >
+   **Instalar mesmo assim**: o aviso aparece porque o MAE não vem da Play
+   Store, não por haver algo errado com ele.
 5. Abrir o MAE pelo ícone e entrar com o e-mail e a senha dela.
 6. Opcional: em Configurações, desligar de novo o **Permitir desta fonte** do
    WhatsApp.

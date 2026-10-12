@@ -35,10 +35,18 @@ aplicativo, que é o mesmo APK para todas as escolas, e não para uma escola. A
 coluna `minimum_build` nasce em **1**, o número do primeiro APK, e não recusa
 ninguém.
 
+| Mínimo | Desde | Por quê |
+|---|---|---|
+| 1 | 01/10/2026, a migration da trava | o número do primeiro APK, que não recusa ninguém |
+| 2 | 02/10/2026, só na produção | subido à mão no teste da atualização de ponta a ponta, sem migration: o repositório ficou em 1 até a linha de baixo |
+| 3 | 11/10/2026, [`20261011130000_versao_minima_3.sql`](../../supabase/migrations/20261011130000_versao_minima_3.sql) | a 0.1.2 com as correções da E7 (#155); iguala o repositório e a produção |
+
 Quem está logado lê. Ninguém escreve pela API: não há política de escrita, e
 os privilégios que o Supabase concede por padrão foram revogados, para que a
 ausência de política não seja a única proteção. O mínimo sobe só por
-migration.
+migration. A subida à mão de 02/10 deixou o repositório dizendo 1 por nove
+dias, enquanto a produção dizia 2, e é isso que a regra evita: quem lê o git
+tem que saber o que o banco exige.
 
 ### A recusa pelo cabeçalho
 
@@ -237,11 +245,45 @@ nova, sem trava, foi descartado na decisão 12.
   release publicada ainda, mostra "Não deu para baixar agora". Com o mínimo de
   volta a 1, o aviso some na abertura seguinte e o dia sobe.
 
-**A atualização de ponta a ponta**, conferida em 02/10/2026 no mesmo aparelho,
-com a release [`app-v0.1.0`](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.0)
-já publicada. O app tocou "Atualizar", baixou o APK da release, o Android
-pediu a permissão de instalar aplicativos, o Play Protect aprovou e a versão
-da release foi instalada por cima, sem desinstalar.
+### A atualização de ponta a ponta
+
+**Primeira vez**, em 02/10/2026, no mesmo aparelho, com a release
+[`app-v0.1.0`](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.0)
+já publicada. O
+app tocou "Atualizar", baixou o APK da release, o Android pediu a permissão
+de instalar aplicativos, o Play Protect aprovou e a versão da release foi
+instalada por cima, sem desinstalar.
+
+**De verdade**, em 11/10/2026, da 0.1.1 para a
+[0.1.2](release-e-distribuicao.md#a-012) (issue #155): as duas releases
+publicadas, a produção, o A52 com dados do ensaio e um dia preenchido sem
+rede esperando na fila. O mínimo subiu para 3 pela
+[migration](../../supabase/migrations/20261011130000_versao_minima_3.sql)
+**depois** da release no ar. Pelo logcat (fora do repositório) e pelos
+registros do Supabase:
+
+| Hora | O que aconteceu |
+|---|---|
+| 20:53:23 | a 0.1.1 abre com rede, lê o mínimo 3 e mostra "Atualize o MAE"; o dia da fila não sobe |
+| 20:53:35 – 20:53:38 | "Atualizar": o APK de 22,9 MB vem da release em uns 3 segundos, e o instalador do Android abre |
+| 20:53:53 | verificação de desenvolvedor do Play Protect: `VERIFICATION_ALLOW` |
+| 20:54:07 | varredura do arquivo novo: `{"verdict":"SAFE"}` |
+| 20:54:11 | instalada por cima, com a data da primeira instalação intocada |
+| 20:54:17 | a 0.1.2 abre **com a sessão**, lê o perfil e o mês (já com a reabertura da #152) e manda o dia da fila: `save_meal_map` responde 200 |
+
+A sessão, o banco local e a fila passaram pela atualização. A coluna nova
+do banco local (`reopened`, #152) entrou pela migração do esquema, e as
+correções da E7 foram conferidas em seguida, sobre os dados do ensaio: o
+selo Reaberto (#152), as setas do registro do dia (#151), o mês com um dia
+só no aparelho (#150) e o caminho crítico, até gerar e compartilhar o
+documento.
+
+Um achado no caminho, que não é da atualização: aberto **do zero** sem
+rede, o app foi para o login, porque o perfil só vem da rede a cada abertura.
+A sessão estava guardada, e com a rede de volta ele entrou direto. Virou a
+#164.
+
+### Repetir o teste sem tocar na produção
 
 Para repetir o teste, o aparelho precisa de um app que se veja desatualizado
 e que aceite a release por cima. Por isso ele tem que ter a mesma chave e o
@@ -264,7 +306,7 @@ subir o mínimo sem tocar na produção:
    número acima do versionCode dele.
 5. Entrar, tocar em "Atualizar" e acompanhar o download, a permissão e a
    instalação. O Android aceita reinstalar o mesmo versionCode.
-6. Voltar o mínimo do banco local para 1.
+6. Voltar o mínimo do banco local para o da última migration (`supabase db reset` também volta).
 
 Depois da atualização, o app aponta para o ambiente em que a release foi
 compilada, que é a produção.
