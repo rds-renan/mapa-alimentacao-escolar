@@ -21,6 +21,17 @@ class Profile {
     schoolId: row['school_id'] as String,
   );
 
+  /// O caminho de volta de [Profile.fromRow], com as mesmas chaves da
+  /// tabela — é o formato em que o perfil fica guardado no aparelho
+  /// (`ProfileCache`, issue #164).
+  Map<String, dynamic> toRow() => {
+    'id': id,
+    'name': name,
+    'email': email,
+    'role': role,
+    'school_id': schoolId,
+  };
+
   final String id;
   final String name;
   final String email;

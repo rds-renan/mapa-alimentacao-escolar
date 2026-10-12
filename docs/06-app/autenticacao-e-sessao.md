@@ -58,6 +58,39 @@ específico dele:
   derruba a sessão e escreve o aviso, sem tela própria — o login de volta já
   é o destino de qualquer sessão encerrada.
 
+## Aberto sem rede: vale o perfil da última leitura
+
+Até a issue #164, a sessão sobrevivia ao fechar do aplicativo, mas o perfil
+só vinha da rede, a cada abertura. Aberto do zero sem sinal — o caso que o
+produto existe para resolver: ela abre o MAE de manhã, na cozinha —, a
+leitura falhava e o roteador mandava para o login, com a sessão guardada o
+tempo todo. O ensaio (#139) não pegou porque só tirou a rede com o app já
+aberto.
+
+Agora o perfil da última leitura bem-sucedida fica no aparelho, um por
+usuária, no mesmo cofre da sessão
+([`ProfileCache`](../../app/lib/auth/profile_cache.dart)) — nome e e-mail são
+dado pessoal, e o aparelho fica aberto na cozinha. Ao abrir, o
+[`AuthController`](../../app/lib/auth/auth_controller.dart) usa primeiro o
+guardado, e o mês aparece na hora, com ou sem rede; a leitura do servidor
+vem por baixo e, quando responde, manda: atualiza o guardado ou, se a conta
+foi desativada ou é de direção, derruba como antes. Sem rede, a derrubada
+espera o primeiro momento com rede — o controlador escuta a volta da
+conectividade e relê o perfil que ainda não foi confirmado desde a abertura.
+É a mesma troca que a fila já faz: o aparelho não sabe de uma desativação
+enquanto não fala com o servidor, e o que ela registrar nesse meio-tempo a
+RLS recusa na subida.
+
+Sem perfil guardado — o primeiro uso sem rede —, a casa mostra o aviso de
+acesso com "Tentar de novo", e não o login: com sessão, pedir a senha não
+resolveria nada.
+
+Conferido no A52 em 11/10, com um build de depuração contra o Supabase
+local: entrar, fechar o app pelos recentes, desligar Wi-Fi e dados e abrir
+levou direto ao mês. Com o app aberto e sem rede, a conta foi desativada no
+banco; ao religar o Wi-Fi, ela caiu no login com "Este acesso não está mais
+ativo".
+
 ## Sair apaga o que é do aparelho, não o que é da pessoa
 
 Mesma distinção da web (issue #60): sair não pode apagar o dia que ainda não
@@ -68,7 +101,8 @@ só para de usá-lo. O que não subiu continua lá até o próximo login confirm
 sem precisar de um passo de limpeza que decida o que preservar. A regra
 segue escrita em
 [`AuthController.signOut`](../../app/lib/auth/auth_controller.dart): nenhuma
-limpeza de dado entra ali. É a cerca que impede a próxima issue de somar um
+limpeza de dado entra ali — a exceção é o perfil guardado (issue #164), que
+não é dado da escola e só serve à sessão que acabou. É a cerca que impede a próxima issue de somar um
 `clearLocalData()` sem perceber que a decisão já foi tomada — ver
 [fila de envio e convergência](fila-de-envio-e-convergencia.md).
 

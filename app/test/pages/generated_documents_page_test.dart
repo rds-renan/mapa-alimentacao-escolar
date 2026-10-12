@@ -16,6 +16,7 @@ import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../auth/fake_profile_cache.dart';
 import '../documents/fake_documents.dart';
 import '../documents/fake_generation_gateway.dart';
 import '../local/fake_catalog_gateway.dart';
@@ -71,6 +72,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authGatewayProvider.overrideWithValue(auth),
+        profileCacheProvider.overrideWithValue(FakeProfileCache()),
         documentsGatewayProvider.overrideWithValue(documents),
         documentSharerProvider.overrideWithValue(sharer),
         monthGatewayProvider.overrideWithValue(FakeMonthGateway()),

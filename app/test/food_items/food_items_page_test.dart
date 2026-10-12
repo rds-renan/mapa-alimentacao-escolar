@@ -12,6 +12,7 @@ import 'package:mae/theme/theme.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../auth/fake_profile_cache.dart';
 import '../local/fake_catalog_gateway.dart';
 import '../local/fake_connectivity_gateway.dart';
 
@@ -46,6 +47,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authGatewayProvider.overrideWithValue(auth),
+        profileCacheProvider.overrideWithValue(FakeProfileCache()),
         catalogGatewayProvider.overrideWithValue(catalog),
         connectivityGatewayProvider.overrideWithValue(connectivity),
         appDatabaseProvider.overrideWith(

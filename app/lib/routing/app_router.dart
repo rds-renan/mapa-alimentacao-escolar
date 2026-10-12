@@ -41,7 +41,12 @@ final appRouterProvider = Provider<GoRouter>((ref) {
           state.matchedLocation == SignInPage.path ||
           state.matchedLocation == ForgotPasswordPage.path;
 
-      if (auth.signedIn) {
+      // Sessão guardada sem perfil nenhum para valer — o primeiro uso sem
+      // rede (issue #164) — fica na casa, no aviso de acesso com o "Tentar
+      // de novo": o login não resolveria, e pediria uma senha que ela tem.
+      final awaitingProfile = auth.session != null && auth.profileUnavailable;
+
+      if (auth.signedIn || awaitingProfile) {
         return onAuthRoute ? HomePage.path : null;
       }
 
