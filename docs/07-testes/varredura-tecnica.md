@@ -23,7 +23,7 @@ antes desta varredura:
 | #152 | O selo *Reaberto* não aparecia no aplicativo | corrigido |
 | #153 | Os selos *Reaberto* e *Preenchido* se espremiam na web | corrigido |
 | #154 | As assinaturas do documento se separavam do último dia | corrigido |
-| #147 | O Play Protect barrava o APK de desenvolvedor não verificado | conta de desenvolvedor verificada; a atualização pelo app é conferida na 0.1.2 (#155) |
+| #147 | O Play Protect barrava o APK de desenvolvedor não verificado | conta de desenvolvedor verificada; a atualização pelo app foi conferida na 0.1.2 (#155) |
 
 Três achados não atrapalharam o uso e ficaram para cá.
 
@@ -158,7 +158,9 @@ gravada, vale o padrão; o carimbo de último acesso não é passo do caminho. O
 único que pode esconder uma causa que ainda vai importar é o da
 [atualização pelo app](../../app/lib/version/app_updater.dart). Se ela falhar
 na 0.1.2 (#155), a tela diz o que fazer, mas o logcat não diz por quê. Se
-isso acontecer, a falha volta para cá.
+isso acontecer, a falha volta para cá. **Não aconteceu**: a atualização da
+0.1.1 para a 0.1.2 correu sem erro no A52, em 11/10
+([a atualização de ponta a ponta](../06-app/versao-minima.md#a-atualização-de-ponta-a-ponta)).
 
 ## De passagem
 
