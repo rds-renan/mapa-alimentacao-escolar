@@ -19,6 +19,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../auth/fake_profile_cache.dart';
 import '../documents/fake_documents.dart';
 import '../documents/fake_generation_gateway.dart';
 import '../local/fake_catalog_gateway.dart';
@@ -49,6 +50,7 @@ void main() {
     container = ProviderContainer(
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
+        profileCacheProvider.overrideWithValue(FakeProfileCache()),
         monthGatewayProvider.overrideWithValue(monthGateway),
         // O toque num dia empurra para o registro (issue #105), que já liga
         // a fila de envio — sem este falso, o provedor de verdade tentaria

@@ -3,10 +3,13 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mae/auth/auth_controller.dart';
 import 'package:mae/auth/auth_messages.dart';
+import 'package:mae/local/local_providers.dart';
 import 'package:mae/pages/forgot_password_page.dart';
 import 'package:mae/theme/theme.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../auth/fake_profile_cache.dart';
+import '../local/fake_connectivity_gateway.dart';
 
 void main() {
   late FakeAuthGateway gateway;
@@ -17,7 +20,13 @@ void main() {
   Future<void> pumpPage(WidgetTester tester) async {
     await tester.pumpWidget(
       ProviderScope(
-        overrides: [authGatewayProvider.overrideWithValue(gateway)],
+        overrides: [
+          authGatewayProvider.overrideWithValue(gateway),
+          profileCacheProvider.overrideWithValue(FakeProfileCache()),
+          connectivityGatewayProvider.overrideWithValue(
+            FakeConnectivityGateway(),
+          ),
+        ],
         child: MaterialApp(
           theme: maeLightTheme,
           home: const ForgotPasswordPage(),

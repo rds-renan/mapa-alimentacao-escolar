@@ -4,17 +4,25 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:supabase_flutter/supabase_flutter.dart'
     show AuthException, AuthState;
 
+import '../local/local_providers.dart';
 import '../supabase.dart';
 import 'app_auth_state.dart';
 import 'auth_error_mapping.dart';
 import 'auth_gateway.dart';
 import 'auth_messages.dart';
+import 'profile_cache.dart';
 import 'supabase_auth_gateway.dart';
 
 /// O portão para o Supabase, substituível por um falso nos testes (decisão 4
 /// da E6) — é o que torna o [AuthController] testável sem servidor.
 final authGatewayProvider = Provider<AuthGateway>((ref) {
   return SupabaseAuthGateway(supabase);
+});
+
+/// O perfil guardado no aparelho (issue #164), substituível por um falso nos
+/// testes, como o [authGatewayProvider].
+final profileCacheProvider = Provider<ProfileCache>((ref) {
+  return const SecureProfileCache();
 });
 
 final authControllerProvider = NotifierProvider<AuthController, AppAuthState>(
@@ -27,15 +35,26 @@ final authControllerProvider = NotifierProvider<AuthController, AppAuthState>(
 /// são as políticas de RLS da E4 (decisão 5 da E6).
 class AuthController extends Notifier<AppAuthState> {
   StreamSubscription<AuthState>? _subscription;
+  StreamSubscription<bool>? _connectivitySubscription;
+
+  /// De quem a rede já confirmou o perfil desde que o aplicativo abriu.
+  /// Enquanto não for a usuária da sessão, a volta da rede relê o perfil.
+  String? _confirmedUserId;
 
   AuthGateway get _gateway => ref.read(authGatewayProvider);
+  ProfileCache get _profileCache => ref.read(profileCacheProvider);
 
   @override
   AppAuthState build() {
     final gateway = ref.watch(authGatewayProvider);
     _subscription = gateway.onAuthStateChange.listen(_handleAuthChange);
+    _connectivitySubscription = ref
+        .watch(connectivityGatewayProvider)
+        .onChange
+        .listen(_handleConnectivity, onError: (_) {});
     ref.onDispose(() {
       unawaited(_subscription?.cancel());
+      unawaited(_connectivitySubscription?.cancel());
     });
     return const AppAuthState();
   }
@@ -44,6 +63,7 @@ class AuthController extends Notifier<AppAuthState> {
     final session = data.session;
 
     if (session == null) {
+      _forget(state.session?.user.id);
       state = state.copyWith(
         clearSession: true,
         clearProfile: true,
@@ -53,12 +73,50 @@ class AuthController extends Notifier<AppAuthState> {
       return;
     }
 
-    state = state.copyWith(session: session);
+    // Um perfil de outra usuária não pode valer nem por um instante.
+    final sameUser = state.profile?.id == session.user.id;
+    state = state.copyWith(
+      session: session,
+      clearProfile: !sameUser,
+      loading: sameUser ? null : true,
+    );
     unawaited(_loadProfile(session.user.id));
   }
 
+  /// A rede voltou: se o perfil desta abertura ainda não foi confirmado por
+  /// ela, é a hora — e é aqui que a conta desativada com o aplicativo aberto
+  /// sem sinal cai (CA#2 da US016), no primeiro momento com rede.
+  void _handleConnectivity(bool online) {
+    final userId = state.session?.user.id;
+    if (online && userId != null && userId != _confirmedUserId) {
+      unawaited(_loadProfile(userId));
+    }
+  }
+
   Future<void> _loadProfile(String userId) async {
-    state = state.copyWith(loading: true, profileUnavailable: false);
+    /*
+     * Primeiro o que o aparelho já sabe (issue #164): com o perfil guardado,
+     * o mês abre na hora, com ou sem rede, e a leitura do servidor vem por
+     * baixo. Esperar por ela primeiro deixaria quem está com sinal fraco na
+     * cozinha olhando um carregando — e quem está sem sinal nenhum, no aviso
+     * de acesso.
+     */
+    var known = state.profile?.id == userId ? state.profile : null;
+    if (known == null) {
+      final cached = await _profileCache.read(userId);
+      if (state.session?.user.id != userId) return;
+
+      if (cached != null && cached.isCook) {
+        known = cached;
+        state = state.copyWith(
+          profile: cached,
+          loading: false,
+          profileUnavailable: false,
+        );
+      } else {
+        state = state.copyWith(loading: true, profileUnavailable: false);
+      }
+    }
 
     try {
       final profile = await _gateway.fetchProfile(userId);
@@ -82,7 +140,13 @@ class AuthController extends Notifier<AppAuthState> {
         return;
       }
 
-      state = state.copyWith(profile: profile, loading: false);
+      _confirmedUserId = userId;
+      state = state.copyWith(
+        profile: profile,
+        loading: false,
+        profileUnavailable: false,
+      );
+      unawaited(_profileCache.write(profile));
 
       // Carimbo, não passo do caminho — não se espera por ele.
       unawaited(_gateway.touchLastAccess());
@@ -94,12 +158,26 @@ class AuthController extends Notifier<AppAuthState> {
        * propósito: deslogar quem está sem sinal numa escola sem sinal de
        * operadora seria transformar instabilidade de rede em perda de
        * acesso.
+       *
+       * Com o perfil guardado, é ele que vale até a rede voltar. Sem ele —
+       * o primeiro uso, que nunca leu perfil nenhum —, sobra o aviso de
+       * acesso e o "Tentar de novo".
        */
+      if (known != null) return;
       state = state.copyWith(profileUnavailable: true, loading: false);
     }
   }
 
+  /// Esquece o perfil guardado — e só ele: o banco local e a fila ficam
+  /// intocados (RN#1 da US011, ver [signOut]).
+  void _forget(String? userId) {
+    if (userId == null) return;
+    if (_confirmedUserId == userId) _confirmedUserId = null;
+    unawaited(_profileCache.clear(userId));
+  }
+
   Future<void> _forceSignOut(String notice) async {
+    _forget(state.session?.user.id);
     await _gateway.signOut();
     state = state.copyWith(
       notice: notice,
@@ -130,8 +208,10 @@ class AuthController extends Notifier<AppAuthState> {
      * é garantido de graça: o banco local e a fila (issues #102 e #103)
      * vivem num arquivo por perfil, e este método nunca abriu esse arquivo.
      * Deslogar só para de usá-lo; o que não subiu continua lá. Nenhuma
-     * limpeza de dado entra neste método, e é assim que deve continuar.
+     * limpeza de dado entra neste método, e é assim que deve continuar — o
+     * perfil guardado (issue #164) é a exceção, e ele não é dado da escola.
      */
+    _forget(state.session?.user.id);
     await _gateway.signOut();
     state = state.copyWith(clearNotice: true);
   }

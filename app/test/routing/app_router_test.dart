@@ -12,6 +12,7 @@ import 'package:mae/version/version_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../auth/fake_auth_gateway.dart';
+import '../auth/fake_profile_cache.dart';
 import '../documents/fake_documents.dart';
 import '../local/fake_connectivity_gateway.dart';
 import '../local/fake_month_gateway.dart';
@@ -21,14 +22,17 @@ import '../version/fake_version_gateway.dart';
 void main() {
   late FakeAuthGateway gateway;
   late FakeMonthGateway monthGateway;
+  late FakeProfileCache cache;
   late ProviderContainer container;
 
   setUp(() {
     gateway = FakeAuthGateway();
     monthGateway = FakeMonthGateway();
+    cache = FakeProfileCache();
     container = ProviderContainer(
       overrides: [
         authGatewayProvider.overrideWithValue(gateway),
+        profileCacheProvider.overrideWithValue(cache),
         monthGatewayProvider.overrideWithValue(monthGateway),
         versionGatewayProvider.overrideWithValue(FakeVersionGateway()),
         // A tela-casa lê a lista de documentos ao abrir, para o aviso de
@@ -104,6 +108,44 @@ void main() {
     // dá a ele a chance de rodar antes dessa checagem.
     await tester.pumpWidget(const SizedBox());
     await tester.pump(Duration.zero);
+  });
+
+  testWidgets('aberto sem rede, com perfil guardado, vai para o mês', (
+    tester,
+  ) async {
+    // Issue #164: a sessão guardada e o perfil da última leitura bastam.
+    cache.profiles['user-cook@escola.com'] = const Profile(
+      id: 'user-cook@escola.com',
+      name: 'Merendeira',
+      email: 'cook@escola.com',
+      role: 'cook',
+      schoolId: 'school-1',
+    );
+    gateway.profileForUser = (_) => throw AuthRetryableFetchException();
+
+    await pumpApp(tester);
+    gateway.emitSession(_session('user-cook@escola.com'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Gerar documento'), findsOneWidget);
+    expect(find.text('Entrar'), findsNothing);
+
+    // Ver o teste da sessão de merendeira, acima.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(Duration.zero);
+  });
+
+  testWidgets('aberto sem rede no primeiro uso: aviso de acesso, não login', (
+    tester,
+  ) async {
+    gateway.profileForUser = (_) => throw AuthRetryableFetchException();
+
+    await pumpApp(tester);
+    gateway.emitSession(_session('user-cook@escola.com'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('Tentar de novo'), findsOneWidget);
+    expect(find.text('Entrar'), findsNothing);
   });
 
   testWidgets('conta de direção não ganha tela: volta para o login com aviso', (

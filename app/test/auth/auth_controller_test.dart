@@ -4,9 +4,12 @@ import 'package:mae/auth/app_auth_state.dart';
 import 'package:mae/auth/auth_controller.dart';
 import 'package:mae/auth/auth_messages.dart';
 import 'package:mae/auth/profile.dart';
+import 'package:mae/local/local_providers.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import '../local/fake_connectivity_gateway.dart';
 import 'fake_auth_gateway.dart';
+import 'fake_profile_cache.dart';
 
 Profile _cook({String id = 'user-cook@escola.com'}) => Profile(
   id: id,
@@ -26,15 +29,24 @@ Profile _admin({String id = 'user-admin@escola.com'}) => Profile(
 
 void main() {
   late FakeAuthGateway gateway;
+  late FakeProfileCache cache;
+  late FakeConnectivityGateway connectivity;
   late ProviderContainer container;
 
   setUp(() {
     gateway = FakeAuthGateway();
+    cache = FakeProfileCache();
+    connectivity = FakeConnectivityGateway();
     container = ProviderContainer(
-      overrides: [authGatewayProvider.overrideWithValue(gateway)],
+      overrides: [
+        authGatewayProvider.overrideWithValue(gateway),
+        profileCacheProvider.overrideWithValue(cache),
+        connectivityGatewayProvider.overrideWithValue(connectivity),
+      ],
     );
     addTearDown(container.dispose);
     addTearDown(gateway.dispose);
+    addTearDown(connectivity.dispose);
   });
 
   AppAuthState state() => container.read(authControllerProvider);
@@ -91,6 +103,101 @@ void main() {
     expect(state().profileUnavailable, isTrue);
     expect(state().session, isNotNull);
     expect(state().signedIn, isFalse);
+  });
+
+  group('perfil guardado no aparelho (issue #164)', () {
+    const cookId = 'user-cook@escola.com';
+
+    test('a leitura bem-sucedida fica guardada', () async {
+      controller();
+      gateway.profileForUser = (_) => _cook();
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(cache.profiles[cookId]?.name, 'Merendeira');
+    });
+
+    test('sem rede, com perfil guardado: entra com ele', () async {
+      cache.profiles[cookId] = _cook();
+      controller();
+      gateway.profileForUser = (_) => throw AuthRetryableFetchException();
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(state().signedIn, isTrue);
+      expect(state().profileUnavailable, isFalse);
+      expect(state().profile?.id, cookId);
+    });
+
+    test(
+      'perfil guardado, mas a rede diz que foi desativado: derruba',
+      () async {
+        cache.profiles[cookId] = _cook();
+        controller();
+        gateway.profileForUser = (_) => null;
+        gateway.emitSession(_fakeSessionFor(cookId));
+        await Future<void>.delayed(Duration.zero);
+
+        expect(state().signedIn, isFalse);
+        expect(state().notice, AuthMessages.accessDisabled);
+        expect(cache.profiles, isEmpty);
+      },
+    );
+
+    test('desativado enquanto sem rede: cai quando a rede volta', () async {
+      cache.profiles[cookId] = _cook();
+      controller();
+      gateway.profileForUser = (_) => throw AuthRetryableFetchException();
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+      expect(state().signedIn, isTrue);
+
+      gateway.profileForUser = (_) => null;
+      connectivity.setOnline(true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(state().signedIn, isFalse);
+      expect(state().notice, AuthMessages.accessDisabled);
+    });
+
+    test('perfil já confirmado: a volta da rede não relê', () async {
+      var reads = 0;
+      controller();
+      gateway.profileForUser = (_) {
+        reads++;
+        return _cook();
+      };
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+
+      connectivity.setOnline(true);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(reads, 1);
+    });
+
+    test('sair apaga o perfil guardado', () async {
+      controller();
+      gateway.profileForUser = (_) => _cook();
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+      expect(cache.profiles, isNotEmpty);
+
+      await controller().signOut();
+
+      expect(cache.profiles, isEmpty);
+    });
+
+    test('o guardado de outra usuária não vale', () async {
+      cache.profiles['outra'] = _cook(id: 'outra');
+      controller();
+      gateway.profileForUser = (_) => throw AuthRetryableFetchException();
+      gateway.emitSession(_fakeSessionFor(cookId));
+      await Future<void>.delayed(Duration.zero);
+
+      expect(state().signedIn, isFalse);
+      expect(state().profileUnavailable, isTrue);
+    });
   });
 
   test('login com credencial errada devolve a mensagem do catálogo', () async {
