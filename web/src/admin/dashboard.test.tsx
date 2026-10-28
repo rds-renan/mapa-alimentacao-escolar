@@ -62,6 +62,14 @@ function mapOf(
       { type: 'lunch', description: 'Arroz com frango', acceptance: 'great' },
       { type: 'afternoon_snack', description: 'Canjica', acceptance: 'poor' },
     ],
+    food_items: [
+      {
+        food_item_id: 'f-arroz',
+        name: 'Arroz',
+        default_unit: 'kg',
+        quantity: 3,
+      },
+    ],
     ...overrides,
   }
 }

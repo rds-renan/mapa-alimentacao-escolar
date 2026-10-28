@@ -41,12 +41,12 @@ function dayFor(updatedAt: string, mapDate = DATE): DayPayload {
         type: 'morning_snack',
         description: 'Pão com manteiga e leite com achocolatado',
         acceptance: 'great',
-        food_items: [
-          { food_item_id: null, name: 'Pão', unit: 'quilo', quantity: 4 },
-        ],
-        menu_change: null,
       },
     ],
+    food_items: [
+      { food_item_id: null, name: 'Pão', unit: 'quilo', quantity: 4 },
+    ],
+    menu_change: null,
   }
 }
 
@@ -229,7 +229,7 @@ describe('a fila de envio', () => {
     const stored = await getStoredDay(COOK, DATE)
     expect(stored?.day.updated_at).toBe('2026-09-10T18:35:00-03:00')
     expect(stored?.day.id).toBe('c0000010-0000-4000-8000-000000000010')
-    expect(stored?.day.meals[0].food_items[0].food_item_id).toBe(
+    expect(stored?.day.food_items[0].food_item_id).toBe(
       '5005748a-0000-4000-8000-000000000001'
     )
   })
@@ -379,6 +379,8 @@ describe('o dia que ainda não pode subir', () => {
       note,
       meals: [],
       meals_served: null,
+      food_items: [],
+      menu_change: null,
     }
   }
 

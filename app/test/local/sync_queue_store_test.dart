@@ -15,6 +15,8 @@ DayPayload _day({
   note: null,
   mealsServed: 312,
   meals: const [],
+  foodItems: const [],
+  menuChange: null,
 );
 
 void main() {
@@ -108,6 +110,8 @@ void main() {
             note: day.note,
             mealsServed: day.mealsServed,
             meals: day.meals,
+            foodItems: const [],
+            menuChange: null,
           ),
         );
 

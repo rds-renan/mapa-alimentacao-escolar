@@ -15,8 +15,8 @@ erDiagram
     ESCOLA ||--o{ DOCUMENTO_GERADO : "emite"
 
     MAPA ||--o{ REFEICAO : "compõe-se de"
-    REFEICAO ||--o| ALTERACAO_CARDAPIO : "registra"
-    REFEICAO }o--o{ GENERO : "utiliza"
+    MAPA ||--o| ALTERACAO_CARDAPIO : "registra"
+    MAPA }o--o{ GENERO : "utiliza"
     ALTERACAO_CARDAPIO }o--o{ GENERO : "utiliza na troca"
 
     MAPA ||--o{ DESBLOQUEIO_MAPA : "é reaberto por"
@@ -98,7 +98,7 @@ Uma das três refeições de um dia letivo.
 
 ### ALTERACAO_CARDAPIO
 
-O registro de que a refeição saiu diferente do previsto. Existe no máximo uma por refeição.
+O registro de que o dia saiu diferente do previsto. Existe no máximo uma por dia.
 
 | Atributo | Descrição |
 |---|---|
@@ -154,8 +154,8 @@ O ato do administrador de reabrir um mapa bloqueado.
 | ESCOLA **guarda versões de** MODELO_DOCUMENTO | 1 : 0..N | As versões anteriores não são apagadas ([decisão 11](decisoes-de-modelagem.md)). |
 | ESCOLA **emite** DOCUMENTO_GERADO | 1 : 0..N | Cada geração pertence à escola que a emitiu (US012). |
 | MAPA **compõe-se de** REFEICAO | 1 : 0..3 | Um dia letivo tem exatamente três refeições (RN#1 da US001) — mas o registro pode estar incompleto (CA#3 da US001), então o mínimo é zero e "as três preenchidas" é o critério de dia completo, não de existência. |
-| REFEICAO **registra** ALTERACAO_CARDAPIO | 1 : 0..1 | Uma refeição saiu como o previsto ou não saiu; quando não saiu, a justificativa cobre a modificação inteira e os gêneros da troca são uma lista, então duas trocas na mesma refeição são um registro só. |
-| REFEICAO **utiliza** GENERO | 0..N : 0..N, com atributo **quantidade** | Gêneros são opcionais (RN#3 da US001) e a quantidade é inteira, na unidade padrão do gênero (RN#1 da US003). Um gênero aparece no máximo uma vez na mesma refeição. |
+| MAPA **registra** ALTERACAO_CARDAPIO | 1 : 0..1 | O dia saiu como o previsto ou não saiu; quando não saiu, a justificativa cobre a modificação inteira e os gêneros da troca são uma lista, então duas trocas no mesmo dia são um registro só. |
+| MAPA **utiliza** GENERO | 0..N : 0..N, com atributo **quantidade** | A refeição se conclui sem gênero (RN#3 da US001), mas o dia só fica completo com ao menos um. A quantidade é inteira, na unidade padrão do gênero (RN#1 da US003). Um gênero aparece no máximo uma vez no mesmo dia. |
 | ALTERACAO_CARDAPIO **utiliza na troca** GENERO | 1..N : 0..N, com atributo **quantidade** | É o que a coluna "em caso de alterações, descreva os gêneros utilizados e as quantidades" do formulário recebe. Uma alteração sem nenhum gênero não descreve troca nenhuma. |
 | MAPA **é reaberto por** DESBLOQUEIO_MAPA | 1 : 0..N | O histórico de reaberturas é permanente (RNF#1 da US023). |
 | USUARIO **registra** DESBLOQUEIO_MAPA | 1 : 0..N | Só o administrador desbloqueia, e o sistema guarda quem foi (CA#3 da US023). |
@@ -169,8 +169,10 @@ O ato do administrador de reabrir um mapa bloqueado.
 
 O modelo conceitual admite relacionamento muitos-para-muitos; o banco, não. Os três casos acima viram entidade própria no [modelo ER](modelo-er.md), e a diferença entre eles vale registrar:
 
-- **REFEICAO × GENERO** carrega o atributo **quantidade**, então a entidade resultante (`meal_food_item`) existe para guardar esse dado, não só para ligar os dois lados.
-- **ALTERACAO_CARDAPIO × GENERO** carrega o mesmo atributo e vira `menu_change_food_item`. Ela é separada da anterior porque no documento oficial são **duas colunas distintas**: os gêneros da refeição e os gêneros da troca.
+- **MAPA × GENERO** carrega o atributo **quantidade**, então a entidade resultante (`meal_map_food_item`) existe para guardar esse dado, não só para ligar os dois lados.
+- **ALTERACAO_CARDAPIO × GENERO** carrega o mesmo atributo e vira `menu_change_food_item`. Ela é separada da anterior porque no documento oficial são **duas colunas distintas**: os gêneros do dia e os gêneros da troca.
+
+> **Revisto na E7.** Até a E7, a alteração e os gêneros utilizados se ligavam à REFEICAO. Os testes com as merendeiras levaram os dois para o MAPA, que é como elas registram e como o formulário os imprime — ver [decisão 14](decisoes-de-modelagem.md).
 - **DOCUMENTO_GERADO × MAPA** não carrega atributo nenhum: a entidade resultante (`document_meal_map`) é pura ligação, e é dela que derivam o período e a quantidade de mapas mostrados na lista de documentos.
 
 ## O que este modelo não representa

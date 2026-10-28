@@ -6,7 +6,7 @@ que já foi baixado. É a issue #102, decisão 6 da E6, e o código mora em
 [`app/lib/local/`](../../app/lib/local/).
 
 **O que esta issue não é**: nem rascunho, nem fila de envio — isso é a #103.
-Nem o detalhe de um dia aberto para editar — gêneros usados na refeição e
+Nem o detalhe de um dia aberto para editar — gêneros utilizados e
 alteração do cardápio ficaram para quando a tela que os lê existisse (entraram
 com a #106). O que está aqui é só o que a visão do mês (US008) e a
 leitura do catálogo pedem: a mesma consulta que a
@@ -43,9 +43,9 @@ própria):
 | `food_items` | `public.food_item` | nome normalizado e escola — o arquivo já é de uma escola só |
 | `meal_maps` | `public.meal_map` | `updated_by`: não entra no cálculo dos cinco estados |
 | `meals` | `public.meal` | — |
-| `meal_food_items` | `public.meal_food_item` | nada: guarda nome e unidade junto, na forma em que o gênero sobe (#106) |
-| `menu_changes` | `public.menu_change` | — (#106) |
-| `menu_change_food_items` | `public.menu_change_food_item` | nada: mesma forma de `meal_food_items` (#106) |
+| `meal_map_food_items` | `public.meal_map_food_item` | nada: guarda nome e unidade junto, na forma em que o gênero sobe (#106; do dia desde a #172) |
+| `menu_changes` | `public.menu_change` | — (#106; do dia desde a #172) |
+| `menu_change_food_items` | `public.menu_change_food_item` | nada: mesma forma de `meal_map_food_items` (#106) |
 | `generated_documents` | `public.generated_document` | as datas dos mapas incluídos vêm numa coluna só, derivadas de `document_meal_map` ([#109](documentos-gerados.md)) |
 
 `type` e `acceptance` guardam o mesmo texto do banco (`morning_snack`,
@@ -92,6 +92,10 @@ mês. `CatalogRepository.refresh` entrou em uso com a folha de escolher gênero
 - **Se o dia foi reaberto pela direção.** Entrou na E7, com a #152
   (`schemaVersion` 5, a primeira coluna nova numa tabela que já existia) —
   ver [visão do mês e menu](visao-do-mes-e-menu.md#o-selo-reaberto-que-a-e6-não-trouxe).
+- **Gêneros e alteração do dia, e não da refeição.** Entrou na E7, com a #172
+  (`schemaVersion` 6, a primeira migração que move dado de uma tabela para
+  outra) — ver
+  [gêneros e alteração do cardápio](generos-e-alteracao-do-cardapio.md#os-gêneros-passaram-a-ser-do-dia).
 
 A tela-casa (#104) resolveu as outras duas pendências que este documento
 deixava em aberto — ver

@@ -123,6 +123,16 @@ void main() {
     bool locked = false,
     bool reopened = false,
     List<RemoteMeal> meals = const [],
+    // Desde a decisão 14 da E4, o dia sem gênero não está pronto: os dias
+    // daqui vêm com um, e quem fala do dia sem gênero diz isso.
+    List<FoodItemPayload> foodItems = const [
+      FoodItemPayload(
+        foodItemId: 'rice',
+        name: 'Arroz',
+        unit: 'quilo',
+        quantity: 3,
+      ),
+    ],
   }) => RemoteMealMap(
     id: id,
     mapDate: mapDate,
@@ -133,6 +143,8 @@ void main() {
     updatedAt: mapDate,
     meals: meals,
     reopened: reopened,
+    foodItems: foodItems,
+    menuChange: null,
   );
 
   const threeMeals = [
@@ -260,8 +272,6 @@ void main() {
           type: type,
           description: description,
           acceptance: 'great',
-          foodItems: const [],
-          menuChange: null,
         );
 
         // O ensaio da #139: um dia inteiro e um não letivo, os dois só no
@@ -282,6 +292,15 @@ void main() {
               meal('lunch', 'Arroz e feijão'),
               meal('afternoon_snack', 'Fruta'),
             ],
+            foodItems: const [
+              FoodItemPayload(
+                foodItemId: 'rice',
+                name: 'Arroz',
+                unit: 'quilo',
+                quantity: 3,
+              ),
+            ],
+            menuChange: null,
           ),
         );
         await store.put(
@@ -293,6 +312,8 @@ void main() {
             note: 'Conselho de classe',
             mealsServed: null,
             meals: [],
+            foodItems: [],
+            menuChange: null,
           ),
         );
 

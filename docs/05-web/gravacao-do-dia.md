@@ -1,7 +1,7 @@
 # A gravação do dia
 
 O dia inteiro sobe numa chamada só. `save_meal_map` recebe o mapa, as três
-refeições, a alteração do cardápio e os gêneros utilizados num único objeto, e
+refeições, os gêneros utilizados e a alteração do cardápio num único objeto, e
 grava tudo ou não grava nada. É a operação que a fila de envio do cliente chama
 ([decisão 3](decisoes-tecnicas.md)) e a tradução em código da
 [decisão 9 da E4](../04-banco-de-dados/decisoes-de-modelagem.md), que escolheu o
@@ -10,6 +10,13 @@ dia como unidade de sincronização.
 Ela mora em [`supabase/migrations/20260911120000_gravacao_atomica_do_dia.sql`](../../supabase/migrations/20260911120000_gravacao_atomica_do_dia.sql).
 Este documento é o contrato: o que o cliente manda, o que ele recebe de volta e
 o que decidir em cada resposta.
+
+> **Revisto na E7.** Os gêneros utilizados e a alteração do cardápio saíram de
+> dentro da refeição e passaram a ser do dia
+> ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)). A versão
+> em vigor é a de
+> [`20261028120000_generos_do_dia.sql`](../../supabase/migrations/20261028120000_generos_do_dia.sql);
+> o resto do contrato — conflito, reenvio, catálogo e erros — não mudou.
 
 ## Por que existe
 
@@ -39,19 +46,19 @@ parecer imutável, e a aplicação acaba se moldando a regras que ninguém decid
       "id": "uuid",
       "type": "morning_snack",
       "description": "Pão com manteiga e leite com achocolatado",
-      "acceptance": "great",
-      "food_items": [
-        { "food_item_id": "uuid", "name": "Pão", "unit": "quilo", "quantity": 4 }
-      ],
-      "menu_change": {
-        "id": "uuid",
-        "reason": "Não veio o frango na entrega da semana.",
-        "food_items": [
-          { "name": "Ovo", "unit": "bandeja", "quantity": 3 }
-        ]
-      }
+      "acceptance": "great"
     }
-  ]
+  ],
+  "food_items": [
+    { "food_item_id": "uuid", "name": "Pão", "unit": "quilo", "quantity": 4 }
+  ],
+  "menu_change": {
+    "id": "uuid",
+    "reason": "Não veio o frango na entrega da semana.",
+    "food_items": [
+      { "name": "Ovo", "unit": "bandeja", "quantity": 3 }
+    ]
+  }
 }
 ```
 
@@ -65,15 +72,24 @@ parecer imutável, e a aplicação acaba se moldando a regras que ninguém decid
 | `meals_served` | não | O registro pode ficar parcial (CA#3 da US001). Em dia não letivo é descartado. |
 | `meals` | não | O que não vier deixa de existir — a lista é o dia inteiro, não um acréscimo. |
 | `meals[].type` | **sim** | `morning_snack`, `lunch` ou `afternoon_snack`. |
-| `meals[].description`, `acceptance` | não | Nulos são o registro pendente, de propósito. |
+| `meals[].description`, `acceptance` | não | Nulos são o registro pendente, de propósito. Uma refeição que traga `food_items` ou `menu_change` é o formato antigo, e é recusada. |
+| `food_items` | não | Os gêneros do dia. Como `meals`, a lista é o dia inteiro. |
 | `food_items[].food_item_id` | não | Quando existe, é o gênero do catálogo. |
 | `food_items[].name`, `unit` | ver adiante | O `unit` só é exigido quando o gênero vai nascer. |
 | `food_items[].quantity` | **sim** | Inteira e maior que zero (RN#1 da US003). |
+| `menu_change` | não | No máximo uma por dia. Ausente ou nula, o dia não tem alteração. |
 | `menu_change.reason` | **sim**, quando há alteração | Sem justificativa a alteração não existe. |
 | `menu_change.food_items` | **sim**, quando há alteração | Lista vazia é recusada: sem os gêneros que entraram, a troca não descreve nada. |
 
 A escola **não** está no payload, e é de propósito: ela vem sempre do perfil de
 quem chamou. Não há como pedir gravação na escola de outra pessoa.
+
+O formato antigo, com os gêneros dentro da refeição, é **recusado** e não
+ignorado. Ignorar faria a gravação apagar em silêncio os gêneros de quem ainda
+está com a versão anterior da tela, porque a lista do dia chegaria vazia. A
+recusa deixa o dia guardado no aparelho, e a trava de versão mínima do app
+cuida de que ele seja atualizado
+([versão mínima](../06-app/versao-minima.md)).
 
 A descrição da refeição continua sendo o cardápio **previsto**, mesmo quando
 houve troca — é isso que dá sentido à justificativa
@@ -169,7 +185,7 @@ cadastrá-lo antes (US009). A busca segue três passos, nesta ordem:
 
 O gênero adotado mantém a unidade que já tinha: quem manda na unidade é o
 catálogo, não o envio. Dois nomes que normalizam para o mesmo gênero dentro da
-mesma refeição viram uma linha só, valendo a última quantidade.
+mesma lista viram uma linha só, valendo a última quantidade.
 
 Um identificador que existe mas é de outra escola é ignorado, e o gênero nasce
 com identificador novo.
@@ -184,7 +200,7 @@ no cliente.
 | Sem sessão | `42501` | 401 | Manda para o login. |
 | Direção tentando registrar | `42501` | 403 | Não deveria acontecer: a rota já separa os perfis. |
 | Mapa bloqueado | `23514` | 400 | Mostra a mensagem e o mapa como bloqueado; tira o item da fila. |
-| Payload incoerente (sem data, refeição desconhecida, alteração sem gêneros, quantidade inválida, dia não letivo com refeição) | `23514` | 400 | Mostra a mensagem apontando o campo; tira o item da fila, porque reenviar dá o mesmo erro. |
+| Payload incoerente (sem data, refeição desconhecida, alteração sem gêneros, quantidade inválida, dia não letivo com refeição, gênero ou alteração, refeição no formato antigo) | `23514` | 400 | Mostra a mensagem apontando o campo; tira o item da fila, porque reenviar dá o mesmo erro. |
 | Dois aparelhos criando o mesmo dia no mesmo instante | `40001` | — | Mantém na fila e reenvia: na segunda vez o dia já existe e vale a comparação de datas. |
 
 A distinção que importa para a fila: **`23514` e `42501` não se resolvem
@@ -200,12 +216,9 @@ lado está na [camada local](camada-local.md).
 - **Não gera documento nem bloqueia mapa.** O bloqueio nasce na geração
   (US012), pela edge function, e sai por `unlock_meal_map` (US023). A coluna
   `locked` é só lida aqui.
-- **Não decide se o dia está completo.** "As três refeições preenchidas" é
-  critério de leitura, não restrição de gravação: o registro pode ficar parcial
-  de propósito (CA#3 da US001).
-- **Não consolida os gêneros por dia.** Isso é da geração do documento; aqui
-  eles ficam por refeição
-  ([decisão 7 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
+- **Não decide se o dia está completo.** "As três refeições preenchidas e ao
+  menos um gênero" é critério de leitura, não restrição de gravação: o registro
+  pode ficar parcial de propósito (CA#3 da US001).
 - **Não guarda histórico de versões.** O que perde o conflito não é arquivado:
   prevalece a edição mais recente e o caso é sinalizado, e só.
 
@@ -237,7 +250,7 @@ dele.
 
 Os cenários estão versionados em
 [`supabase/tests/gravacao-do-dia.test.sql`](../../supabase/tests/gravacao-do-dia.test.sql),
-em pgTAP, e rodam com `supabase test db` — 66 asserções sobre um banco recém-
+em pgTAP, e rodam com `supabase test db` — 70 asserções sobre um banco recém-
 resetado. Mais cinco chamadas pela API REST, com o token de cada perfil, para
 cobrir o caminho que o pgTAP não cobre: o do papel do banco de verdade,
 atravessando o PostgREST.
@@ -253,7 +266,8 @@ O que está coberto:
 | Edição mais recente chegando depois | prevalece, e os filhos são substituídos |
 | Mesmo dia com UUID diferente | adota o identificador do servidor |
 | Alteração sem gêneros | recusada, e a refeição já inserida não fica |
-| Mapa bloqueado | recusado |
+| Refeição com gêneros dentro, no formato antigo | recusada, pedindo para recarregar ou atualizar |
+| Mapa bloqueado | recusado, também na escrita direta nas tabelas do dia |
 | Direção tentando registrar | recusada |
 | Sem sessão | recusado |
 | Merendeira de outra escola | grava na escola dela, no catálogo dela |
@@ -261,7 +275,7 @@ O que está coberto:
 | Nome variando caixa e espaços | adota o existente, mantendo a unidade |
 | Gênero novo sem unidade | recusado |
 | Quantidade zero, fracionada e ausente | recusadas, dizendo qual gênero |
-| Dia não letivo sem observação, ou com refeição | recusado |
+| Dia não letivo sem observação, ou com refeição, gênero ou alteração | recusado |
 | Dia não letivo com observação | gravado, descartando o número de refeições |
 | Dia não letivo voltando a letivo | a observação sai na mesma operação |
 | Dia letivo com observação enviada por engano | descartada |

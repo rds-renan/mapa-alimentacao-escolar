@@ -21,7 +21,7 @@ begin;
 
 create extension if not exists pgtap with schema extensions;
 
-select plan(66);
+select plan(70);
 
 -- ---------------------------------------------------------------------------
 -- Apoio
@@ -71,15 +71,13 @@ $fn$;
 
 create function changes_of(d date) returns bigint language sql as $fn$
   select count(*) from public.menu_change mc
-  join public.meal m on m.id = mc.meal_id
-  join public.meal_map mm on mm.id = m.meal_map_id
+  join public.meal_map mm on mm.id = mc.meal_map_id
   where mm.map_date = d;
 $fn$;
 
 create function food_items_of(d date) returns bigint language sql as $fn$
-  select count(*) from public.meal_food_item mfi
-  join public.meal m on m.id = mfi.meal_id
-  join public.meal_map mm on mm.id = m.meal_map_id
+  select count(*) from public.meal_map_food_item mfi
+  join public.meal_map mm on mm.id = mfi.meal_map_id
   where mm.map_date = d;
 $fn$;
 
@@ -117,23 +115,53 @@ insert into payload (name, body) values
   "map_date": "2026-09-10",
   "updated_at": "2026-09-10T18:30:00-03:00",
   "meals_served": 305,
+  "food_items": [
+    {
+      "food_item_id": "f0000007-0000-4000-8000-000000000007",
+      "quantity": 4
+    },
+    {
+      "name": "Achocolatado",
+      "unit": "pote",
+      "quantity": 2
+    },
+    {
+      "food_item_id": "f0000001-0000-4000-8000-000000000001",
+      "quantity": 3
+    },
+    {
+      "name": "banana",
+      "quantity": 5
+    }
+  ],
+  "menu_change": {
+    "reason": "Não veio o frango.",
+    "food_items": [
+      {
+        "food_item_id": "f0000003-0000-4000-8000-000000000003",
+        "quantity": 3
+      }
+    ]
+  },
   "meals": [
-    { "id": "e0000010-0000-4000-8000-000000000001",
-      "type": "morning_snack", "description": "Pão com manteiga", "acceptance": "great",
-      "food_items": [
-        { "food_item_id": "f0000007-0000-4000-8000-000000000007", "quantity": 4 },
-        { "name": "Achocolatado", "unit": "pote", "quantity": 2 }
-      ] },
-    { "id": "e0000010-0000-4000-8000-000000000002",
-      "type": "lunch", "description": "Arroz, feijão e frango", "acceptance": "good",
-      "food_items": [ { "food_item_id": "f0000001-0000-4000-8000-000000000001", "quantity": 3 } ],
-      "menu_change": {
-        "reason": "Não veio o frango.",
-        "food_items": [ { "food_item_id": "f0000003-0000-4000-8000-000000000003", "quantity": 3 } ]
-      } },
-    { "id": "e0000010-0000-4000-8000-000000000003",
-      "type": "afternoon_snack", "description": "Banana", "acceptance": "poor",
-      "food_items": [ { "name": "banana", "quantity": 5 } ] }
+    {
+      "id": "e0000010-0000-4000-8000-000000000001",
+      "type": "morning_snack",
+      "description": "Pão com manteiga",
+      "acceptance": "great"
+    },
+    {
+      "id": "e0000010-0000-4000-8000-000000000002",
+      "type": "lunch",
+      "description": "Arroz, feijão e frango",
+      "acceptance": "good"
+    },
+    {
+      "id": "e0000010-0000-4000-8000-000000000003",
+      "type": "afternoon_snack",
+      "description": "Banana",
+      "acceptance": "poor"
+    }
   ]
 }
 $json$::jsonb),
@@ -158,11 +186,26 @@ $json$::jsonb),
 $json$::jsonb),
 
 ('alteracao-sem-generos', $json$
-{ "map_date": "2026-09-11", "updated_at": "2026-09-11T10:00:00-03:00", "meals_served": 300,
+{
+  "map_date": "2026-09-11",
+  "updated_at": "2026-09-11T10:00:00-03:00",
+  "meals_served": 300,
+  "menu_change": {
+    "reason": "Faltou arroz."
+  },
   "meals": [
-    { "type": "morning_snack", "description": "Bolo", "acceptance": "great" },
-    { "type": "lunch", "description": "Arroz", "acceptance": "good",
-      "menu_change": { "reason": "Faltou arroz." } } ] }
+    {
+      "type": "morning_snack",
+      "description": "Bolo",
+      "acceptance": "great"
+    },
+    {
+      "type": "lunch",
+      "description": "Arroz",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 -- O dia 4 do seed já saiu em documento e está bloqueado.
@@ -176,50 +219,159 @@ $json$::jsonb),
 $json$::jsonb),
 
 ('dia-da-escola-b', $json$
-{ "map_date": "2026-09-10", "updated_at": "2026-09-10T12:00:00-03:00", "meals_served": 40,
-  "meals": [ { "type": "lunch", "description": "Macarrão", "acceptance": "good",
-               "food_items": [ { "name": "Macarrão", "unit": "pacote", "quantity": 2 } ] } ] }
+{
+  "map_date": "2026-09-10",
+  "updated_at": "2026-09-10T12:00:00-03:00",
+  "meals_served": 40,
+  "food_items": [
+    {
+      "name": "Macarrão",
+      "unit": "pacote",
+      "quantity": 2
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Macarrão",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 -- A escola B apontando um gênero que é da escola A.
 ('genero-de-outra-escola', $json$
-{ "map_date": "2026-09-13", "updated_at": "2026-09-12T08:00:00-03:00", "meals_served": 40,
-  "meals": [ { "type": "lunch", "description": "Arroz", "acceptance": "good",
-               "food_items": [ { "food_item_id": "f0000001-0000-4000-8000-000000000001",
-                                 "name": "Arroz", "unit": "quilo", "quantity": 2 } ] } ] }
+{
+  "map_date": "2026-09-13",
+  "updated_at": "2026-09-12T08:00:00-03:00",
+  "meals_served": 40,
+  "food_items": [
+    {
+      "food_item_id": "f0000001-0000-4000-8000-000000000001",
+      "name": "Arroz",
+      "unit": "quilo",
+      "quantity": 2
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Arroz",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 ('genero-com-caixa-e-espacos', $json$
-{ "map_date": "2026-09-14", "updated_at": "2026-09-12T08:10:00-03:00", "meals_served": 300,
-  "meals": [ { "type": "lunch", "description": "Arroz", "acceptance": "good",
-               "food_items": [ { "name": "  ARROZ  ", "unit": "saco", "quantity": 2 },
-                               { "name": "arroz", "unit": "saco", "quantity": 5 } ] } ] }
+{
+  "map_date": "2026-09-14",
+  "updated_at": "2026-09-12T08:10:00-03:00",
+  "meals_served": 300,
+  "food_items": [
+    {
+      "name": "  ARROZ  ",
+      "unit": "saco",
+      "quantity": 2
+    },
+    {
+      "name": "arroz",
+      "unit": "saco",
+      "quantity": 5
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Arroz",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 ('genero-novo-sem-unidade', $json$
-{ "map_date": "2026-09-15", "updated_at": "2026-09-12T08:20:00-03:00", "meals_served": 300,
-  "meals": [ { "type": "lunch", "description": "Quiabo", "acceptance": "good",
-               "food_items": [ { "name": "Quiabo", "quantity": 2 } ] } ] }
+{
+  "map_date": "2026-09-15",
+  "updated_at": "2026-09-12T08:20:00-03:00",
+  "meals_served": 300,
+  "food_items": [
+    {
+      "name": "Quiabo",
+      "quantity": 2
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Quiabo",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 ('quantidade-zero', $json$
-{ "map_date": "2026-09-15", "updated_at": "2026-09-12T08:20:00-03:00", "meals_served": 300,
-  "meals": [ { "type": "lunch", "description": "Arroz", "acceptance": "good",
-               "food_items": [ { "food_item_id": "f0000001-0000-4000-8000-000000000001",
-                                 "quantity": 0 } ] } ] }
+{
+  "map_date": "2026-09-15",
+  "updated_at": "2026-09-12T08:20:00-03:00",
+  "meals_served": 300,
+  "food_items": [
+    {
+      "food_item_id": "f0000001-0000-4000-8000-000000000001",
+      "quantity": 0
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Arroz",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 ('quantidade-fracionada', $json$
-{ "map_date": "2026-09-15", "updated_at": "2026-09-12T08:20:00-03:00", "meals_served": 300,
-  "meals": [ { "type": "lunch", "description": "Feijão", "acceptance": "good",
-               "food_items": [ { "food_item_id": "f0000002-0000-4000-8000-000000000002",
-                                 "quantity": 1.5 } ] } ] }
+{
+  "map_date": "2026-09-15",
+  "updated_at": "2026-09-12T08:20:00-03:00",
+  "meals_served": 300,
+  "food_items": [
+    {
+      "food_item_id": "f0000002-0000-4000-8000-000000000002",
+      "quantity": 1.5
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Feijão",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 ('quantidade-ausente', $json$
-{ "map_date": "2026-09-15", "updated_at": "2026-09-12T08:20:00-03:00", "meals_served": 300,
-  "meals": [ { "type": "lunch", "description": "Ovo", "acceptance": "good",
-               "food_items": [ { "food_item_id": "f0000003-0000-4000-8000-000000000003" } ] } ] }
+{
+  "map_date": "2026-09-15",
+  "updated_at": "2026-09-12T08:20:00-03:00",
+  "meals_served": 300,
+  "food_items": [
+    {
+      "food_item_id": "f0000003-0000-4000-8000-000000000003"
+    }
+  ],
+  "meals": [
+    {
+      "type": "lunch",
+      "description": "Ovo",
+      "acceptance": "good"
+    }
+  ]
+}
 $json$::jsonb),
 
 -- Manda meals_served junto de propósito: dia não letivo não conta refeições.
@@ -232,6 +384,21 @@ $json$::jsonb),
 { "map_date": "2026-09-17", "updated_at": "2026-09-12T08:40:00-03:00",
   "non_school_day": true, "note": "Feriado.",
   "meals": [ { "type": "lunch", "description": "Arroz" } ] }
+$json$::jsonb),
+
+('nao-letivo-com-generos', $json$
+{ "map_date": "2026-09-17", "updated_at": "2026-09-12T08:40:00-03:00",
+  "non_school_day": true, "note": "Feriado.", "meals": [],
+  "food_items": [ { "food_item_id": "f0000001-0000-4000-8000-000000000001", "quantity": 1 } ] }
+$json$::jsonb),
+
+-- O formato de antes da decisão 14: os gêneros dentro da refeição. É o que um
+-- aplicativo até a 0.1.3, ou uma aba da web aberta antes da mudança, mandaria.
+('formato-antigo', $json$
+{ "map_date": "2026-09-18", "updated_at": "2026-09-12T08:50:00-03:00", "meals_served": 300,
+  "meals": [ { "type": "lunch", "description": "Arroz", "acceptance": "good",
+               "food_items": [ { "food_item_id": "f0000001-0000-4000-8000-000000000001",
+                                 "quantity": 2 } ] } ] }
 $json$::jsonb),
 
 ('nao-letivo-sem-observacao', $json$
@@ -369,6 +536,22 @@ select throws_ok(
 select is((select meals_served from public.meal_map where map_date = '2026-09-04'), 298::smallint,
   'O mapa bloqueado ficou intacto');
 
+-- Por fora da save_meal_map, direto pela API: a trava vale também nas tabelas
+-- que a decisão 14 pendurou no mapa.
+set local role authenticated;
+select throws_ok(
+  $sql$ insert into public.meal_map_food_item (meal_map_id, food_item_id, quantity)
+        values ('c0000004-0000-4000-8000-000000000004',
+                'f0000001-0000-4000-8000-000000000001', 1) $sql$,
+  '23514', 'Este mapa já está em um documento gerado e não pode ser alterado.',
+  'Gênero do dia não entra em mapa bloqueado');
+select throws_ok(
+  $sql$ insert into public.menu_change (meal_map_id, reason)
+        values ('c0000004-0000-4000-8000-000000000004', 'Faltou arroz.') $sql$,
+  '23514', 'Este mapa já está em um documento gerado e não pode ser alterado.',
+  'Nem alteração do cardápio');
+reset role;
+
 select act_as(direcao());
 select throws_ok(
   $sql$ select save('dia-qualquer') $sql$,
@@ -413,10 +596,9 @@ select act_as(merendeira_1());
 select is(save('genero-com-caixa-e-espacos') ->> 'status', 'saved',
   'Dois nomes que normalizam igual não quebram o índice único');
 select is(food_items_of('2026-09-14'), 1::bigint,
-  'Eles viraram uma linha só na refeição');
-select is((select mfi.quantity from public.meal_food_item mfi
-           join public.meal m on m.id = mfi.meal_id
-           join public.meal_map mm on mm.id = m.meal_map_id
+  'Eles viraram uma linha só no dia');
+select is((select mfi.quantity from public.meal_map_food_item mfi
+           join public.meal_map mm on mm.id = mfi.meal_map_id
            where mm.map_date = '2026-09-14'), 5::smallint,
   'Vale a última quantidade enviada');
 select is((select default_unit from public.food_item
@@ -456,6 +638,14 @@ select throws_ok(
   $sql$ select save('nao-letivo-com-refeicao') $sql$,
   '23514', 'Dia não letivo não tem refeições para registrar.',
   'Dia não letivo com refeição é recusado');
+select throws_ok(
+  $sql$ select save('nao-letivo-com-generos') $sql$,
+  '23514', 'Dia não letivo não tem refeições para registrar.',
+  'Dia não letivo com gêneros também é recusado');
+select throws_ok(
+  $sql$ select save('formato-antigo') $sql$,
+  '23514', 'Este dia veio no formato antigo, com os gêneros dentro da refeição.',
+  'Gênero dentro da refeição é recusado, e não perdido em silêncio');
 select throws_ok(
   $sql$ select save('nao-letivo-sem-observacao') $sql$,
   '23514', 'Dia não letivo precisa de uma observação dizendo o motivo.',

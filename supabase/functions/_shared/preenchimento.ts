@@ -33,7 +33,6 @@ import {
 } from "./docx.ts";
 import {
   ACCEPTANCE_LABELS,
-  consolidateFoodItems,
   type DocumentData,
   formatDayAndMonth,
   formatFoodItem,
@@ -738,10 +737,7 @@ function fillMealRow(row: XmlElement, mealMap: MealMap, meal: Meal | null): void
 function fillChangeRow(row: XmlElement, mealMap: MealMap): void {
   const cell = cellAt(row, 1);
   const paragraph = children(cell, "p")[0];
-  const reasons = mealMap.meals
-    .filter((meal) => meal.change !== null)
-    .map((meal) => `${MEAL_LABELS[meal.kind]}: ${meal.change!.reason}`);
-  writeAfterLabel(paragraph, reasons.join("; "), { keepLabel: true });
+  writeAfterLabel(paragraph, mealMap.change?.reason ?? "", { keepLabel: true });
   dropExtraParagraphs(cell, 1);
 }
 
@@ -757,17 +753,11 @@ function mealCountText(mealMap: MealMap): string {
 
 function dayFoodItemLines(mealMap: MealMap): string[] {
   if (!mealMap.schoolDay) return [];
-  return consolidateFoodItems(mealMap.meals).map(formatFoodItem);
+  return mealMap.foodItems.map(formatFoodItem);
 }
 
 function dayChangeLines(mealMap: MealMap): string[] {
-  const lines: string[] = [];
-  for (const meal of mealMap.meals) {
-    if (!meal.change) continue;
-    lines.push(`${MEAL_LABELS[meal.kind]}:`);
-    for (const item of meal.change.foodItems) lines.push(formatFoodItem(item));
-  }
-  return lines;
+  return (mealMap.change?.foodItems ?? []).map(formatFoodItem);
 }
 
 // --- escrita dentro das células --------------------------------------------

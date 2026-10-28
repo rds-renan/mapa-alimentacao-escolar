@@ -86,6 +86,7 @@ class DayRecord {
     this.id,
     this.unsent = false,
     this.reopened = false,
+    this.hasFoodItems = false,
   });
 
   factory DayRecord.fromLocal(MealMapWithMeals row) => DayRecord(
@@ -95,6 +96,7 @@ class DayRecord {
     mealsServed: row.mealMap.mealsServed,
     locked: row.mealMap.locked,
     reopened: row.mealMap.reopened,
+    hasFoodItems: row.hasFoodItems,
     meals: row.meals
         .map(
           (meal) => MealRecord(
@@ -115,6 +117,7 @@ class DayRecord {
     mealsServed: day.mealsServed,
     locked: false,
     unsent: true,
+    hasFoodItems: dayHasFoodItems(day),
     meals: day.meals
         .map(
           (meal) => MealRecord(
@@ -139,6 +142,7 @@ class DayRecord {
       locked: locked,
       reopened: reopened,
       unsent: true,
+      hasFoodItems: fromDraft.hasFoodItems,
       meals: fromDraft.meals,
     );
   }
@@ -159,7 +163,17 @@ class DayRecord {
   final int? mealsServed;
   final bool locked;
   final List<MealRecord> meals;
+
+  /// O dia tem gênero lançado, nos utilizados ou numa troca. Desde a decisão
+  /// 14 da E4 os gêneros são do dia e contam para ele estar preenchido.
+  final bool hasFoodItems;
 }
+
+/// O dia tem gênero lançado, nos utilizados ou numa troca? Na alteração o
+/// que entrou também saiu da despensa, e a merendeira que só registrou a
+/// troca já lançou o que o documento pede daquele dia.
+bool dayHasFoodItems(DayPayload day) =>
+    day.foodItems.isNotEmpty || (day.menuChange?.foodItems.isNotEmpty ?? false);
 
 /// Zera a hora — a chave de comparação e de agrupamento por dia em todo este
 /// arquivo.
@@ -191,8 +205,8 @@ Map<DateTime, DayRecord> mergeDrafts(
 bool _filled(String? text) => text != null && text.trim().isNotEmpty;
 
 /// Uma refeição está pronta quando descreve o que foi servido **e** tem a
-/// aceitação (CA#3 da US004). Gêneros continuam opcionais (RN#3 da US001) e
-/// por isso não entram na conta.
+/// aceitação (CA#3 da US004). Os gêneros não entram aqui: são do dia
+/// (decisão 14 da E4).
 bool mealIsComplete(MealRecord? meal) =>
     meal != null && _filled(meal.description) && meal.acceptance != null;
 
@@ -200,6 +214,7 @@ bool mealIsComplete(MealRecord? meal) =>
 bool _hasContent(DayRecord day) =>
     day.nonSchoolDay ||
     day.mealsServed != null ||
+    day.hasFoodItems ||
     day.meals.any(
       (meal) => _filled(meal.description) || meal.acceptance != null,
     );
@@ -217,8 +232,12 @@ DayState dayState(DayRecord? day) {
   if (!_hasContent(day)) return DayState.empty;
 
   final byType = {for (final meal in day.meals) meal.type: meal};
+  // Os gêneros contam (decisão 14 da E4): o dia com as três refeições
+  // prontas e nada lançado é justamente o que ela precisa achar para
+  // completar.
   final complete =
       day.mealsServed != null &&
+      day.hasFoodItems &&
       mealOrder.every((type) => mealIsComplete(byType[type]));
 
   return complete ? DayState.complete : DayState.pending;
@@ -236,8 +255,12 @@ String _missingParts(DayRecord day) {
       : missingMeals.map((type) => 'o ${mealLabels[type]}').toList();
 
   if (day.mealsServed == null) items.add('o número de refeições');
+  if (!day.hasFoodItems) items.add('os gêneros');
 
-  final verb = items.length > 1 || items.first == 'as três refeições'
+  // "Faltam os gêneros": algumas partes já são plural sozinhas.
+  final verb =
+      items.length > 1 ||
+          const ['as três refeições', 'os gêneros'].contains(items.first)
       ? 'faltam'
       : 'falta';
   final list = items.length > 1

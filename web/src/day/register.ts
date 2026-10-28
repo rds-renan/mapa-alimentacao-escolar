@@ -9,7 +9,7 @@ import {
   type MealType,
   type MenuChangePayload,
 } from '@/local/day'
-import { filled, mealIsComplete } from '@/month/month'
+import { dayHasFoodItems, filled, mealIsComplete } from '@/month/month'
 
 /*
  * O dia sendo preenchido, em funções puras.
@@ -59,10 +59,10 @@ export function firstUnfinishedMeal(day: DayPayload): MealType | null {
 }
 
 /**
- * Quanto do dia está preenchido. São quatro partes no dia letivo — as três
- * refeições e o número de refeições —, os mesmos quatro que a visão do mês
- * confere para chamar o dia de preenchido. No dia não letivo é uma só: a
- * observação.
+ * Quanto do dia está preenchido. São cinco partes no dia letivo — as três
+ * refeições, o número de refeições e os gêneros do dia —, as mesmas cinco que
+ * a visão do mês confere para chamar o dia de preenchido. No dia não letivo é
+ * uma só: a observação.
  */
 export function dayProgress(day: DayPayload): { done: number; total: number } {
   if (day.non_school_day) {
@@ -74,8 +74,11 @@ export function dayProgress(day: DayPayload): { done: number; total: number } {
   ).length
 
   return {
-    done: meals + (day.meals_served === null ? 0 : 1),
-    total: MEAL_ORDER.length + 1,
+    done:
+      meals +
+      (day.meals_served === null ? 0 : 1) +
+      (dayHasFoodItems(day) ? 1 : 0),
+    total: MEAL_ORDER.length + 2,
   }
 }
 
@@ -116,8 +119,6 @@ function withMeal(
     type,
     description: null,
     acceptance: null,
-    food_items: [],
-    menu_change: null,
   }
 
   return { ...day, meals: [...day.meals, change(born)] }
@@ -193,24 +194,33 @@ export function setNote(day: DayPayload, note: string): DayPayload {
 export interface SchoolDayContent {
   meals: MealPayload[]
   mealsServed: number | null
+  foodItems: FoodItemPayload[]
+  menuChange: MenuChangePayload | null
 }
 
 export const NOTHING_TO_RESTORE: SchoolDayContent = {
   meals: [],
   mealsServed: null,
+  foodItems: [],
+  menuChange: null,
 }
 
 export function schoolDayContent(day: DayPayload): SchoolDayContent {
-  return { meals: day.meals, mealsServed: day.meals_served }
+  return {
+    meals: day.meals,
+    mealsServed: day.meals_served,
+    foodItems: day.food_items,
+    menuChange: day.menu_change,
+  }
 }
 
 /**
  * Liga e desliga o dia não letivo.
  *
  * Um dia é letivo ou não letivo, nunca os dois (RN#1 da US006) — e o servidor
- * leva isso à letra: dia não letivo com refeição é recusado, e o número de
- * refeições é descartado. Por isso marcar tira os dois do dia que vai subir, e
- * não só da tela.
+ * leva isso à letra: dia não letivo com refeição ou gênero é recusado, e o
+ * número de refeições é descartado. Por isso marcar tira tudo isso do dia que
+ * vai subir, e não só da tela.
  *
  * O que estava digitado volta quando ela desmarca, porque quem chama guardou o
  * conteúdo e o devolve aqui (CA#3 da US006). A devolução é da sessão: uma vez
@@ -228,6 +238,8 @@ export function setNonSchoolDay(
       non_school_day: true,
       meals: [],
       meals_served: null,
+      food_items: [],
+      menu_change: null,
       // Vazia, e não nula: o campo da observação já está na tela esperando o
       // motivo, e é ele que falta para o dia poder subir.
       note: day.note ?? '',
@@ -240,19 +252,22 @@ export function setNonSchoolDay(
     note: null,
     meals: restored.meals,
     meals_served: restored.mealsServed,
+    food_items: restored.foodItems,
+    menu_change: restored.menuChange,
   }
 }
 
 // ---------------------------------------------------------------------------
-// Os gêneros utilizados, e a alteração do cardápio (issue #63)
+// Os gêneros do dia, e a alteração do cardápio (issues #63 e #172)
 // ---------------------------------------------------------------------------
 
 /**
  * Onde a lista de gêneros mora. São duas listas com a mesma forma, e não uma:
- * elas alimentam **colunas diferentes** do documento oficial — os gêneros da
- * refeição e os gêneros da troca (decisão 7 da E4).
+ * elas alimentam **colunas diferentes** do documento oficial — os gêneros
+ * utilizados e os gêneros da troca (decisão 7 da E4). As duas são do dia
+ * (decisão 14 da E4).
  */
-export type FoodItemList = 'meal' | 'menu_change'
+export type FoodItemList = 'used' | 'menu_change'
 
 /**
  * Como um gênero é achado dentro da lista.
@@ -267,44 +282,31 @@ export function foodItemKey(item: { name: string }): string {
   return normalizedName(item.name)
 }
 
-function listOf(meal: MealPayload, list: FoodItemList): FoodItemPayload[] {
-  return list === 'meal'
-    ? meal.food_items
-    : (meal.menu_change?.food_items ?? [])
+export function listOf(day: DayPayload, list: FoodItemList): FoodItemPayload[] {
+  return list === 'used' ? day.food_items : (day.menu_change?.food_items ?? [])
 }
 
 /*
- * Devolve a refeição com a lista trocada. Mexer nos gêneros da troca quando
- * ainda não há alteração **cria** a alteração, sem motivo: é a ordem em que a
- * tela 3a acontece — primeiro ela escolhe o que usou, depois escreve por quê.
- * Enquanto faltar o motivo, `canBeSent` segura o dia no aparelho.
+ * Mexer nos gêneros da troca quando ainda não há alteração **cria** a
+ * alteração, sem motivo: é a ordem em que a tela 3a acontece — primeiro ela
+ * escolhe o que usou, depois escreve por quê. Enquanto faltar o motivo,
+ * `canBeSent` segura o dia no aparelho.
  */
-function withList(
-  meal: MealPayload,
-  list: FoodItemList,
-  items: FoodItemPayload[]
-): MealPayload {
-  if (list === 'meal') return { ...meal, food_items: items }
-
-  const change = meal.menu_change ?? { id: newId(), reason: '', food_items: [] }
-  return { ...meal, menu_change: { ...change, food_items: items } }
-}
-
-/** Mexe na lista de gêneros de uma das duas listas de uma refeição. */
 function changeList(
   day: DayPayload,
-  type: MealType,
   list: FoodItemList,
   change: (items: FoodItemPayload[]) => FoodItemPayload[]
 ): DayPayload {
-  return withMeal(day, type, (meal) =>
-    withList(meal, list, change(listOf(meal, list)))
-  )
+  const items = change(listOf(day, list))
+  if (list === 'used') return { ...day, food_items: items }
+
+  const current = day.menu_change ?? { id: newId(), reason: '', food_items: [] }
+  return { ...day, menu_change: { ...current, food_items: items } }
 }
 
 /**
  * Põe um gênero na lista, com a quantidade em 1 (decisão 7 da E3: escolhido o
- * item, ele entra na refeição já com o stepper em 1).
+ * item, ele entra no dia já com o stepper em 1).
  *
  * Um gênero que já está na lista não entra de novo nem volta para 1: a
  * gravação funde os dois pelo nome e ficaria valendo a última quantidade, o
@@ -312,11 +314,10 @@ function changeList(
  */
 export function addFoodItem(
   day: DayPayload,
-  type: MealType,
   list: FoodItemList,
   item: Omit<FoodItemPayload, 'quantity'>
 ): DayPayload {
-  return changeList(day, type, list, (items) =>
+  return changeList(day, list, (items) =>
     items.some((one) => foodItemKey(one) === foodItemKey(item))
       ? items
       : [...items, { ...item, quantity: 1 }]
@@ -325,12 +326,11 @@ export function addFoodItem(
 
 export function setFoodItemQuantity(
   day: DayPayload,
-  type: MealType,
   list: FoodItemList,
   key: string,
   quantity: number
 ): DayPayload {
-  return changeList(day, type, list, (items) =>
+  return changeList(day, list, (items) =>
     items.map((item) =>
       foodItemKey(item) === key
         ? { ...item, quantity: Math.min(Math.max(quantity, 1), MAX_COUNT) }
@@ -341,11 +341,10 @@ export function setFoodItemQuantity(
 
 export function removeFoodItem(
   day: DayPayload,
-  type: MealType,
   list: FoodItemList,
   key: string
 ): DayPayload {
-  return changeList(day, type, list, (items) =>
+  return changeList(day, list, (items) =>
     items.filter((item) => foodItemKey(item) !== key)
   )
 }
@@ -360,21 +359,17 @@ export function removeFoodItem(
  */
 export function stepFoodItemQuantity(
   day: DayPayload,
-  type: MealType,
   list: FoodItemList,
   key: string,
   delta: number
 ): DayPayload {
-  const meal = mealOf(day, type)
-  const item = meal
-    ? listOf(meal, list).find((one) => foodItemKey(one) === key)
-    : undefined
+  const item = listOf(day, list).find((one) => foodItemKey(one) === key)
   if (!item) return day
 
   const next = item.quantity + delta
-  if (next < 1) return removeFoodItem(day, type, list, key)
+  if (next < 1) return removeFoodItem(day, list, key)
 
-  return setFoodItemQuantity(day, type, list, key, next)
+  return setFoodItemQuantity(day, list, key, next)
 }
 
 /**
@@ -394,17 +389,16 @@ export function parseQuantity(text: string): number | null {
 
 export function setMenuChangeReason(
   day: DayPayload,
-  type: MealType,
   reason: string
 ): DayPayload {
-  return withMeal(day, type, (meal) => ({
-    ...meal,
+  return {
+    ...day,
     menu_change: {
-      id: meal.menu_change?.id ?? newId(),
-      food_items: meal.menu_change?.food_items ?? [],
+      id: day.menu_change?.id ?? newId(),
+      food_items: day.menu_change?.food_items ?? [],
       reason,
     },
-  }))
+  }
 }
 
 /**
@@ -414,10 +408,9 @@ export function setMenuChangeReason(
  */
 export function setMenuChange(
   day: DayPayload,
-  type: MealType,
   change: MenuChangePayload | null
 ): DayPayload {
-  return withMeal(day, type, (meal) => ({ ...meal, menu_change: change }))
+  return { ...day, menu_change: change }
 }
 
 export function menuChangeIsEmpty(change: MenuChangePayload | null): boolean {

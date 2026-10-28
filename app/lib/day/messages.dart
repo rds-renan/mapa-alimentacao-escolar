@@ -46,6 +46,13 @@ const Map<MealState, String> mealStateLabels = {
   MealState.empty: 'Vazia',
 };
 
+/// O cartão dos gêneros do dia: tem gênero lançado ou não tem.
+const Map<MealState, String> foodItemsStateLabels = {
+  MealState.complete: 'Preenchido',
+  MealState.pending: 'Pendente',
+  MealState.empty: 'Vazio',
+};
+
 /// Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004).
 const List<String> acceptanceOrder = ['great', 'good', 'poor'];
 
@@ -108,8 +115,10 @@ class DayMessages {
   static const mealsServedLess = 'Uma refeição a menos';
   static const mealsServedMore = 'Uma refeição a mais';
 
+  /// Um cartão só para o dia (decisão 14 da E4): é como ela confere a saída
+  /// da despensa, e é como o documento imprime — uma célula por dia.
+  static const foodItemsTitle = 'Gêneros do dia';
   static const foodItemsLabel = 'Gêneros utilizados';
-  static const foodItemsOptional = 'opcional';
   static const addFoodItem = 'Adicionar gênero';
   static const menuChange = 'Alteração do cardápio';
 
@@ -130,10 +139,6 @@ class DayMessages {
   static const progress = 'Partes preenchidas do dia';
 }
 
-/// "Almoço · Terça, 9 de setembro" — o subtítulo das telas 3a e 3b.
-String mealSubtitle(String type, String mapDate) =>
-    '${mealTitles[type]} · ${dayTitle(mapDate)}';
-
 /// A alteração do cardápio — tela 3a (US002).
 ///
 /// O aviso do alto é a decisão 8 da E3 dita para quem está preenchendo: a
@@ -145,8 +150,8 @@ class MenuChangeMessages {
 
   static const title = 'Alteração do cardápio';
   static const close = 'Fechar a alteração do cardápio';
-  static String notice(String type) =>
-      'O ${mealLabels[type]} continua registrado como o cardápio previsto. '
+  static const notice =
+      'As refeições continuam registradas como o cardápio previsto. '
       'Aqui vão só os gêneros que você usou no lugar.';
   static const itemsLabel = 'Gêneros utilizados na troca';
   static const reasonLabel = 'Motivo';
@@ -194,9 +199,9 @@ class FoodItemSheetMessages {
   static const noResults = 'Nenhum gênero com esse nome. Cadastre abaixo.';
   static const alreadyChosen = 'já está aqui';
   static const newTitle = 'Não está na lista?';
-  static const newHint = 'Cadastre aqui e o item já entra na refeição.';
+  static const newHint = 'Cadastre aqui e o item já entra no dia.';
   static const newNameLabel = 'Nome do gênero';
   static const newNamePlaceholder = 'Ex.: feijão preto';
   static const newUnitLabel = 'Unidade padrão';
-  static const add = 'Adicionar à refeição';
+  static const add = 'Adicionar ao dia';
 }

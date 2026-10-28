@@ -104,8 +104,6 @@ class MealPayload {
     required this.type,
     required this.description,
     required this.acceptance,
-    required this.foodItems,
-    required this.menuChange,
   });
 
   factory MealPayload.fromJson(Map<String, dynamic> json) => MealPayload(
@@ -113,14 +111,6 @@ class MealPayload {
     type: json['type'] as String,
     description: json['description'] as String?,
     acceptance: json['acceptance'] as String?,
-    foodItems: (json['food_items'] as List<dynamic>)
-        .map((item) => FoodItemPayload.fromJson(item as Map<String, dynamic>))
-        .toList(),
-    menuChange: json['menu_change'] == null
-        ? null
-        : MenuChangePayload.fromJson(
-            json['menu_change'] as Map<String, dynamic>,
-          ),
   );
 
   final String id;
@@ -129,18 +119,18 @@ class MealPayload {
   /// O cardápio previsto — continua sendo ele mesmo quando houve troca.
   final String? description;
   final String? acceptance;
-  final List<FoodItemPayload> foodItems;
-  final MenuChangePayload? menuChange;
 
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': type,
     'description': description,
     'acceptance': acceptance,
-    'food_items': foodItems.map((item) => item.toJson()).toList(),
-    'menu_change': menuChange?.toJson(),
   };
 }
+
+/// A ordem das refeições, para juntar as alterações do formato antigo na
+/// ordem do dia. A lista pública é `mealOrder`, da visão do mês.
+const _mealOrder = ['morning_snack', 'lunch', 'afternoon_snack'];
 
 class DayPayload {
   const DayPayload({
@@ -151,19 +141,73 @@ class DayPayload {
     required this.note,
     required this.mealsServed,
     required this.meals,
+    required this.foodItems,
+    required this.menuChange,
   });
 
-  factory DayPayload.fromJson(Map<String, dynamic> json) => DayPayload(
-    id: json['id'] as String,
-    mapDate: json['map_date'] as String,
-    updatedAt: json['updated_at'] as String,
-    nonSchoolDay: json['non_school_day'] as bool,
-    note: json['note'] as String?,
-    mealsServed: json['meals_served'] as int?,
-    meals: (json['meals'] as List<dynamic>)
-        .map((meal) => MealPayload.fromJson(meal as Map<String, dynamic>))
-        .toList(),
-  );
+  /// Lê também o dia guardado antes da decisão 14 da E4, com os gêneros e a
+  /// alteração dentro de cada refeição — rascunho ou fila de um aparelho que
+  /// ainda estava na 0.1.3. A junção é a mesma da migration
+  /// `20261028120000_generos_do_dia.sql` e de `upgradeDay` na web: os gêneros
+  /// das refeições viram os do dia, somando o que se repete, e as alterações
+  /// viram uma, com as justificativas na ordem das refeições.
+  factory DayPayload.fromJson(Map<String, dynamic> json) {
+    final rawMeals = (json['meals'] as List<dynamic>)
+        .cast<Map<String, dynamic>>();
+    final ordered = [...rawMeals]
+      ..sort(
+        (a, b) => _mealOrder
+            .indexOf(a['type'] as String)
+            .compareTo(_mealOrder.indexOf(b['type'] as String)),
+      );
+
+    final legacyItems = [
+      for (final meal in ordered)
+        ..._itemsOf(meal['food_items'] as List<dynamic>?),
+    ];
+    final legacyChanges = [
+      for (final meal in ordered)
+        if (meal['menu_change'] != null)
+          MenuChangePayload.fromJson(
+            meal['menu_change'] as Map<String, dynamic>,
+          ),
+    ];
+    final dayChange = json['menu_change'] == null
+        ? null
+        : MenuChangePayload.fromJson(
+            json['menu_change'] as Map<String, dynamic>,
+          );
+
+    return DayPayload(
+      id: json['id'] as String,
+      mapDate: json['map_date'] as String,
+      updatedAt: json['updated_at'] as String,
+      nonSchoolDay: json['non_school_day'] as bool,
+      note: json['note'] as String?,
+      mealsServed: json['meals_served'] as int?,
+      meals: rawMeals.map(MealPayload.fromJson).toList(),
+      foodItems: sumByName([
+        ..._itemsOf(json['food_items'] as List<dynamic>?),
+        ...legacyItems,
+      ]),
+      menuChange: legacyChanges.isEmpty
+          ? dayChange
+          : MenuChangePayload(
+              id: legacyChanges.first.id,
+              reason: legacyChanges
+                  .map((change) => change.reason.trim())
+                  .where((reason) => reason.isNotEmpty)
+                  .join(' / '),
+              foodItems: sumByName([
+                for (final change in legacyChanges) ...change.foodItems,
+              ]),
+            ),
+    );
+  }
+
+  static List<FoodItemPayload> _itemsOf(List<dynamic>? raw) => (raw ?? [])
+      .map((item) => FoodItemPayload.fromJson(item as Map<String, dynamic>))
+      .toList();
 
   /// UUID gerado no aparelho. O servidor pode devolver outro, e vale o dele.
   final String id;
@@ -178,6 +222,42 @@ class DayPayload {
   final int? mealsServed;
   final List<MealPayload> meals;
 
+  /// Os gêneros utilizados no dia — do dia, não da refeição (decisão 14 da
+  /// E4).
+  final List<FoodItemPayload> foodItems;
+
+  /// A alteração do cardápio, no máximo uma por dia.
+  final MenuChangePayload? menuChange;
+
+  static const _keep = Object();
+
+  /// O mesmo dia com uma parte trocada. Os campos que podem ser nulos
+  /// distinguem "não mexer" de "tornar nulo" pelo valor padrão.
+  DayPayload copyWith({
+    String? id,
+    String? updatedAt,
+    bool? nonSchoolDay,
+    Object? note = _keep,
+    Object? mealsServed = _keep,
+    List<MealPayload>? meals,
+    List<FoodItemPayload>? foodItems,
+    Object? menuChange = _keep,
+  }) => DayPayload(
+    id: id ?? this.id,
+    mapDate: mapDate,
+    updatedAt: updatedAt ?? this.updatedAt,
+    nonSchoolDay: nonSchoolDay ?? this.nonSchoolDay,
+    note: identical(note, _keep) ? this.note : note as String?,
+    mealsServed: identical(mealsServed, _keep)
+        ? this.mealsServed
+        : mealsServed as int?,
+    meals: meals ?? this.meals,
+    foodItems: foodItems ?? this.foodItems,
+    menuChange: identical(menuChange, _keep)
+        ? this.menuChange
+        : menuChange as MenuChangePayload?,
+  );
+
   Map<String, dynamic> toJson() => {
     'id': id,
     'map_date': mapDate,
@@ -186,7 +266,32 @@ class DayPayload {
     'note': note,
     'meals_served': mealsServed,
     'meals': meals.map((meal) => meal.toJson()).toList(),
+    'food_items': foodItems.map((item) => item.toJson()).toList(),
+    'menu_change': menuChange?.toJson(),
   };
+}
+
+/// Soma por nome normalizado, que é como o servidor decide que dois gêneros
+/// são o mesmo; a unidade é do catálogo, então somar é sempre somar a mesma
+/// coisa. Entre as duas linhas, fica a que já conhece o gênero do catálogo.
+List<FoodItemPayload> sumByName(List<FoodItemPayload> items) {
+  final byName = <String, FoodItemPayload>{};
+  for (final item in items) {
+    final key = normalizedName(item.name);
+    final running = byName[key];
+    if (running == null) {
+      byName[key] = item;
+      continue;
+    }
+    final kept = running.foodItemId != null ? running : item;
+    byName[key] = FoodItemPayload(
+      foodItemId: kept.foodItemId,
+      name: kept.name,
+      unit: kept.unit,
+      quantity: running.quantity + item.quantity,
+    );
+  }
+  return byName.values.toList();
 }
 
 /// Um dia em branco, pronto para a primeira tecla — a versão em Dart de
@@ -199,6 +304,8 @@ DayPayload emptyDay(String mapDate) => DayPayload(
   note: null,
   mealsServed: null,
   meals: const [],
+  foodItems: const [],
+  menuChange: null,
 );
 
 class SaveResponseFoodItem {
@@ -275,24 +382,22 @@ class SaveResponse {
 /// fila leva só o que não vai voltar recusado: entre marcar "dia não letivo"
 /// e escrever o motivo passam alguns segundos, e nesse intervalo o dia está
 /// guardado, não debaixo de uma faixa dizendo que não deu para enviar.
-bool canBeSent(DayPayload day) {
-  if (day.nonSchoolDay) {
-    return _notBlank(day.note) && day.meals.isEmpty;
-  }
-
-  return day.meals.every(_mealCanBeSent);
-}
-
-bool _notBlank(String? text) => text != null && text.trim().isNotEmpty;
-
+///
 /// A refeição em si nunca impede o envio — descrição e aceitação nulas são o
 /// registro parcial, de propósito (CA#3 da US001). O que impede é o que o
-/// servidor recusa: alteração sem motivo ou sem gênero, e gênero a nascer
-/// sem unidade.
-bool _mealCanBeSent(MealPayload meal) {
-  if (!meal.foodItems.every(_itemCanBeSent)) return false;
+/// servidor recusa: dia não letivo com refeição ou gênero, alteração sem
+/// motivo ou sem gênero, e gênero a nascer sem unidade.
+bool canBeSent(DayPayload day) {
+  if (day.nonSchoolDay) {
+    return _notBlank(day.note) &&
+        day.meals.isEmpty &&
+        day.foodItems.isEmpty &&
+        day.menuChange == null;
+  }
 
-  final change = meal.menuChange;
+  if (!day.foodItems.every(_itemCanBeSent)) return false;
+
+  final change = day.menuChange;
   if (change == null) return true;
 
   return _notBlank(change.reason) &&
@@ -304,6 +409,8 @@ bool _mealCanBeSent(MealPayload meal) {
 /// falta ser maior que zero. O gênero que ainda não está no catálogo precisa
 /// da unidade com que vai nascer — o catálogo manda na unidade de quem já
 /// existe, e não aceita item sem ela.
+bool _notBlank(String? text) => text != null && text.trim().isNotEmpty;
+
 bool _itemCanBeSent(FoodItemPayload item) {
   if (item.quantity <= 0) return false;
 
@@ -348,25 +455,14 @@ DayPayload adoptServerIds(DayPayload day, SaveResponse response) {
     nonSchoolDay: day.nonSchoolDay,
     note: day.note,
     mealsServed: day.mealsServed,
-    meals: day.meals
-        .map(
-          (meal) => MealPayload(
-            id: meal.id,
-            type: meal.type,
-            description: meal.description,
-            acceptance: meal.acceptance,
-            foodItems: meal.foodItems.map(adoptItem).toList(),
-            menuChange: meal.menuChange == null
-                ? null
-                : MenuChangePayload(
-                    id: meal.menuChange!.id,
-                    reason: meal.menuChange!.reason,
-                    foodItems: meal.menuChange!.foodItems
-                        .map(adoptItem)
-                        .toList(),
-                  ),
+    meals: day.meals,
+    foodItems: day.foodItems.map(adoptItem).toList(),
+    menuChange: day.menuChange == null
+        ? null
+        : MenuChangePayload(
+            id: day.menuChange!.id,
+            reason: day.menuChange!.reason,
+            foodItems: day.menuChange!.foodItems.map(adoptItem).toList(),
           ),
-        )
-        .toList(),
   );
 }

@@ -4,10 +4,10 @@ import 'package:mae/local/month_gateway.dart';
 /// A forma que o PostgREST devolve para a consulta de
 /// `SupabaseMonthGateway` — a mesma que `web/src/day/queries.ts` lê: os
 /// gêneros como lista, cada um com o `food_item` embutido, e a alteração
-/// como objeto (a refeição é única em `menu_change`, e o PostgREST devolve
+/// como objeto (o mapa é único em `menu_change`, e o PostgREST devolve
 /// um-para-um sem lista).
 void main() {
-  test('lê os gêneros e a alteração de cada refeição', () {
+  test('lê os gêneros e a alteração do dia (decisão 14 da E4)', () {
     final map = RemoteMealMap.fromRow({
       'id': 'map-1',
       'map_date': '2026-09-10',
@@ -22,50 +22,62 @@ void main() {
           'type': 'lunch',
           'description': 'Arroz e feijão',
           'acceptance': 'great',
-          'meal_food_item': [
-            {
-              'food_item_id': 'rice',
-              'quantity': 4,
-              'food_item': {'name': 'Arroz', 'default_unit': 'quilo'},
-            },
-          ],
-          'menu_change': {
-            'id': 'change-1',
-            'reason': 'Item impróprio',
-            'menu_change_food_item': [
-              {
-                'food_item_id': 'egg',
-                'quantity': 3,
-                'food_item': {'name': 'Ovo', 'default_unit': 'bandeja'},
-              },
-            ],
-          },
         },
         {
           'id': 'meal-2',
           'type': 'morning_snack',
           'description': null,
           'acceptance': null,
-          'meal_food_item': <dynamic>[],
-          'menu_change': null,
         },
       ],
+      'meal_map_food_item': [
+        {
+          'food_item_id': 'rice',
+          'quantity': 4,
+          'food_item': {'name': 'Arroz', 'default_unit': 'quilo'},
+        },
+      ],
+      'menu_change': {
+        'id': 'change-1',
+        'reason': 'Item impróprio',
+        'menu_change_food_item': [
+          {
+            'food_item_id': 'egg',
+            'quantity': 3,
+            'food_item': {'name': 'Ovo', 'default_unit': 'bandeja'},
+          },
+        ],
+      },
     });
 
-    final lunch = map.meals.first;
-    expect(lunch.foodItems.single.toJson(), {
+    expect(map.meals, hasLength(2));
+    expect(map.foodItems.single.toJson(), {
       'food_item_id': 'rice',
       'name': 'Arroz',
       'unit': 'quilo',
       'quantity': 4,
     });
-    expect(lunch.menuChange!.reason, 'Item impróprio');
-    expect(lunch.menuChange!.foodItems.single.name, 'Ovo');
-    expect(lunch.menuChange!.foodItems.single.unit, 'bandeja');
+    expect(map.menuChange!.reason, 'Item impróprio');
+    expect(map.menuChange!.foodItems.single.name, 'Ovo');
+    expect(map.menuChange!.foodItems.single.unit, 'bandeja');
+  });
 
-    final snack = map.meals.last;
-    expect(snack.foodItems, isEmpty);
-    expect(snack.menuChange, isNull);
+  test('o dia sem gênero nem alteração chega vazio, sem inventar', () {
+    final map = RemoteMealMap.fromRow({
+      'id': 'map-1',
+      'map_date': '2026-09-10',
+      'non_school_day': false,
+      'note': null,
+      'meals_served': null,
+      'locked': false,
+      'updated_at': '2026-09-10T18:00:00+00:00',
+      'meal': <dynamic>[],
+      'meal_map_food_item': <dynamic>[],
+      'menu_change': null,
+    });
+
+    expect(map.foodItems, isEmpty);
+    expect(map.menuChange, isNull);
   });
 
   test('reaberto é fora do bloqueio e com reabertura no histórico — a regra '

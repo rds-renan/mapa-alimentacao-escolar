@@ -18,7 +18,7 @@ class FoodItems extends Table {
 
 /// O mapa de um dia, espelhando `public.meal_map` — os campos que a visão do
 /// mês (US008) precisa para calcular os cinco estados. Os gêneros e a
-/// alteração de cada refeição moram nas tabelas abaixo (issue #106).
+/// alteração do dia moram nas tabelas abaixo (issues #106 e #172).
 class MealMaps extends Table {
   TextColumn get id => text()();
   DateTimeColumn get mapDate => dateTime()();
@@ -63,16 +63,17 @@ class Meals extends Table {
   ];
 }
 
-/// Um gênero utilizado numa refeição, espelhando `public.meal_food_item`.
+/// Um gênero utilizado no dia, espelhando `public.meal_map_food_item`
+/// (decisão 14 da E4).
 ///
 /// Guarda o nome e a unidade junto, e não só o identificador: é a forma em
 /// que o gênero sobe (`FoodItemPayload`), e o catálogo do aparelho pode ainda
 /// não conhecer um gênero que a colega cadastrou pela web — ler pela junção
 /// com [FoodItems] deixaria esse gênero sem nome até o catálogo atualizar.
 /// `position` guarda a ordem em que o servidor os devolveu.
-class MealFoodItems extends Table {
-  TextColumn get mealId =>
-      text().references(Meals, #id, onDelete: KeyAction.cascade)();
+class MealMapFoodItems extends Table {
+  TextColumn get mealMapId =>
+      text().references(MealMaps, #id, onDelete: KeyAction.cascade)();
   IntColumn get position => integer()();
   TextColumn get foodItemId => text()();
   TextColumn get name => text()();
@@ -80,15 +81,15 @@ class MealFoodItems extends Table {
   IntColumn get quantity => integer()();
 
   @override
-  Set<Column> get primaryKey => {mealId, foodItemId};
+  Set<Column> get primaryKey => {mealMapId, foodItemId};
 }
 
 /// A alteração do cardápio, espelhando `public.menu_change` — no máximo uma
-/// por refeição (RN#2 da US002), daí a refeição ser única aqui também.
+/// por dia (decisão 14 da E4), daí o mapa ser único aqui também.
 class MenuChanges extends Table {
   TextColumn get id => text()();
-  TextColumn get mealId =>
-      text().unique().references(Meals, #id, onDelete: KeyAction.cascade)();
+  TextColumn get mealMapId =>
+      text().unique().references(MealMaps, #id, onDelete: KeyAction.cascade)();
   TextColumn get reason => text()();
 
   @override
@@ -96,7 +97,7 @@ class MenuChanges extends Table {
 }
 
 /// Os gêneros que entraram na troca, espelhando
-/// `public.menu_change_food_item` — a mesma forma de [MealFoodItems], porque
+/// `public.menu_change_food_item` — a mesma forma de [MealMapFoodItems], porque
 /// é a mesma lista, só que para outra coluna do documento (decisão 7 da E4).
 class MenuChangeFoodItems extends Table {
   TextColumn get menuChangeId =>
@@ -170,7 +171,7 @@ class GeneratedDocuments extends Table {
     FoodItems,
     MealMaps,
     Meals,
-    MealFoodItems,
+    MealMapFoodItems,
     MenuChanges,
     MenuChangeFoodItems,
     PendingMealMaps,
@@ -181,7 +182,7 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase(super.executor);
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -195,11 +196,149 @@ class AppDatabase extends _$AppDatabase {
     // aparelho com dado de verdade (a 0.1.1, no ensaio da E7): a coluna
     // entra com `addColumn`, valendo falso, e o sinal aparece no próximo
     // `refreshMonth` — de novo, a primeira coisa que a visão do mês faz.
+    //
+    // A #172 é a primeira a mudar a forma de tabelas que já têm dado de
+    // verdade: os gêneros e a alteração saem da refeição e vão para o dia.
+    // O que está no aparelho vem junto, para a visão do mês não mostrar sem
+    // gênero, até a internet voltar, um dia que já tinha.
     onUpgrade: (m, from, to) async {
+      if (from >= 3 && from < 6) await _moveFoodItemsToDay(m);
       await m.createAll();
       if (from < 5) await m.addColumn(mealMaps, mealMaps.reopened);
     },
   );
+
+  /// A cópia confirmada do formato de antes da decisão 14 da E4, levada para
+  /// o dia com a mesma junção da migration `20261028120000_generos_do_dia.sql`:
+  /// os gêneros das três refeições somados por gênero, e as alterações
+  /// juntadas na ordem das refeições, com os gêneros da troca somados.
+  ///
+  /// A fila não passa por aqui: ela guarda o dia como texto, e quem o lê no
+  /// formato antigo é `DayPayload.fromJson`.
+  Future<void> _moveFoodItemsToDay(Migrator m) async {
+    // O arquivo pode ter nascido sem as tabelas da #106, se veio de um
+    // aparelho que nunca abriu um dia; aí não há o que trazer.
+    final old = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type = 'table' AND name = "
+      "'meal_food_items'",
+    ).get();
+    if (old.isEmpty) return;
+
+    const order = ['morning_snack', 'lunch', 'afternoon_snack'];
+    int rank(String type) => order.indexOf(type);
+
+    final items = await customSelect(
+      'SELECT m.meal_map_id AS map_id, m.type AS type, f.food_item_id AS '
+      'item_id, f.name AS name, f.unit AS unit, f.quantity AS quantity '
+      'FROM meal_food_items f JOIN meals m ON m.id = f.meal_id '
+      'ORDER BY f.position',
+    ).get();
+    final changes = await customSelect(
+      'SELECT c.id AS id, c.reason AS reason, m.meal_map_id AS map_id, '
+      'm.type AS type FROM menu_changes c JOIN meals m ON m.id = c.meal_id',
+    ).get();
+    final changeItems = await customSelect(
+      'SELECT menu_change_id AS change_id, food_item_id AS item_id, name, '
+      'unit, quantity FROM menu_change_food_items ORDER BY position',
+    ).get();
+
+    // Por dia, e dentro do dia na ordem das refeições.
+    final dayItems =
+        <String, Map<String, ({String name, String? unit, int quantity})>>{};
+    for (final row
+        in [...items]..sort(
+          (a, b) =>
+              rank(a.read<String>('type'))
+                  .compareTo(rank(b.read<String>('type'))),
+        )) {
+      final byItem = dayItems.putIfAbsent(row.read<String>('map_id'), () => {});
+      final id = row.read<String>('item_id');
+      final running = byItem[id];
+      byItem[id] = (
+        name: running?.name ?? row.read<String>('name'),
+        unit: running?.unit ?? row.readNullable<String>('unit'),
+        quantity: (running?.quantity ?? 0) + row.read<int>('quantity'),
+      );
+    }
+
+    final dayChanges = <String, List<QueryRow>>{};
+    for (final row
+        in [...changes]..sort(
+          (a, b) =>
+              rank(a.read<String>('type'))
+                  .compareTo(rank(b.read<String>('type'))),
+        )) {
+      dayChanges.putIfAbsent(row.read<String>('map_id'), () => []).add(row);
+    }
+
+    await m.deleteTable('menu_change_food_items');
+    await m.deleteTable('menu_changes');
+    await m.deleteTable('meal_food_items');
+    await m.createTable(mealMapFoodItems);
+    await m.createTable(menuChanges);
+    await m.createTable(menuChangeFoodItems);
+
+    await batch((batch) {
+      for (final MapEntry(key: mapId, value: byItem) in dayItems.entries) {
+        for (final (position, MapEntry(key: id, value: item))
+            in byItem.entries.indexed) {
+          batch.insert(
+            mealMapFoodItems,
+            MealMapFoodItemsCompanion.insert(
+              mealMapId: mapId,
+              position: position,
+              foodItemId: id,
+              name: item.name,
+              unit: Value(item.unit),
+              quantity: item.quantity,
+            ),
+          );
+        }
+      }
+
+      for (final MapEntry(key: mapId, value: rows) in dayChanges.entries) {
+        final keeper = rows.first.read<String>('id');
+        final ids = {for (final row in rows) row.read<String>('id')};
+        batch.insert(
+          menuChanges,
+          MenuChangesCompanion.insert(
+            id: keeper,
+            mealMapId: mapId,
+            reason: rows
+                .map((row) => row.read<String>('reason').trim())
+                .where((reason) => reason.isNotEmpty)
+                .join(' / '),
+          ),
+        );
+
+        final byItem = <String, ({String name, String? unit, int quantity})>{};
+        for (final row in changeItems) {
+          if (!ids.contains(row.read<String>('change_id'))) continue;
+          final id = row.read<String>('item_id');
+          final running = byItem[id];
+          byItem[id] = (
+            name: running?.name ?? row.read<String>('name'),
+            unit: running?.unit ?? row.readNullable<String>('unit'),
+            quantity: (running?.quantity ?? 0) + row.read<int>('quantity'),
+          );
+        }
+        for (final (position, MapEntry(key: id, value: item))
+            in byItem.entries.indexed) {
+          batch.insert(
+            menuChangeFoodItems,
+            MenuChangeFoodItemsCompanion.insert(
+              menuChangeId: keeper,
+              position: position,
+              foodItemId: id,
+              name: item.name,
+              unit: Value(item.unit),
+              quantity: item.quantity,
+            ),
+          );
+        }
+      }
+    });
+  }
 }
 
 /// Um arquivo por usuária (decisão 6 da E6): o identificador do perfil, que

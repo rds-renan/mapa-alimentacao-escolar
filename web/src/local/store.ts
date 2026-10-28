@@ -1,4 +1,4 @@
-import type { DayPayload } from './day'
+import { upgradeDay, type DayPayload } from './day'
 
 /*
  * O armazenamento local: um banco IndexedDB com um único depósito, o dos dias
@@ -112,6 +112,16 @@ async function run<T>(
   })
 }
 
+/*
+ * O que vem do disco pode ter sido guardado antes da decisão 14 da E4, com os
+ * gêneros dentro de cada refeição. Toda leitura passa pela conversão, e assim
+ * nada acima desta camada conhece o formato antigo.
+ */
+function fromDisk(record: StoredDay): StoredDay {
+  const day = upgradeDay(record.day)
+  return day === record.day ? record : { ...record, day }
+}
+
 export function putStoredDay(record: StoredDay): Promise<unknown> {
   return run('readwrite', (store) => store.put(record))
 }
@@ -124,7 +134,7 @@ export async function getStoredDay(
     store.get(dayKey(userId, mapDate))
   )
 
-  return record ?? null
+  return record ? fromDisk(record) : null
 }
 
 /** Os dias por enviar de quem está logada, na ordem em que entraram na fila. */
@@ -133,7 +143,9 @@ export async function listStoredDays(userId: string): Promise<StoredDay[]> {
     store.index(BY_USER).getAll(userId)
   )
 
-  return records.sort((a, b) => a.queuedAt.localeCompare(b.queuedAt))
+  return records
+    .map(fromDisk)
+    .sort((a, b) => a.queuedAt.localeCompare(b.queuedAt))
 }
 
 export function deleteStoredDay(key: string): Promise<unknown> {
@@ -196,7 +208,7 @@ export function settleStoredDay(
 
     store.put({
       ...record,
-      day: adopt(record.day),
+      day: adopt(upgradeDay(record.day)),
       attempts: 0,
       rejection: null,
     })

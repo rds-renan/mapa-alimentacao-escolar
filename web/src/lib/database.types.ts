@@ -235,42 +235,6 @@ export type Database = {
           },
         ]
       }
-      meal_food_item: {
-        Row: {
-          food_item_id: string
-          id: string
-          meal_id: string
-          quantity: number
-        }
-        Insert: {
-          food_item_id: string
-          id?: string
-          meal_id: string
-          quantity: number
-        }
-        Update: {
-          food_item_id?: string
-          id?: string
-          meal_id?: string
-          quantity?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: "meal_food_item_food_item_id_fkey"
-            columns: ["food_item_id"]
-            isOneToOne: false
-            referencedRelation: "food_item"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "meal_food_item_meal_id_fkey"
-            columns: ["meal_id"]
-            isOneToOne: false
-            referencedRelation: "meal"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       meal_map: {
         Row: {
           created_at: string
@@ -325,6 +289,42 @@ export type Database = {
           },
         ]
       }
+      meal_map_food_item: {
+        Row: {
+          food_item_id: string
+          id: string
+          meal_map_id: string
+          quantity: number
+        }
+        Insert: {
+          food_item_id: string
+          id?: string
+          meal_map_id: string
+          quantity: number
+        }
+        Update: {
+          food_item_id?: string
+          id?: string
+          meal_map_id?: string
+          quantity?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meal_map_food_item_food_item_id_fkey"
+            columns: ["food_item_id"]
+            isOneToOne: false
+            referencedRelation: "food_item"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "meal_map_food_item_meal_map_id_fkey"
+            columns: ["meal_map_id"]
+            isOneToOne: false
+            referencedRelation: "meal_map"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meal_map_unlock: {
         Row: {
           id: string
@@ -367,25 +367,25 @@ export type Database = {
       menu_change: {
         Row: {
           id: string
-          meal_id: string
+          meal_map_id: string
           reason: string
         }
         Insert: {
           id?: string
-          meal_id: string
+          meal_map_id: string
           reason: string
         }
         Update: {
           id?: string
-          meal_id?: string
+          meal_map_id?: string
           reason?: string
         }
         Relationships: [
           {
-            foreignKeyName: "menu_change_meal_id_fkey"
-            columns: ["meal_id"]
+            foreignKeyName: "menu_change_meal_map_id_fkey"
+            columns: ["meal_map_id"]
             isOneToOne: true
-            referencedRelation: "meal"
+            referencedRelation: "meal_map"
             referencedColumns: ["id"]
           },
         ]

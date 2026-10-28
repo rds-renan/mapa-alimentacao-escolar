@@ -22,10 +22,10 @@ DayPayload _day({
       type: 'lunch',
       description: 'Arroz e feijão',
       acceptance: 'great',
-      foodItems: foodItems,
-      menuChange: null,
     ),
   ],
+  foodItems: [...foodItems],
+  menuChange: null,
 );
 
 SaveResponse _response({List<Map<String, dynamic>> foodItems = const []}) =>
@@ -73,7 +73,7 @@ void main() {
       );
 
       final day = (await DayRepository(db).watchDay('2026-09-10').first)!.day;
-      final item = day.meals.single.foodItems.single;
+      final item = day.foodItems.single;
       expect(item.name, 'Arroz');
       expect(item.quantity, 6);
     },
@@ -163,7 +163,7 @@ void main() {
             },
           ],
         ),
-      )?.day.meals.single.foodItems.single.foodItemId,
+      )?.day.foodItems.single.foodItemId,
       'bread',
     );
   });

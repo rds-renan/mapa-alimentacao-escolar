@@ -15,9 +15,9 @@ erDiagram
     school ||--o{ generated_document : ""
 
     meal_map ||--o{ meal : ""
-    meal ||--o| menu_change : ""
-    meal ||--o{ meal_food_item : ""
-    food_item ||--o{ meal_food_item : ""
+    meal_map ||--o| menu_change : ""
+    meal_map ||--o{ meal_map_food_item : ""
+    food_item ||--o{ meal_map_food_item : ""
     menu_change ||--|{ menu_change_food_item : ""
     food_item ||--o{ menu_change_food_item : ""
 
@@ -83,7 +83,7 @@ erDiagram
 
     menu_change {
         uuid id PK
-        uuid meal_id FK,UK "no máximo uma por refeição"
+        uuid meal_map_id FK,UK "no máximo uma por dia"
         text reason
     }
 
@@ -94,9 +94,9 @@ erDiagram
         smallint quantity
     }
 
-    meal_food_item {
+    meal_map_food_item {
         uuid id PK
-        uuid meal_id FK "único com food_item_id"
+        uuid meal_map_id FK "único com food_item_id"
         uuid food_item_id FK
         smallint quantity
     }
@@ -163,7 +163,7 @@ Estende a conta do serviço de autenticação: `id` é o mesmo identificador, a 
 
 ### `food_item`
 
-`normalized_name` é o nome em minúsculas e sem espaços repetidos, mantido pelo próprio banco a partir de `name`. É ele que carrega a unicidade por escola — sem isso, "Arroz" e "arroz " entrariam como itens diferentes quando as duas merendeiras cadastrassem o mesmo gênero de aparelhos diferentes ([decisão 9](decisoes-de-modelagem.md)). A chave estrangeira em `meal_food_item` é restritiva: gênero em uso não pode ser apagado, só desativado (CA#3 da US009).
+`normalized_name` é o nome em minúsculas e sem espaços repetidos, mantido pelo próprio banco a partir de `name`. É ele que carrega a unicidade por escola — sem isso, "Arroz" e "arroz " entrariam como itens diferentes quando as duas merendeiras cadastrassem o mesmo gênero de aparelhos diferentes ([decisão 9](decisoes-de-modelagem.md)). A chave estrangeira em `meal_map_food_item` é restritiva: gênero em uso não pode ser apagado, só desativado (CA#3 da US009).
 
 ### `meal_map`
 
@@ -180,11 +180,15 @@ Apagar um mapa remove em cascata refeições, alterações e gêneros utilizados
 
 ### `menu_change`
 
-`meal_id` é único: no máximo uma alteração por refeição. `reason` é `not null` e texto livre — é a RN#1 da US002 escrita no banco, e cobre a modificação inteira. **Não há coluna para o item substituído**: o formulário oficial não o pede.
+`meal_map_id` é único: no máximo uma alteração por dia. `reason` é `not null` e texto livre — é a RN#1 da US002 escrita no banco, e cobre a modificação inteira. **Não há coluna para o item substituído**: o formulário oficial não o pede.
 
-### `meal_food_item`
+> **Revisto na E7.** Até a E7 a alteração pendia da refeição (`meal_id`, uma por refeição). Nos testes com as merendeiras ficou claro que a troca é do dia, como a coluna do formulário — ver [decisão 14](decisoes-de-modelagem.md). A migração juntou as alterações de um mesmo dia numa só, com os motivos emendados e as quantidades somadas.
 
-Tabela que resolve o muitos-para-muitos entre refeição e gênero, com o atributo que ele carregava. Única por `(meal_id, food_item_id)` — o mesmo gênero não entra duas vezes na mesma refeição; `quantity` é `smallint` positiva (RN#1 da US003), porque são inteiros pequenos, nunca frações. Alimenta a coluna GÊNEROS UTILIZADOS do documento, consolidada por dia na geração.
+### `meal_map_food_item`
+
+Tabela que resolve o muitos-para-muitos entre o dia e o gênero, com o atributo que ele carregava. Única por `(meal_map_id, food_item_id)` — o mesmo gênero não entra duas vezes no mesmo dia; `quantity` é `smallint` positiva (RN#1 da US003), porque são inteiros pequenos, nunca frações. Alimenta a coluna GÊNEROS UTILIZADOS do documento, linha a linha.
+
+> **Revisto na E7.** Até a E7 a tabela era `meal_food_item`, ligada à refeição, e a geração somava as três refeições do dia. As merendeiras registram o que saiu da despensa no dia, não por refeição, e o formulário tem uma linha por dia — ver [decisão 14](decisoes-de-modelagem.md). A migração somou os gêneros repetidos entre refeições.
 
 ### `menu_change_food_item`
 
@@ -214,9 +218,9 @@ Somente inserção: nada aqui é editado ou apagado (RNF#1 da US023). `reason` �
 |---|---|---|
 | Um mapa por dia, por escola | Banco | Índice único `(school_id, map_date)`. |
 | Uma refeição de cada tipo por mapa | Banco | Índice único `(meal_map_id, type)`. |
-| Um gênero não se repete na refeição | Banco | Índice único `(meal_id, food_item_id)`. |
+| Um gênero não se repete no dia | Banco | Índice único `(meal_map_id, food_item_id)` em `meal_map_food_item`. |
 | Um gênero não se repete na alteração | Banco | Índice único `(menu_change_id, food_item_id)`. |
-| No máximo uma alteração por refeição | Banco | Índice único `(meal_id)` em `menu_change`. |
+| No máximo uma alteração por dia | Banco | Índice único `(meal_map_id)` em `menu_change`. |
 | Nome de gênero único na escola | Banco | Índice único `(school_id, normalized_name)`. |
 | Quantidade inteira e positiva | Banco | `smallint` + `check (quantity > 0)`. |
 | Alteração sem justificativa não existe | Banco | `reason not null`. |
@@ -227,7 +231,7 @@ Somente inserção: nada aqui é editado ou apagado (RNF#1 da US023). `reason` �
 | Mapa bloqueado não aceita edição da merendeira | Banco | Políticas de acesso e gatilho — [projeto físico](projeto-fisico.md), [decisão 5](decisoes-de-modelagem.md). |
 | Merendeira não escreve em `locked` | Banco | Política de acesso por coluna. |
 | Merendeira só enxerga a própria escola | Banco | Políticas de acesso por perfil. |
-| **Dia letivo tem exatamente três refeições** | Aplicação | O registro pode ficar parcial de propósito (CA#3 da US001); "as três preenchidas" é o critério de dia **completo**, verificado na leitura, não uma restrição de existência. |
+| **Dia letivo tem exatamente três refeições** | Aplicação | O registro pode ficar parcial de propósito (CA#3 da US001); "as três preenchidas, com ao menos um gênero no dia" é o critério de dia **completo**, verificado na leitura, não uma restrição de existência. |
 | **Dia completo, pendente e vazio** | Aplicação | Derivados ([decisão 4](decisoes-de-modelagem.md)). |
 | **Prevalece a edição mais recente** | Aplicação | Comparação de `updated_at` na gravação do dia (CA#3 da US011). |
 | **Só mapas sincronizados entram no documento** | Aplicação | Verificado na geração (RN#3 da US012). |
@@ -243,8 +247,8 @@ A tradução entre o vocabulário das histórias e o do schema. É esta tabela q
 | Gênero alimentício | `food_item` | Ganha `normalized_name` para a unicidade. |
 | Mapa (do dia) | `meal_map` | Guarda o nome do artefato institucional — o mapa é o documento que dá nome ao MAE. Métodos `situacao()`, `completo()` e `reaberto()` viram derivação de leitura. |
 | Refeição | `meal` | — |
-| Alteração do cardápio | `menu_change` | Só o motivo; o item substituído não existe no formulário oficial. |
-| Gênero utilizado | `meal_food_item` | Resolve o muitos-para-muitos refeição × gênero; vira a coluna GÊNEROS UTILIZADOS. |
+| Alteração do cardápio | `menu_change` | Uma por dia; só o motivo, o item substituído não existe no formulário oficial. |
+| Gênero utilizado | `meal_map_food_item` | Resolve o muitos-para-muitos dia × gênero; vira a coluna GÊNEROS UTILIZADOS. |
 | Gênero usado na troca | `menu_change_food_item` | Resolve alteração × gênero; vira a coluna "em caso de alterações". |
 | Modelo oficial do documento | `document_template` | — |
 | Documento gerado | `generated_document` | `periodo()` e `quantidadeMapas()` derivam de `document_meal_map`. |

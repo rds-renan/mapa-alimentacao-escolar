@@ -104,6 +104,16 @@ void main() {
         locked: locked,
         updatedAt: DateTime(2026, 9, day),
         meals: meals(day, count: mealCount),
+        // O dia sem gênero não está pronto (decisão 14 da E4).
+        foodItems: const [
+          FoodItemPayload(
+            foodItemId: 'rice',
+            name: 'Arroz',
+            unit: 'quilo',
+            quantity: 3,
+          ),
+        ],
+        menuChange: null,
       );
 
   /// Os 22 dias úteis de setembro, todos preenchidos. `without` tira dias
@@ -447,10 +457,17 @@ DayPayload _completeDraft(String mapDate) => DayPayload(
         type: type,
         description: 'Comida',
         acceptance: 'great',
-        foodItems: const [],
-        menuChange: null,
       ),
   ],
+  foodItems: const [
+    FoodItemPayload(
+      foodItemId: 'rice',
+      name: 'Arroz',
+      unit: 'quilo',
+      quantity: 3,
+    ),
+  ],
+  menuChange: null,
 );
 
 Session _session(String userId) {

@@ -42,7 +42,7 @@ def seta(aberta):
 
 
 VALORES = {
-    'manha.leite.qtd': '1', 'manha.pao.qtd': '4', 'almoco.arroz.qtd': '3', 'refeicoesDia': '312',
+    'generos.leite.qtd': '1', 'generos.pao.qtd': '4', 'generos.arroz.qtd': '3', 'refeicoesDia': '312',
     'manha.otimo.style': BOTAO_ESCOLHIDO, 'manha.bom.style': BOTAO_NEUTRO, 'manha.ruim.style': BOTAO_NEUTRO,
     'almoco.otimo.style': BOTAO_NEUTRO, 'almoco.bom.style': BOTAO_ESCOLHIDO, 'almoco.ruim.style': BOTAO_NEUTRO,
     'tarde.otimo.style': BOTAO_NEUTRO, 'tarde.bom.style': BOTAO_NEUTRO, 'tarde.ruim.style': BOTAO_NEUTRO,
@@ -51,7 +51,7 @@ VALORES = {
                     ' align-items: center; flex-shrink: 0; background: #d4d4d8; justify-content: flex-start;'),
     'switchKnob': ('display: block; width: 24px; height: 24px; border-radius: 999px; background: #ffffff;'
                    ' box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);'),
-    'progressoBarra': 'height: 100%; border-radius: 999px; background: ' + ACENTO + '; width: 67%;',
+    'progressoBarra': 'height: 100%; border-radius: 999px; background: ' + ACENTO + '; width: 75%;',
 }
 
 # Trechos condicionais visíveis no estado acima (lanche da manhã aberto).
@@ -60,17 +60,6 @@ CONDICOES = {'letivo', 'manha.aberta', 'almoco.fechada'}
 # Telas que aparecem por cima de outra: são fotografadas sobre ela.
 SOBREPOSTAS = {'Menu.dc.html': 'VisaoDoMes.dc.html', 'EscolherGenero.dc.html': 'Main.dc.html',
                'AdminReabrirMapa.dc.html': 'AdminMapas.dc.html'}
-
-# Segundo estado da tela do registro, com o almoço aberto e a troca de cardápio à vista.
-ESTADO_EXTRA = {
-    'arquivo': 'Main.dc.html',
-    'imagem': 'e3-3-registro-do-dia-alteracao.png',
-    'rotulo': '3 · Registro (almoço aberto)',
-    'largura': 390, 'altura': 1180,
-    'condicoes': {'letivo', 'almoco.aberta', 'manha.fechada'},
-    'valores': {'manha.setaStyle': seta(False), 'almoco.setaStyle': seta(True)},
-}
-
 
 def navegador():
     for nome in NAVEGADORES:
@@ -170,13 +159,6 @@ def main():
         imagem = nome_de_arquivo(tela['title'])
         fotografar(chrome, html, os.path.join(SAIDA, imagem), largura, altura, arquivo[:-len('.dc.html')])
         print('%-36s %s' % (imagem, tela['title']))
-
-    extra = ESTADO_EXTRA
-    valores = dict(VALORES, **extra['valores'])
-    html = pagina(*partes(extra['arquivo'], extra['condicoes'], valores))
-    fotografar(chrome, html, os.path.join(SAIDA, extra['imagem']),
-               extra['largura'], extra['altura'], 'Main-estado-extra')
-    print('%-36s %s' % (extra['imagem'], extra['rotulo']))
 
     shutil.rmtree(TEMP)
 

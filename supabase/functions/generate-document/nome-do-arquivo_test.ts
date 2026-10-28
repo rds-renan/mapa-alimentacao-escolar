@@ -3,7 +3,15 @@ import { documentFileName } from "./nome-do-arquivo.ts";
 import type { MealMap } from "../_shared/dados.ts";
 
 function day(date: string): MealMap {
-  return { date, schoolDay: true, note: null, mealCount: null, meals: [] };
+  return {
+    date,
+    schoolDay: true,
+    note: null,
+    mealCount: null,
+    meals: [],
+    foodItems: [],
+    change: null,
+  };
 }
 
 Deno.test("o mês vira o nome do arquivo, sem acento e sem espaço", () => {

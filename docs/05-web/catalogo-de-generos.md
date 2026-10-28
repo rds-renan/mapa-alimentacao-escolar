@@ -45,7 +45,7 @@ catálogo já veio para digitar.
 
 ### Trocar a unidade alcança o passado
 
-`meal_food_item` guarda a quantidade e o gênero — **a unidade é lida do
+`meal_map_food_item` guarda a quantidade e o gênero — **a unidade é lida do
 catálogo**. Trocar "pote" por "quilo" faz um dia já registrado passar a dizer
 "3 quilos de manteiga", e sair assim no documento do mapa que ainda não foi
 gerado.

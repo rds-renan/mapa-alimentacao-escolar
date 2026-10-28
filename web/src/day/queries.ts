@@ -23,7 +23,7 @@ import { touch } from './register'
  * confirmou, então é mais novo por construção.
  *
  * A consulta traz o dia **inteiro**, com os gêneros e a alteração do cardápio
- * dentro: o que sobe em `save_meal_map` é o dia todo, e o que não vier deixa
+ * junto: o que sobe em `save_meal_map` é o dia todo, e o que não vier deixa
  * de existir — ler pela metade faria uma correção de descrição apagar em
  * silêncio os gêneros que a colega registrou.
  */
@@ -34,7 +34,7 @@ import { touch } from './register'
  * inteira perde o tipo e volta como erro genérico.
  */
 const DAY_COLUMNS =
-  'id, map_date, updated_at, non_school_day, note, meals_served, locked, meal_map_unlock (unlocked_at), meal (id, type, description, acceptance, meal_food_item (food_item_id, quantity, food_item (name, default_unit)), menu_change (id, reason, menu_change_food_item (food_item_id, quantity, food_item (name, default_unit))))'
+  'id, map_date, updated_at, non_school_day, note, meals_served, locked, meal_map_unlock (unlocked_at), meal (id, type, description, acceptance), meal_map_food_item (food_item_id, quantity, food_item (name, default_unit)), menu_change (id, reason, menu_change_food_item (food_item_id, quantity, food_item (name, default_unit)))'
 
 export function dayQueryKey(mapDate: string) {
   return ['day', mapDate] as const
@@ -82,14 +82,6 @@ async function fetchDay(mapDate: string): Promise<ServerDay | null> {
     type: meal.type,
     description: meal.description,
     acceptance: meal.acceptance,
-    food_items: meal.meal_food_item.map(itemFromRow),
-    menu_change: meal.menu_change
-      ? {
-          id: meal.menu_change.id,
-          reason: meal.menu_change.reason,
-          food_items: meal.menu_change.menu_change_food_item.map(itemFromRow),
-        }
-      : null,
   }))
 
   return {
@@ -103,6 +95,14 @@ async function fetchDay(mapDate: string): Promise<ServerDay | null> {
       note: data.note,
       meals_served: data.meals_served,
       meals,
+      food_items: data.meal_map_food_item.map(itemFromRow),
+      menu_change: data.menu_change
+        ? {
+            id: data.menu_change.id,
+            reason: data.menu_change.reason,
+            food_items: data.menu_change.menu_change_food_item.map(itemFromRow),
+          }
+        : null,
     },
   }
 }

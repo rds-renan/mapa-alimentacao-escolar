@@ -16,7 +16,7 @@
     button { font-family: inherit; cursor: pointer; }
   </style>
 </helmet>
-<div style="width: 390px; min-height: 1180px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
+<div style="width: 390px; min-height: 1220px; background: #fafafa; color: #09090b; display: flex; flex-direction: column;">
 
   <div style="background: #ffffff; border-bottom: 1px solid #e4e4e7; padding: 8px; display: flex; align-items: center; gap: 4px;">
     <button style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 10px; color: #52525b;">
@@ -83,36 +83,6 @@
                   <button onClick="{{manha.ruim.escolher}}" style="{{manha.ruim.style}}">Ruim</button>
                 </div>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 7px;">
-                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
-                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
-                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-                    <span style="font-size: 14px; font-weight: 500;">Leite em pó</span>
-                    <span style="font-size: 11.5px; color: #71717a;">saco</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
-                    <button onClick="{{manha.leite.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
-                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{manha.leite.qtd}}</span>
-                    <button onClick="{{manha.leite.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
-                  </div>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
-                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-                    <span style="font-size: 14px; font-weight: 500;">Pão francês</span>
-                    <span style="font-size: 11.5px; color: #71717a;">quilo</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
-                    <button onClick="{{manha.pao.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
-                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{manha.pao.qtd}}</span>
-                    <button onClick="{{manha.pao.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
-                  </div>
-                </div>
-                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
-              </div>
-              <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Alteração do cardápio</button>
             </div>
           </sc-if>
         </div>
@@ -144,34 +114,6 @@
                   <button onClick="{{almoco.ruim.escolher}}" style="{{almoco.ruim.style}}">Ruim</button>
                 </div>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 7px;">
-                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
-                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
-                </div>
-                <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
-                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
-                    <span style="font-size: 14px; font-weight: 500;">Arroz</span>
-                    <span style="font-size: 11.5px; color: #71717a;">quilo</span>
-                  </div>
-                  <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
-                    <button onClick="{{almoco.arroz.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
-                    <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{almoco.arroz.qtd}}</span>
-                    <button onClick="{{almoco.arroz.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
-                  </div>
-                </div>
-                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
-              </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Alteração do cardápio</span>
-                <button style="min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #d3e3ee; border-radius: 10px; background: #eaf2f8; text-align: left;">
-                  <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
-                    <span style="font-size: 13.5px; font-weight: 500; color: #09090b;">3 bandejas de ovo · 1 lata de óleo de soja</span>
-                    <span style="font-size: 11.5px; color: #52525b;">Não veio o frango na entrega da semana.</span>
-                  </div>
-                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 18l6-6-6-6"></path></svg>
-                </button>
-              </div>
             </div>
           </sc-if>
         </div>
@@ -200,17 +142,63 @@
                   <button onClick="{{tarde.ruim.escolher}}" style="{{tarde.ruim.style}}">Ruim</button>
                 </div>
               </div>
-              <div style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="display: flex; align-items: center; gap: 7px;">
-                  <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Gêneros utilizados</span>
-                  <span style="font-size: 10.5px; color: #a1a1aa; border: 1px solid #e4e4e7; border-radius: 999px; padding: 2px 7px;">opcional</span>
-                </div>
-                <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
-              </div>
-              <button style="min-height: 46px; border: 1px solid #e4e4e7; border-radius: 10px; background: #ffffff; color: #09090b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 3l5 5-5 5"></path><path d="M21 8H9a5 5 0 0 0-5 5v8"></path></svg>Alteração do cardápio</button>
             </div>
           </sc-if>
         </div>
+
+        <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 15px;">
+          <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="flex-grow: 1; font-size: 15px; font-weight: 600; color: #09090b;">Gêneros do dia</span>
+            <span style="font-size: 11px; font-weight: 500; padding: 3px 9px; border-radius: 999px; white-space: nowrap; background: #f0fdf4; color: #15803d; border: 1px solid #dcfce7;">Preenchido</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 14px; font-weight: 500;">Leite em pó</span>
+                <span style="font-size: 11.5px; color: #71717a;">saco</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                <button onClick="{{generos.leite.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{generos.leite.qtd}}</span>
+                <button onClick="{{generos.leite.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 14px; font-weight: 500;">Pão francês</span>
+                <span style="font-size: 11.5px; color: #71717a;">quilo</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                <button onClick="{{generos.pao.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{generos.pao.qtd}}</span>
+                <button onClick="{{generos.pao.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+              </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 10px; min-height: 52px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 6px 6px 6px 12px; background: #ffffff;">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 2px; min-width: 0;">
+                <span style="font-size: 14px; font-weight: 500;">Arroz</span>
+                <span style="font-size: 11.5px; color: #71717a;">quilo</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 2px; border: 1px solid #e4e4e7; border-radius: 9px; background: #fafafa; padding: 2px;">
+                <button onClick="{{generos.arroz.menos}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path></svg></button>
+                <span style="min-width: 30px; text-align: center; font-size: 16px; font-weight: 600; font-variant-numeric: tabular-nums;">{{generos.arroz.qtd}}</span>
+                <button onClick="{{generos.arroz.mais}}" style="width: 38px; height: 38px; display: flex; align-items: center; justify-content: center; border: none; background: transparent; border-radius: 7px; color: #3f3f46;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg></button>
+              </div>
+            </div>
+            <button style="min-height: 46px; border: 1px dashed #d4d4d8; border-radius: 10px; background: transparent; color: #52525b; font-size: 14px; font-weight: 500; display: flex; align-items: center; justify-content: center; gap: 7px;"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>Adicionar gênero</button>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Alteração do cardápio</span>
+            <button style="min-height: 56px; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid #d3e3ee; border-radius: 10px; background: #eaf2f8; text-align: left;">
+              <div style="flex-grow: 1; display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                <span style="font-size: 13.5px; font-weight: 500; color: #09090b;">3 bandejas de ovo · 1 lata de óleo de soja</span>
+                <span style="font-size: 11.5px; color: #52525b;">Não veio o frango na entrega da semana.</span>
+              </div>
+              <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#397ba1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;"><path d="M9 18l6-6-6-6"></path></svg>
+            </button>
+          </div>
+        </div>
+
 
         <div style="background: #ffffff; border: 1px solid #e4e4e7; border-radius: 12px; padding: 14px; display: flex; flex-direction: column; gap: 12px;">
           <div style="display: flex; flex-direction: column; gap: 3px;">
@@ -297,11 +285,12 @@ class Component extends DCLogic {
     const st = this.state;
 
     const manha = this.cartao('manha', accent);
-    manha.leite = this.contador('leite');
-    manha.pao = this.contador('pao');
-
     const almoco = this.cartao('almoco', accent);
-    almoco.arroz = this.contador('arroz');
+    const generos = {
+      leite: this.contador('leite'),
+      pao: this.contador('pao'),
+      arroz: this.contador('arroz')
+    };
 
     const tarde = this.cartao('tarde', accent);
 
@@ -316,10 +305,11 @@ class Component extends DCLogic {
       manha: manha,
       almoco: almoco,
       tarde: tarde,
+      generos: generos,
       refeicoesDia: st.refeicoesDia,
       refeicoesMenos: () => this.setState({ refeicoesDia: Math.max(0, st.refeicoesDia - 1) }),
       refeicoesMais: () => this.setState({ refeicoesDia: st.refeicoesDia + 1 }),
-      progressoBarra: 'height: 100%; border-radius: 999px; background: ' + accent + '; width: ' + (st.naoLetivo ? 100 : Math.round((prontas / 3) * 100)) + '%;'
+      progressoBarra: 'height: 100%; border-radius: 999px; background: ' + accent + '; width: ' + (st.naoLetivo ? 100 : Math.round(((prontas + 1) / 4) * 100)) + '%;'
     };
   }
 }

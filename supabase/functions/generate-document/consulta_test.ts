@@ -13,6 +13,8 @@ function row(overrides: Partial<MealMapRow> = {}): MealMapRow {
     note: null,
     meals_served: 312,
     meal: [],
+    meal_map_food_item: [],
+    menu_change: null,
     ...overrides,
   };
 }
@@ -25,15 +27,11 @@ Deno.test("as refeições saem na ordem do dia, não na do banco", () => {
           type: "afternoon_snack",
           description: "Bolo",
           acceptance: "good",
-          meal_food_item: [],
-          menu_change: null,
         },
         {
           type: "morning_snack",
           description: "Leite com café",
           acceptance: "great",
-          meal_food_item: [],
-          menu_change: null,
         },
       ],
     }),
@@ -62,22 +60,14 @@ Deno.test("os dias saem em ordem cronológica, qualquer que seja a seleção", (
 Deno.test("o gênero traz a unidade do catálogo, e a lista sai por nome", () => {
   const data = toDocumentData("Escola", [
     row({
-      meal: [
-        {
-          type: "lunch",
-          description: "Arroz e feijão",
-          acceptance: null,
-          meal_food_item: [
-            { quantity: 2, food_item: { name: "Feijão", default_unit: "quilo" } },
-            { quantity: 5, food_item: { name: "Arroz", default_unit: "quilo" } },
-          ],
-          menu_change: null,
-        },
+      meal_map_food_item: [
+        { quantity: 2, food_item: { name: "Feijão", default_unit: "quilo" } },
+        { quantity: 5, food_item: { name: "Arroz", default_unit: "quilo" } },
       ],
     }),
   ]);
 
-  assertEquals(data.mealMaps[0].meals[0].foodItems, [
+  assertEquals(data.mealMaps[0].foodItems, [
     { name: "Arroz", amount: 5, unit: "quilo" },
     { name: "Feijão", amount: 2, unit: "quilo" },
   ]);
@@ -90,41 +80,27 @@ Deno.test("a alteração do cardápio vem como objeto ou como lista de um", () =
       { quantity: 3, food_item: { name: "Ovo", default_unit: "bandeja" } },
     ],
   };
-  const meal = {
-    type: "lunch" as const,
-    description: "Arroz, feijão e frango",
-    acceptance: "good" as const,
-    meal_food_item: [],
-  };
 
-  const comoObjeto = toDocumentData("Escola", [
-    row({ meal: [{ ...meal, menu_change: change }] }),
-  ]);
-  const comoLista = toDocumentData("Escola", [
-    row({ meal: [{ ...meal, menu_change: [change] }] }),
-  ]);
+  const comoObjeto = toDocumentData("Escola", [row({ menu_change: change })]);
+  const comoLista = toDocumentData("Escola", [row({ menu_change: [change] })]);
 
-  assertEquals(comoObjeto.mealMaps[0].meals[0].change, {
+  assertEquals(comoObjeto.mealMaps[0].change, {
     reason: "Não veio o frango na entrega.",
     foodItems: [{ name: "Ovo", amount: 3, unit: "bandeja" }],
   });
-  assertEquals(
-    comoLista.mealMaps[0].meals[0].change,
-    comoObjeto.mealMaps[0].meals[0].change,
-  );
+  assertEquals(comoLista.mealMaps[0].change, comoObjeto.mealMaps[0].change);
 });
 
 Deno.test("o registro parcial não vira invenção", () => {
   const data = toDocumentData("Escola", [
     row({
       meals_served: null,
+      meal_map_food_item: null,
       meal: [
         {
           type: "lunch",
           description: null,
           acceptance: null,
-          meal_food_item: null,
-          menu_change: null,
         },
       ],
     }),
@@ -133,7 +109,7 @@ Deno.test("o registro parcial não vira invenção", () => {
   const meal = data.mealMaps[0].meals[0];
   assertEquals(meal.description, "");
   assertEquals(meal.acceptance, null);
-  assertEquals(meal.foodItems, []);
+  assertEquals(data.mealMaps[0].foodItems, []);
   assertEquals(data.mealMaps[0].mealCount, null);
 });
 

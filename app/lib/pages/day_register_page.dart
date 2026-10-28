@@ -5,6 +5,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../auth/auth_controller.dart';
+import '../day/day_food_items_card.dart';
 import '../day/food_item_list.dart';
 import '../day/food_item_sheet.dart';
 import '../day/meal_card.dart';
@@ -147,80 +148,76 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
   }
 
   /// O que os steppers de uma lista fazem. O mesmo trio serve às duas listas
-  /// da refeição — os gêneros dela e os da troca —, e é o [list] que diz
+  /// do dia — os gêneros utilizados e os da troca —, e é o [list] que diz
   /// qual.
-  FoodItemActions _foodItemActions(String type, FoodItemList list) {
+  FoodItemActions _foodItemActions(FoodItemList list) {
     return FoodItemActions(
-      add: () => unawaited(_addFoodItem(type, list)),
+      add: () => unawaited(_addFoodItem(list)),
       step: (key, delta) =>
-          _change(stepFoodItemQuantity(_shown!, type, list, key, delta)),
+          _change(stepFoodItemQuantity(_shown!, list, key, delta)),
       setQuantity: (key, quantity) =>
-          _change(setFoodItemQuantity(_shown!, type, list, key, quantity)),
+          _change(setFoodItemQuantity(_shown!, list, key, quantity)),
     );
   }
 
   /// Abre a folha 3b e põe o gênero escolhido na lista. Aberta de dentro da
   /// tela 3a, a folha sobe por cima dela: as duas estão no mesmo
   /// `Navigator`.
-  Future<void> _addFoodItem(String type, FoodItemList list) async {
+  Future<void> _addFoodItem(FoodItemList list) async {
     final day = _shown;
     final profileId = _profileId;
     if (day == null || profileId == null) return;
 
     final choice = await showFoodItemSheet(
       context,
-      type: type,
       mapDate: widget.mapDate,
       chosen: [
-        for (final item in foodItemsOf(mealOf(day, type), list))
-          foodItemKey(item.name),
+        for (final item in foodItemsOf(day, list)) foodItemKey(item.name),
       ],
       catalog: ref.read(catalogRepositoryProvider(profileId)),
     );
     if (choice == null || !mounted) return;
 
-    _change(addFoodItem(_shown!, type, list, choice));
+    _change(addFoodItem(_shown!, list, choice));
   }
 
   /// A tela 3a. A alteração como estava ao abrir é o que o "Cancelar"
   /// devolve — sem isso ele não teria como desfazer, porque o que ela digita
   /// lá já foi para o aparelho na hora.
-  Future<void> _openMenuChange(String type, {required bool readOnly}) async {
+  Future<void> _openMenuChange({required bool readOnly}) async {
     final day = _shown;
     if (day == null) return;
 
-    final before = mealOf(day, type)?.menuChange;
+    final before = day.menuChange;
     _live.value = day;
 
     final exit = await showMenuChangePage(
       context,
-      type: type,
       mapDate: widget.mapDate,
       day: _live,
       readOnly: readOnly,
-      actions: _foodItemActions(type, FoodItemList.menuChange),
-      onReasonChange: (reason) =>
-          _change(setMenuChangeReason(_shown!, type, reason)),
+      actions: _foodItemActions(FoodItemList.menuChange),
+      onReasonChange: (reason) => _change(setMenuChangeReason(_shown!, reason)),
     );
     if (!mounted) return;
 
     final now = _shown!;
-    final current = mealOf(now, type)?.menuChange;
+    final current = now.menuChange;
 
     switch (exit) {
       case MenuChangeExit.cancel:
         if (!identical(current, before)) {
-          _change(setMenuChange(now, type, before));
+          _change(setMenuChange(now, before));
         }
       case MenuChangeExit.remove:
-        _change(setMenuChange(now, type, null));
+        _change(setMenuChange(now, null));
       // Confirmar é fechar — o que está escrito já está gravado. O que ele
       // decide é o que fica: a alteração aberta e fechada sem nada dentro
       // sai do dia, em vez de virar um registro vazio que o servidor
       // recusaria para sempre.
       case null:
         if (current != null && menuChangeIsEmpty(current)) {
-          _change(setMenuChange(now, type, null));
+          _change(setMenuChange(now, null));
         }
     }
   }
@@ -334,10 +331,9 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
                             _change(setAcceptance(day!, type, acceptance)),
                         onMealsServedChange: (value) =>
                             _change(setMealsServed(day!, value)),
-                        foodItemActions: (type) =>
-                            _foodItemActions(type, FoodItemList.meal),
-                        onOpenMenuChange: (type) =>
-                            _openMenuChange(type, readOnly: locked),
+                        foodItemActions: _foodItemActions(FoodItemList.used),
+                        onOpenMenuChange: () =>
+                            _openMenuChange(readOnly: locked),
                         onReady: () => _chooseOpenMealOnce(day!),
                       ),
               ),
@@ -452,8 +448,8 @@ class _DayForm extends StatelessWidget {
   final void Function(String type, String description) onDescriptionChange;
   final void Function(String type, String acceptance) onAcceptanceChange;
   final void Function(int? value) onMealsServedChange;
-  final FoodItemActions Function(String type) foodItemActions;
-  final void Function(String type) onOpenMenuChange;
+  final FoodItemActions foodItemActions;
+  final VoidCallback onOpenMenuChange;
   final VoidCallback onReady;
 
   @override
@@ -489,10 +485,15 @@ class _DayForm extends StatelessWidget {
                   onDescriptionChange(type, description),
               onAcceptanceChange: (acceptance) =>
                   onAcceptanceChange(type, acceptance),
-              foodItems: foodItemActions(type),
-              onOpenMenuChange: () => onOpenMenuChange(type),
             ),
           ],
+          const SizedBox(height: kSpacingUnit * 3),
+          DayFoodItemsCard(
+            day: day,
+            readOnly: readOnly,
+            foodItems: foodItemActions,
+            onOpenMenuChange: onOpenMenuChange,
+          ),
           const SizedBox(height: kSpacingUnit * 3),
           MealsServedCard(
             value: day.mealsServed,

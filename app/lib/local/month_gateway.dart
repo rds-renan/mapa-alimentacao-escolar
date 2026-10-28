@@ -5,9 +5,9 @@ import 'day.dart';
 /// (decisão 4 da E6).
 abstract class MonthGateway {
   /// [firstDay] e [lastDay] são inclusivos. Mesma consulta que a visão do
-  /// mês já faz na web: por `map_date`, trazendo o mapa e as suas refeições,
-  /// com os gêneros utilizados e a alteração do cardápio de cada uma (issue
-  /// #106) — a tela do dia precisa deles para reenviar o dia inteiro.
+  /// mês já faz na web: por `map_date`, trazendo o mapa, as suas refeições,
+  /// os gêneros utilizados e a alteração do cardápio do dia (issues #106 e
+  /// #172) — a tela do dia precisa deles para reenviar o dia inteiro.
   Future<List<RemoteMealMap>> fetchMonth({
     required DateTime firstDay,
     required DateTime lastDay,
@@ -20,38 +20,19 @@ class RemoteMeal {
     required this.type,
     this.description,
     this.acceptance,
-    this.foodItems = const [],
-    this.menuChange,
   });
 
-  factory RemoteMeal.fromRow(Map<String, dynamic> row) {
-    final change = row['menu_change'] as Map<String, dynamic>?;
-
-    return RemoteMeal(
-      id: row['id'] as String,
-      type: row['type'] as String,
-      description: row['description'] as String?,
-      acceptance: row['acceptance'] as String?,
-      foodItems: _foodItemsFromRows(row['meal_food_item']),
-      menuChange: change == null
-          ? null
-          : MenuChangePayload(
-              id: change['id'] as String,
-              reason: change['reason'] as String,
-              foodItems: _foodItemsFromRows(change['menu_change_food_item']),
-            ),
-    );
-  }
+  factory RemoteMeal.fromRow(Map<String, dynamic> row) => RemoteMeal(
+    id: row['id'] as String,
+    type: row['type'] as String,
+    description: row['description'] as String?,
+    acceptance: row['acceptance'] as String?,
+  );
 
   final String id;
   final String type;
   final String? description;
   final String? acceptance;
-
-  /// Os gêneros já na forma em que sobem — o nome e a unidade vêm do
-  /// catálogo, pela junção, como na web (`web/src/day/queries.ts`).
-  final List<FoodItemPayload> foodItems;
-  final MenuChangePayload? menuChange;
 }
 
 List<FoodItemPayload> _foodItemsFromRows(Object? rows) {
@@ -83,26 +64,40 @@ class RemoteMealMap {
     required this.updatedAt,
     required this.meals,
     this.reopened = false,
+    this.foodItems = const [],
+    this.menuChange,
   });
 
-  factory RemoteMealMap.fromRow(Map<String, dynamic> row) => RemoteMealMap(
-    id: row['id'] as String,
-    mapDate: DateTime.parse(row['map_date'] as String),
-    nonSchoolDay: row['non_school_day'] as bool,
-    note: row['note'] as String?,
-    mealsServed: row['meals_served'] as int?,
-    locked: row['locked'] as bool,
-    updatedAt: DateTime.parse(row['updated_at'] as String),
-    // Reaberto é o que está fora do bloqueio e já passou por uma reabertura
-    // — a regra de `fetchMonth` na web. Voltando a um documento, o que ela
-    // precisa ver é o bloqueio; o histórico continua lá, e é da direção.
-    reopened:
-        !(row['locked'] as bool) &&
-        (row['meal_map_unlock'] as List<dynamic>? ?? const []).isNotEmpty,
-    meals: (row['meal'] as List<dynamic>)
-        .map((meal) => RemoteMeal.fromRow(meal as Map<String, dynamic>))
-        .toList(),
-  );
+  factory RemoteMealMap.fromRow(Map<String, dynamic> row) {
+    final change = row['menu_change'] as Map<String, dynamic>?;
+
+    return RemoteMealMap(
+      id: row['id'] as String,
+      mapDate: DateTime.parse(row['map_date'] as String),
+      nonSchoolDay: row['non_school_day'] as bool,
+      note: row['note'] as String?,
+      mealsServed: row['meals_served'] as int?,
+      locked: row['locked'] as bool,
+      updatedAt: DateTime.parse(row['updated_at'] as String),
+      // Reaberto é o que está fora do bloqueio e já passou por uma reabertura
+      // — a regra de `fetchMonth` na web. Voltando a um documento, o que ela
+      // precisa ver é o bloqueio; o histórico continua lá, e é da direção.
+      reopened:
+          !(row['locked'] as bool) &&
+          (row['meal_map_unlock'] as List<dynamic>? ?? const []).isNotEmpty,
+      meals: (row['meal'] as List<dynamic>)
+          .map((meal) => RemoteMeal.fromRow(meal as Map<String, dynamic>))
+          .toList(),
+      foodItems: _foodItemsFromRows(row['meal_map_food_item']),
+      menuChange: change == null
+          ? null
+          : MenuChangePayload(
+              id: change['id'] as String,
+              reason: change['reason'] as String,
+              foodItems: _foodItemsFromRows(change['menu_change_food_item']),
+            ),
+    );
+  }
 
   final String id;
   final DateTime mapDate;
@@ -115,4 +110,9 @@ class RemoteMealMap {
 
   /// Reaberto pela direção e ainda fora de documento (issue #152).
   final bool reopened;
+
+  /// Os gêneros do dia já na forma em que sobem — o nome e a unidade vêm do
+  /// catálogo, pela junção, como na web (`web/src/day/queries.ts`).
+  final List<FoodItemPayload> foodItems;
+  final MenuChangePayload? menuChange;
 }

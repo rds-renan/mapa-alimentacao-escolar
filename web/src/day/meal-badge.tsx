@@ -16,14 +16,21 @@ const APPEARANCE: Record<MealState, string> = {
   empty: 'border-border bg-muted text-muted-foreground',
 }
 
-export function MealBadge({ state }: { state: MealState }) {
+export function MealBadge({
+  state,
+  labels = MEAL_STATE_LABELS,
+}: {
+  state: MealState
+  /** Os gêneros do dia usam as mesmas cores, no masculino. */
+  labels?: Record<MealState, string>
+}) {
   return (
     <span
       data-slot="meal-badge"
       data-state={state}
       className={`inline-flex shrink-0 items-center rounded-full border px-2.5 py-1 text-2xs font-medium whitespace-nowrap ${APPEARANCE[state]}`}
     >
-      {MEAL_STATE_LABELS[state]}
+      {labels[state]}
     </span>
   )
 }

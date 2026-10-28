@@ -36,6 +36,7 @@ function day(overrides: Partial<DayRecord> = {}): DayRecord {
     mealsServed: 300,
     locked: false,
     reopened: false,
+    hasFoodItems: true,
     meals: MEALS,
     pendingUpload: false,
     ...overrides,

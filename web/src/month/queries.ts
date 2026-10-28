@@ -5,6 +5,7 @@ import { supabase } from '@/lib/supabase'
 import { useSync } from '@/local/useSync'
 
 import {
+  dayHasFoodItems,
   mergeDays,
   monthRange,
   recordFromDraft,
@@ -31,7 +32,7 @@ import {
  * máximo uma ou duas linhas por mapa, porque corrigir mapa pronto é raro.
  */
 const MONTH_COLUMNS =
-  'id, map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance), meal_map_unlock (unlocked_at)'
+  'id, map_date, non_school_day, note, meals_served, locked, meal (type, description, acceptance), meal_map_food_item (id), menu_change (menu_change_food_item (id)), meal_map_unlock (unlocked_at)'
 
 export function monthQueryKey(month: MonthKey) {
   return ['month', month] as const
@@ -82,6 +83,12 @@ export async function fetchMonth(month: MonthKey): Promise<DayRecord[]> {
       description: meal.description,
       acceptance: meal.acceptance,
     })),
+    hasFoodItems: dayHasFoodItems({
+      food_items: row.meal_map_food_item,
+      menu_change: row.menu_change
+        ? { food_items: row.menu_change.menu_change_food_item }
+        : null,
+    }),
     pendingUpload: false,
   }))
 }

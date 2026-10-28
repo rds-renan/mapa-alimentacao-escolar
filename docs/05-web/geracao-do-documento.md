@@ -128,17 +128,22 @@ empurrado por espaços. Nos dois casos o conteúdo é reescrito de qualquer jeit
 | Dia | `dd/mm` | na primeira linha do bloco; mesclada no dia |
 | Cardápio realizado | descrição da refeição, depois do rótulo | fiel ao cardápio previsto, mesmo com troca |
 | — grau de aceitação | `( )` vira `(X)` só na opção registrada | sem registro, nenhuma marcação |
-| Gêneros utilizados | gêneros do **dia inteiro**, consolidados | soma por gênero; unidades diferentes não somam |
-| Alterações | gêneros e quantidades da troca, por refeição | vazia quando não houve troca |
+| Gêneros utilizados | gêneros do dia, um por linha | o registro já é do dia; a geração só formata |
+| Alterações | gêneros e quantidades da troca do dia | vazia quando não houve troca |
 | Número de refeições | o número do dia | vazio quando não registrado; `—` em dia não letivo |
-| Justificativa | o motivo da troca, depois do rótulo | prefixado pela refeição, quando há mais de uma |
+| Justificativa | o motivo da troca, depois do rótulo | uma por dia |
 
 Duas dessas linhas merecem nota. **A descrição da refeição permanece fiel ao
 cardápio previsto mesmo quando houve troca** — é o achado da E4 que desmentiu a
-US002, e é o que dá sentido à justificativa. E **os gêneros são consolidados
-por dia** porque a coluna é mesclada no dia, enquanto o registro é por refeição;
-gêneros de mesma unidade somam, mas o mesmo gênero em unidades diferentes vira
-duas linhas, porque somar `kg` com `unidade` seria inventar um número.
+US002, e é o que dá sentido à justificativa. E **os gêneros já chegam por
+dia**, que é como a coluna é mesclada.
+
+> **Revisto na E7.** Até a E7 o registro era por refeição, e a geração somava
+> os gêneros das três numa célula; as justificativas, uma por refeição, saíam
+> prefixadas pelo nome dela. Com os gêneros e a alteração passando a ser do dia
+> ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)), a soma
+> foi feita uma vez só, na migração, e a geração deixou de juntar o que quer
+> que seja.
 
 **Dia não letivo** ocupa o bloco com "DIA NÃO LETIVO:" e a observação, deixa as
 outras refeições em branco e marca `—` no número de refeições. As linhas vazias

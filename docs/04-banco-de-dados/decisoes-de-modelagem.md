@@ -68,6 +68,8 @@ Registrar o item substituído seria defensável em auditoria, mas seria trabalho
 
 **Granularidade**: os gêneros são capturados **por refeição**, embora o formulário os peça por dia numa célula única. As merendeiras sabem de cabeça o que foi de cada refeição, e um modelo mais fino sempre produz um documento mais grosso — a geração junta as três refeições numa célula, e as justificativas do dia numa linha. O contrário seria impossível.
 
+**Revisto na E7**: a granularidade por refeição e a alteração por refeição caíram no teste com as merendeiras. O porquê e o modelo novo estão na [decisão 14](#14-os-gêneros-e-a-alteração-são-do-dia). O resto desta decisão continua valendo: o previsto não muda, a alteração guarda só o que entrou e a justificativa, e as duas listas de gênero continuam separadas.
+
 **Histórias**: US002, US003.
 
 ## 8. Catálogo da escola: unidade no gênero, quantidade inteira no uso
@@ -121,3 +123,18 @@ O que se perde é o rastreio num vocabulário só, e é uma perda real: a força
 Três nomes mereceram cuidado. **`meal_map`** guarda a identidade do artefato institucional: o mapa é o documento que dá nome ao MAE, e um `daily_record` qualquer apagaria isso. **`profile`** segue a convenção do próprio Supabase, e `user` é palavra reservada no PostgreSQL. **`food_item`** traduz "gênero alimentício" sem sugerir receita, como `ingredient` sugeriria.
 
 **Consequência para a E5 e a E6**: a mesma fronteira vale no código — identificadores em inglês, textos de interface em português, sem exceção no meio.
+
+## 14. Os gêneros e a alteração são do dia
+
+**Decisão**: os gêneros utilizados e a alteração do cardápio deixam de pertencer à refeição e passam a pertencer ao **mapa do dia**. `meal_food_item` dá lugar a `meal_map_food_item`, que liga mapa e gênero com a quantidade, um gênero por dia no máximo. `menu_change` passa a apontar para o mapa, no máximo uma por dia, e `menu_change_food_item` não muda. A refeição fica só com o que é dela: o cardápio previsto e a aceitação. Os gêneros contam para o dia estar completo: com as três refeições preenchidas e sem gênero nenhum, o dia fica **pendente**, faltando os gêneros, e como todo pendente não entra no documento. A RN#3 da US001 continua valendo para a refeição, que se conclui sem gênero; quem passa a exigir ao menos um é o dia.
+
+**Por quê**: a [decisão 7](#7-a-alteração-registra-o-que-entrou-não-o-que-saiu) apostou que as merendeiras sabem de cabeça o que foi de cada refeição, e o teste da E7 mostrou o contrário. A Merendeira 1 lançou todos os gêneros do dia numa refeição só e pediu para continuar assim, porque é como ela confere a saída da despensa: pelo dia, não pela refeição. Nada no formulário oficial pedia a divisão. A coluna GÊNEROS UTILIZADOS já é uma célula por dia, e a linha *"Mudança no cardápio, justificativa"* fica sob as três refeições. O modelo mais fino só servia para a geração juntar de volta, e cobrava da merendeira uma decisão que o documento não usa.
+
+O argumento da decisão 7 — "um modelo mais fino sempre produz um documento mais grosso, e o contrário seria impossível" — continua certo como lógica e errado como produto: a finura que ninguém preenche direito não vale o que custa. Com os gêneros no dia, o selo da refeição passa a dizer só se o cardápio e a aceitação estão lá, e o dia ganha um estado que antes não existia: cardápio pronto, gêneros por lançar.
+
+**A alteração foi junto**, embora o nome fale em cardápio. O que ela guarda são gêneros — os que entraram na troca — e uma justificativa, e no documento ela segue a mesma regra dos gêneros utilizados: uma célula e uma linha por dia. Duas trocas no mesmo dia continuam sendo um registro só, como duas trocas na mesma refeição já eram.
+
+**O que aconteceu com o que já existia**: a migration `20261028120000_generos_do_dia.sql` junta os gêneros das três refeições de cada dia num só, somando a quantidade quando o mesmo gênero aparecia em mais de uma refeição. A unidade é do catálogo, então somar é sempre somar a mesma coisa. Se um dia tinha mais de uma alteração, as justificativas se juntam na ordem das refeições, e os gêneros da troca somam do mesmo jeito. Os documentos já gerados não mudam: são arquivos, e o que eles imprimem já era a soma do dia.
+
+**Histórias**: US001, US002, US003, US008.
+

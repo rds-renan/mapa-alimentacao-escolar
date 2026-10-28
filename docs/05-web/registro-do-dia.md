@@ -40,11 +40,24 @@ o padrão: escolher "Ruim" tem de ser tão fácil quanto escolher "Ótimo". Toca
 no que já está escolhido não desmarca — um registro sem aceitação existe, mas
 ninguém o faz de propósito com o dedo.
 
-Abaixo da aceitação vêm os **gêneros utilizados**, opcionais (RN#3 da US001), e
-por último a **alteração do cardápio**, que enquanto não existe é só um botão.
-Os dois são do cartão porque são da refeição: as merendeiras sabem de cabeça o
-que foi de cada uma, e é a geração do documento que junta as três numa célula
-só ([decisão 7 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
+Abaixo das três refeições vem o cartão **Gêneros do dia**: os gêneros
+utilizados e, por último, a **alteração do cardápio**, que enquanto não existe
+é só um botão. Os dois são do dia, e não de cada refeição, porque é assim que
+as merendeiras conferem a saída da despensa e é assim que o formulário os
+imprime: uma célula por dia
+([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)). O cartão
+tem o seu próprio selo — preenchido com ao menos um gênero, pendente quando as
+refeições já estão lá e falta ele, vazio no dia em branco —, porque o dia só
+fica completo com gênero.
+
+> **Revisto na E7.** Até a E7 os gêneros e a alteração ficavam dentro do
+> cartão de cada refeição, apostando que as merendeiras sabiam de cabeça o que
+> foi de cada uma
+> ([decisão 7 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)). Nos
+> testes, a Merendeira 1 lançou os gêneros do dia todo numa refeição só e pediu
+> para seguir assim. O que estava guardado no aparelho no formato antigo é
+> convertido na leitura (`upgradeDay`, em
+> [`day.ts`](../../web/src/local/day.ts)), somando o gênero repetido.
 
 O número de refeições é **um campo só, do dia inteiro** (RN#1 da US005): na
 escola integral as crianças ficam o dia todo, e o número vem das professoras
@@ -94,7 +107,7 @@ do documento.
 ## Os gêneros utilizados, e a alteração do cardápio
 
 São duas listas com a mesma forma e o mesmo gesto, e são duas de propósito:
-alimentam **colunas diferentes** do documento oficial — os gêneros da refeição
+alimentam **colunas diferentes** do documento oficial — os gêneros do dia
 e os gêneros da troca. Por isso a lista é uma peça só no código
 ([`food-item-list.tsx`](../../web/src/day/food-item-list.tsx)) usada nos dois
 lugares: desenhá-la duas vezes faria as duas divergirem na primeira correção.
@@ -120,7 +133,7 @@ apagaria em silêncio o número que ela já tinha ajustado.
 "Adicionar gênero" abre a folha da tela 3b sobre o dia (decisão 7 da E3): busca
 no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade
 padrão. A busca ignora acento e caixa — "feijao" acha "Feijão" —, e o item
-escolhido entra na refeição já com a quantidade em 1. O que já está na lista
+escolhido entra no dia já com a quantidade em 1. O que já está na lista
 aparece marcado e não se escolhe de novo.
 
 O gênero cadastrado ali **nasce no envio**, não na hora: `save_meal_map` cria no
@@ -160,10 +173,10 @@ elemento.
 A tela 3a tem os gêneros usados na troca e o motivo em texto livre, com
 sugestões de motivos frequentes (RNF#1 da US002). **Não há campo para o item que
 saiu** — o formulário oficial não o pede em lugar nenhum —, e há no máximo uma
-alteração por refeição: a justificativa cobre a modificação inteira e os gêneros
-são uma lista, então duas trocas no mesmo almoço são um registro só (RN#2).
+alteração por dia: a justificativa cobre a modificação inteira e os gêneros
+são uma lista, então duas trocas no mesmo dia são um registro só (RN#2).
 
-Registrada, ela aparece **dentro do cartão da refeição**, com os gêneros
+Registrada, ela aparece **dentro do cartão dos gêneros do dia**, com os gêneros
 resumidos e o motivo embaixo, tocável para editar. Tem de aparecer porque é o
 que sai impresso: sem isso, a merendeira abriria a tela 3a no escuro para
 lembrar o que registrou. O resumo pluraliza a unidade com um "s" simples
@@ -314,7 +327,7 @@ separado da tela: o que pode estar errado aqui é a regra.
 | Descrição sem aceitação, e o contrário          | a refeição é pendente, não preenchida         |
 | Descrição só com espaços                        | a refeição continua vazia                     |
 | Dia em branco, dia começado                     | abre na primeira refeição que falta           |
-| Andamento do dia letivo e do não letivo         | quatro partes e uma parte                     |
+| Andamento do dia letivo e do não letivo         | cinco partes e uma parte                      |
 | Escrever numa refeição                          | não mexe nas outras nem no número do dia      |
 | Marcar dia não letivo                           | tira refeições e número do payload            |
 | Desmarcar                                       | devolve o que estava digitado (CA#3 da US006) |
@@ -323,7 +336,7 @@ separado da tela: o que pode estar errado aqui é a regra.
 | O mesmo gênero de novo, com outra caixa         | não duplica nem devolve a quantidade para 1   |
 | "−" no gênero que está em 1                     | o gênero sai da lista                         |
 | Quantidade acima do teto, e abaixo de 1         | corta no `smallint`, e o mínimo é 1           |
-| Gêneros da refeição e da troca                  | são duas listas, e uma não invade a outra     |
+| Gêneros do dia e da troca                       | são duas listas, e uma não invade a outra     |
 | Alteração registrada                            | descrição e aceitação não mudam (CA#3 US002)  |
 | Dois gêneros na mesma troca                     | continua sendo uma alteração só (RN#2 US002)  |
 | Alteração sem motivo, sem gênero, e inteira     | o dia só pode subir quando ela fica inteira   |
@@ -350,10 +363,10 @@ critério por critério da issue #62:
 
 | Cenário                          | O que se afirma                                     |
 | -------------------------------- | --------------------------------------------------- |
-| Escolher um gênero do catálogo   | entra na refeição sem tirá-la da tela do registro   |
+| Escolher um gênero do catálogo   | entra no dia sem tirá-lo da tela do registro        |
 | Stepper e campo da quantidade    | inteiros, unidade do catálogo, teclado numérico     |
 | "−" no gênero que está em 1      | o gênero sai da lista                               |
-| Gênero novo no meio do registro  | entra na refeição com a sua unidade (CA#2 da US009) |
+| Gênero novo no meio do registro  | entra no dia com a sua unidade (CA#2 da US009)      |
 | Catálogo que não veio            | ainda dá para cadastrar                             |
 | Busca "feijao"                   | acha "Feijão carioca" (RNF#1 da US009)              |
 | Alteração registrada             | a refeição continua sendo o cardápio previsto       |

@@ -30,6 +30,7 @@ function dayOf(mapDate: string, overrides: Partial<DayRecord> = {}): DayRecord {
     mealsServed: 300,
     locked: false,
     reopened: false,
+    hasFoodItems: true,
     pendingUpload: false,
     meals: mealsOf('great', 'good', 'poor'),
     ...overrides,

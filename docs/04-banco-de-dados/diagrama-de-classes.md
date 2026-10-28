@@ -6,7 +6,7 @@
 
 ## O domínio em uma frase
 
-Uma **escola** tem **usuários** (administrador e merendeiras) e um **catálogo de gêneros**. Cada dia do calendário pode ter um **mapa**: letivo, com exatamente três **refeições** (cada uma com o cardápio previsto, a aceitação, os **gêneros utilizados** e, quando algo saiu diferente, uma **alteração do cardápio** com os gêneros da troca e o motivo) e o número de refeições do dia; ou não letivo, só com observação. A merendeira escolhe mapas e o sistema gera um **documento** a partir do **modelo oficial** vigente; os mapas incluídos ficam bloqueados até que o administrador registre um **desbloqueio**.
+Uma **escola** tem **usuários** (administrador e merendeiras) e um **catálogo de gêneros**. Cada dia do calendário pode ter um **mapa**: letivo, com exatamente três **refeições** (cada uma com o cardápio previsto e a aceitação), os **gêneros utilizados** no dia, quando algo saiu diferente uma **alteração do cardápio** com os gêneros da troca e o motivo, e o número de refeições do dia; ou não letivo, só com observação. A merendeira escolhe mapas e o sistema gera um **documento** a partir do **modelo oficial** vigente; os mapas incluídos ficam bloqueados até que o administrador registre um **desbloqueio**.
 
 ## Diagrama
 
@@ -96,8 +96,8 @@ classDiagram
     Escola "1" *-- "0..*" DocumentoGerado : emite
 
     Mapa "1" *-- "0..3" Refeicao : compõe-se de
-    Refeicao "1" *-- "0..1" AlteracaoCardapio : registra
-    Refeicao "1" *-- "0..*" GeneroUtilizado : consome
+    Mapa "1" *-- "0..1" AlteracaoCardapio : registra
+    Mapa "1" *-- "0..*" GeneroUtilizado : consome
     AlteracaoCardapio "1" *-- "1..*" GeneroDaAlteracao : consome
     GeneroUtilizado "0..*" --> "1" Genero : refere-se a
     GeneroDaAlteracao "0..*" --> "1" Genero : refere-se a
@@ -177,7 +177,7 @@ O registro de um dia — o que a documentação chama de "mapa do dia". Existe n
 
 Os três métodos são derivações, não dados armazenados:
 
-- `completo()` — dia letivo com número de refeições informado e as três refeições preenchidas (gêneros continuam opcionais — RN#3 da US001).
+- `completo()` — dia letivo com número de refeições informado e as três refeições preenchidas e ao menos um gênero utilizado no dia.
 - `reaberto()` — não está bloqueado e já teve pelo menos um desbloqueio: é o mapa "reaberto para correção" do CA#2 da US023.
 - `situacao()` — o estado que a visão do mês mostra (ver "Estados do dia" abaixo).
 
@@ -189,15 +189,17 @@ Uma das três refeições de um dia letivo: lanche da manhã, almoço ou lanche 
 
 ### AlteracaoCardapio
 
-O registro de que a refeição saiu diferente do previsto: a justificativa, em texto livre e obrigatória (RN#1 da US002), e os gêneros que foram usados na troca. **Não guarda o item substituído** — o formulário oficial não o pede, e exigi-lo seria trabalho que ninguém precisa fazer. No máximo uma por refeição: como a justificativa cobre a modificação inteira e os gêneros são uma lista, duas trocas na mesma refeição são um registro só. **US002.**
+O registro de que o dia saiu diferente do previsto: a justificativa, em texto livre e obrigatória (RN#1 da US002), e os gêneros que foram usados na troca. **Não guarda o item substituído** — o formulário oficial não o pede, e exigi-lo seria trabalho que ninguém precisa fazer. No máximo uma por dia: como a justificativa cobre a modificação inteira e os gêneros são uma lista, duas trocas no mesmo dia são um registro só. **US002.**
 
 ### GeneroUtilizado
 
-A ligação entre uma refeição e um gênero do catálogo, com a quantidade em número inteiro na unidade padrão do gênero (RN#1 da US003). Cada gênero aparece no máximo uma vez por refeição. **US003, US009.**
+A ligação entre o dia e um gênero do catálogo, com a quantidade em número inteiro na unidade padrão do gênero (RN#1 da US003). Cada gênero aparece no máximo uma vez por dia. **US003, US009.**
+
+> **Revisto na E7.** Até a E7, `GeneroUtilizado` e `AlteracaoCardapio` pendiam da `Refeicao`, e o dia completo dispensava gêneros. Nos testes, as merendeiras mostraram que registram o que saiu da despensa no dia, como a linha do formulário, e que um dia sem gênero não está pronto para o documento — ver [decisão 14](decisoes-de-modelagem.md).
 
 ### GeneroDaAlteracao
 
-O mesmo par gênero + quantidade, agora ligado a uma alteração: é o que a coluna "em caso de alterações, descreva os gêneros utilizados e as quantidades" do formulário recebe. Separado do `GeneroUtilizado` porque no documento oficial são duas colunas distintas — o que foi usado na refeição e o que foi usado na troca. **US002, US003.**
+O mesmo par gênero + quantidade, agora ligado a uma alteração: é o que a coluna "em caso de alterações, descreva os gêneros utilizados e as quantidades" do formulário recebe. Separado do `GeneroUtilizado` porque no documento oficial são duas colunas distintas — o que foi usado no dia e o que foi usado na troca. **US002, US003.**
 
 ### ModeloDocumento
 
@@ -220,7 +222,7 @@ A [decisão 4 da E3](../03-ux/decisoes-de-design.md) fixou cinco estados para um
 | `vazio` | Não existe `Mapa` para a data. |
 | `nao_letivo` | `Mapa.naoLetivo` é verdadeiro. |
 | `no_documento` | `Mapa.bloqueado` é verdadeiro — armazenado, porque quem o muda é o servidor (na geração) ou o administrador (no desbloqueio), nunca a merendeira. |
-| `completo` | `Mapa.completo()`: número de refeições informado e as três refeições preenchidas. |
+| `completo` | `Mapa.completo()`: número de refeições informado, as três refeições preenchidas e ao menos um gênero utilizado. |
 | `pendente` | Todo mapa letivo, não bloqueado, que ainda não está completo. |
 
 Um mapa reaberto (`reaberto()`) aparece como `pendente` ou `completo`, com a sinalização adicional de que foi reaberto para correção.

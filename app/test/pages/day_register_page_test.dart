@@ -298,6 +298,8 @@ void main() {
               acceptance: 'great',
             ),
           ],
+          foodItems: const [],
+          menuChange: null,
         ),
       ];
 
@@ -397,7 +399,7 @@ void main() {
         await seedCatalog();
         await openDay(tester, 1);
 
-        expect(find.text('Gêneros utilizados'), findsOneWidget);
+        expect(find.text('Gêneros do dia'), findsOneWidget);
         await tester.tap(find.text('Adicionar gênero'));
         await tester.pumpAndSettle();
 
@@ -460,8 +462,9 @@ void main() {
     },
   );
 
-  testWidgets('sem rede, cadastra o gênero novo na folha e ele entra na '
-      'refeição', (tester) async {
+  testWidgets('sem rede, cadastra o gênero novo na folha e ele entra no dia', (
+    tester,
+  ) async {
     await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
       catalogGateway.fetchError = Exception('sem rede');
       await openDay(tester, 1);
@@ -481,7 +484,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final add = find.widgetWithText(FilledButton, 'Adicionar à refeição');
+      final add = find.widgetWithText(FilledButton, 'Adicionar ao dia');
       expect(tester.widget<FilledButton>(add).onPressed, isNull);
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
@@ -495,7 +498,7 @@ void main() {
       final draft = await container
           .read(syncEngineProvider(cook.id))
           .load('2026-09-01');
-      final item = draft!.meals.single.foodItems.single;
+      final item = draft!.foodItems.single;
       expect(item.foodItemId, isNull);
       expect(item.name, 'Farinha de mandioca');
       expect(item.unit, 'quilo');
@@ -507,7 +510,7 @@ void main() {
 
   testWidgets(
     'a alteração do cardápio guarda gêneros e motivo, e vira resumo no '
-    'cartão — uma só por refeição',
+    'cartão — uma só por dia',
     (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
         await seedCatalog();
@@ -517,7 +520,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(
-          find.textContaining('continua registrado como o cardápio previsto'),
+          find.textContaining('continuam registradas como o cardápio previsto'),
           findsOneWidget,
         );
         expect(find.text('Gêneros utilizados na troca'), findsOneWidget);
@@ -553,11 +556,11 @@ void main() {
         final draft = await container
             .read(syncEngineProvider(cook.id))
             .load('2026-09-01');
-        final change = draft!.meals.single.menuChange!;
+        final change = draft!.menuChange!;
         expect(change.reason, 'Falta de entrega do fornecedor');
         expect(change.foodItems.single.foodItemId, 'egg');
         // A troca não mexe nos gêneros da refeição (decisão 7 da E4).
-        expect(draft.meals.single.foodItems, isEmpty);
+        expect(draft.foodItems, isEmpty);
 
         // Tocar no resumo reabre a mesma alteração para editar.
         await tester.tap(find.text('1 bandeja de ovo'));
@@ -595,7 +598,7 @@ void main() {
       final draft = await container
           .read(syncEngineProvider(cook.id))
           .load('2026-09-01');
-      expect(draft!.meals.single.menuChange, isNull);
+      expect(draft!.menuChange, isNull);
 
       await dispose(tester);
     });
@@ -626,7 +629,7 @@ void main() {
       final draft = await container
           .read(syncEngineProvider(cook.id))
           .load('2026-09-01');
-      expect(draft!.meals.single.menuChange, isNull);
+      expect(draft!.menuChange, isNull);
 
       await dispose(tester);
     });
@@ -651,28 +654,28 @@ void main() {
               type: 'lunch',
               description: 'Arroz e feijão',
               acceptance: 'great',
-              foodItems: [
-                FoodItemPayload(
-                  foodItemId: 'rice',
-                  name: 'Arroz',
-                  unit: 'quilo',
-                  quantity: 4,
-                ),
-              ],
-              menuChange: MenuChangePayload(
-                id: 'change-1',
-                reason: 'Item impróprio',
-                foodItems: [
-                  FoodItemPayload(
-                    foodItemId: 'egg',
-                    name: 'Ovo',
-                    unit: 'bandeja',
-                    quantity: 3,
-                  ),
-                ],
-              ),
             ),
           ],
+          foodItems: [
+            FoodItemPayload(
+              foodItemId: 'rice',
+              name: 'Arroz',
+              unit: 'quilo',
+              quantity: 4,
+            ),
+          ],
+          menuChange: MenuChangePayload(
+            id: 'change-1',
+            reason: 'Item impróprio',
+            foodItems: [
+              FoodItemPayload(
+                foodItemId: 'egg',
+                name: 'Ovo',
+                unit: 'bandeja',
+                quantity: 3,
+              ),
+            ],
+          ),
         ),
       ];
 

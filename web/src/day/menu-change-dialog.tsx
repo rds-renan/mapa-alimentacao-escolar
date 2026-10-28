@@ -10,11 +10,11 @@ import {
   SheetTitle,
 } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
-import type { MealType, MenuChangePayload } from '@/local/day'
+import type { MenuChangePayload } from '@/local/day'
 import { filled } from '@/month/month'
 
 import { FoodItemList, type FoodItemActions } from './food-item-list'
-import { MENU_CHANGE_MESSAGES, mealSubtitle } from './messages'
+import { MENU_CHANGE_MESSAGES, dayTitle } from './messages'
 
 /*
  * A alteração do cardápio — tela 3a (US002).
@@ -26,8 +26,8 @@ import { MENU_CHANGE_MESSAGES, mealSubtitle } from './messages'
  * justificativa (decisão 8 da E3, decisão 7 da E4). É por isso que o aviso do
  * alto existe: sem ele, a tela convidaria a reescrever o cardápio.
  *
- * Há no máximo uma alteração por refeição: a justificativa cobre a modificação
- * inteira e os gêneros são uma lista, então duas trocas no mesmo almoço são um
+ * Há no máximo uma alteração por dia: a justificativa cobre a modificação
+ * inteira e os gêneros são uma lista, então duas trocas no mesmo dia são um
  * registro só (RN#2 da US002).
  *
  * Os botões do rodapé não são um "salvar" — não existe salvar neste aplicativo
@@ -39,7 +39,6 @@ import { MENU_CHANGE_MESSAGES, mealSubtitle } from './messages'
  */
 export function MenuChangeDialog({
   open,
-  type,
   mapDate,
   change,
   readOnly,
@@ -50,7 +49,6 @@ export function MenuChangeDialog({
   onConfirm,
 }: {
   open: boolean
-  type: MealType
   mapDate: string
   change: MenuChangePayload | null
   readOnly: boolean
@@ -99,7 +97,7 @@ export function MenuChangeDialog({
         <header className="flex items-start gap-2 border-b border-border bg-card px-4 py-2.5">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5 py-1.5">
             <SheetTitle>{MENU_CHANGE_MESSAGES.title}</SheetTitle>
-            <SheetDescription>{mealSubtitle(type, mapDate)}</SheetDescription>
+            <SheetDescription>{dayTitle(mapDate)}</SheetDescription>
           </div>
 
           <Button
@@ -115,7 +113,7 @@ export function MenuChangeDialog({
         <div className="flex flex-1 flex-col gap-4 px-4 py-4">
           <p className="flex items-start gap-2 rounded-lg border border-accent-border bg-accent px-3.5 py-3 text-xs leading-relaxed text-accent-foreground">
             <Info className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
-            {MENU_CHANGE_MESSAGES.notice(type)}
+            {MENU_CHANGE_MESSAGES.notice}
           </p>
 
           <div className="flex flex-col gap-2">

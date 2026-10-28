@@ -26,44 +26,20 @@ class DayRepository {
       final meals = await (_db.select(
         _db.meals,
       )..where((t) => t.mealMapId.equals(map.id))).get();
-      final mealIds = meals.map((meal) => meal.id).toList();
-
-      final mealItems =
-          await (_db.select(_db.mealFoodItems)
-                ..where((t) => t.mealId.isIn(mealIds))
+      final items =
+          await (_db.select(_db.mealMapFoodItems)
+                ..where((t) => t.mealMapId.equals(map.id))
                 ..orderBy([(t) => OrderingTerm(expression: t.position)]))
               .get();
-      final changes = await (_db.select(
+      final change = await (_db.select(
         _db.menuChanges,
-      )..where((t) => t.mealId.isIn(mealIds))).get();
-      final changeItems =
-          await (_db.select(_db.menuChangeFoodItems)
-                ..where(
-                  (t) => t.menuChangeId.isIn(changes.map((one) => one.id)),
-                )
-                ..orderBy([(t) => OrderingTerm(expression: t.position)]))
-              .get();
-
-      MenuChangePayload? changeOf(String mealId) {
-        for (final change in changes) {
-          if (change.mealId != mealId) continue;
-          return MenuChangePayload(
-            id: change.id,
-            reason: change.reason,
-            foodItems: [
-              for (final item in changeItems)
-                if (item.menuChangeId == change.id)
-                  FoodItemPayload(
-                    foodItemId: item.foodItemId,
-                    name: item.name,
-                    unit: item.unit,
-                    quantity: item.quantity,
-                  ),
-            ],
-          );
-        }
-        return null;
-      }
+      )..where((t) => t.mealMapId.equals(map.id))).getSingleOrNull();
+      final changeItems = change == null
+          ? const <MenuChangeFoodItem>[]
+          : await (_db.select(_db.menuChangeFoodItems)
+                  ..where((t) => t.menuChangeId.equals(change.id))
+                  ..orderBy([(t) => OrderingTerm(expression: t.position)]))
+                .get();
 
       return ConfirmedDay(
         locked: map.locked,
@@ -82,19 +58,32 @@ class DayRepository {
                 type: meal.type,
                 description: meal.description,
                 acceptance: meal.acceptance,
-                foodItems: [
-                  for (final item in mealItems)
-                    if (item.mealId == meal.id)
+              ),
+          ],
+          foodItems: [
+            for (final item in items)
+              FoodItemPayload(
+                foodItemId: item.foodItemId,
+                name: item.name,
+                unit: item.unit,
+                quantity: item.quantity,
+              ),
+          ],
+          menuChange: change == null
+              ? null
+              : MenuChangePayload(
+                  id: change.id,
+                  reason: change.reason,
+                  foodItems: [
+                    for (final item in changeItems)
                       FoodItemPayload(
                         foodItemId: item.foodItemId,
                         name: item.name,
                         unit: item.unit,
                         quantity: item.quantity,
                       ),
-                ],
-                menuChange: changeOf(meal.id),
-              ),
-          ],
+                  ],
+                ),
         ),
       );
     });
