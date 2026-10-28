@@ -8,12 +8,14 @@ void main() {
     int? mealsServed,
     bool locked = false,
     List<MealRecord> meals = const [],
+    bool hasFoodItems = true,
   }) => DayRecord(
     nonSchoolDay: nonSchoolDay,
     note: note,
     mealsServed: mealsServed,
     locked: locked,
     meals: meals,
+    hasFoodItems: hasFoodItems,
   );
 
   MealRecord meal(String type, {String? description, String? acceptance}) =>
@@ -25,7 +27,26 @@ void main() {
     });
 
     test('registro que existe mas está em branco é vazio, não pendente', () {
-      expect(dayState(day()), DayState.empty);
+      expect(dayState(day(hasFoodItems: false)), DayState.empty);
+    });
+
+    test('o gênero sozinho já tira o dia do vazio', () {
+      expect(dayState(day()), DayState.pending);
+    });
+
+    test('sem gênero lançado, as três refeições ainda não fazem o dia '
+        'completo (decisão 14 da E4)', () {
+      final record = day(
+        mealsServed: 310,
+        hasFoodItems: false,
+        meals: [
+          meal('morning_snack', description: 'Pão', acceptance: 'great'),
+          meal('lunch', description: 'Arroz', acceptance: 'good'),
+          meal('afternoon_snack', description: 'Fruta', acceptance: 'good'),
+        ],
+      );
+      expect(dayState(record), DayState.pending);
+      expect(daySummary(record), 'faltam os gêneros');
     });
 
     test('falta a aceitação de uma refeição: continua pendente', () {

@@ -116,10 +116,14 @@ export interface MealMapRow {
     type: 'morning_snack' | 'lunch' | 'afternoon_snack'
     description: string | null
     acceptance: 'great' | 'good' | 'poor' | null
-    /** Só o registro do dia lê estes dois; o mês não pergunta por eles. */
-    food_items?: UsedFoodItemRow[]
-    menu_change?: { id: string; reason: string; food_items: UsedFoodItemRow[] }
   }[]
+  /**
+   * Os gêneros do dia e a alteração (decisão 14 da E4). O registro do dia lê
+   * tudo; o mês só pergunta se existem, porque é isso que decide se o dia está
+   * preenchido.
+   */
+  food_items?: UsedFoodItemRow[]
+  menu_change?: { id: string; reason: string; food_items: UsedFoodItemRow[] }
   /** Só o registro do dia lê estes; o mês não pergunta por eles. */
   id?: string
   updated_at?: string
@@ -135,7 +139,7 @@ function usedRow(item: UsedFoodItemRow) {
 
 /*
  * A mesma linha, como o registro do dia a pede: com o identificador do mapa e
- * de cada refeição, e com os gêneros e a alteração do cardápio dentro.
+ * de cada refeição, e com os gêneros e a alteração do cardápio do dia.
  */
 function dayRow(row: MealMapRow) {
   return {
@@ -154,15 +158,15 @@ function dayRow(row: MealMapRow) {
       type: meal.type,
       description: meal.description,
       acceptance: meal.acceptance,
-      meal_food_item: (meal.food_items ?? []).map(usedRow),
-      menu_change: meal.menu_change
-        ? {
-            id: meal.menu_change.id,
-            reason: meal.menu_change.reason,
-            menu_change_food_item: meal.menu_change.food_items.map(usedRow),
-          }
-        : null,
     })),
+    meal_map_food_item: (row.food_items ?? []).map(usedRow),
+    menu_change: row.menu_change
+      ? {
+          id: row.menu_change.id,
+          reason: row.menu_change.reason,
+          menu_change_food_item: row.menu_change.food_items.map(usedRow),
+        }
+      : null,
   }
 }
 
@@ -984,6 +988,16 @@ export const supabase = {
                   meal_map_unlock: (row.unlocks ?? []).map((unlock) => ({
                     unlocked_at: unlock.unlocked_at,
                   })),
+                  meal_map_food_item: (row.food_items ?? []).map((item) => ({
+                    id: item.food_item_id,
+                  })),
+                  menu_change: row.menu_change
+                    ? {
+                        menu_change_food_item: row.menu_change.food_items.map(
+                          (item) => ({ id: item.food_item_id })
+                        ),
+                      }
+                    : null,
                   document_meal_map: generatedDocumentRows
                     .filter((document) => document.dates.includes(row.map_date))
                     .map((document) => ({

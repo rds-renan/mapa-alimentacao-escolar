@@ -67,9 +67,13 @@ describe('o estado de cada refeição', () => {
 })
 
 describe('o andamento do dia', () => {
-  it('conta as três refeições e o número de refeições', () => {
-    expect(dayProgress(dayWithMeals())).toEqual({ done: 2, total: 4 })
-    expect(dayProgress(emptyDay(DATE))).toEqual({ done: 0, total: 4 })
+  it('conta as três refeições, o número de refeições e os gêneros do dia', () => {
+    expect(dayProgress(dayWithMeals())).toEqual({ done: 2, total: 5 })
+    expect(dayProgress(emptyDay(DATE))).toEqual({ done: 0, total: 5 })
+    expect(dayProgress(addFoodItem(dayWithMeals(), 'used', RICE))).toEqual({
+      done: 3,
+      total: 5,
+    })
   })
 
   it('no dia não letivo, conta só a observação', () => {
@@ -110,17 +114,22 @@ describe('mexer numa parte não mexe no resto', () => {
 })
 
 describe('o dia não letivo', () => {
-  it('tira as refeições e o número do dia que vai subir (RN#1 da US006)', () => {
-    const marked = setNonSchoolDay(dayWithMeals(), true)
+  it('tira as refeições, os gêneros e o número do dia que vai subir (RN#1 da US006)', () => {
+    const marked = setNonSchoolDay(
+      addFoodItem(dayWithMeals(), 'used', RICE),
+      true
+    )
 
     expect(marked.non_school_day).toBe(true)
     expect(marked.meals).toEqual([])
+    expect(marked.food_items).toEqual([])
+    expect(marked.menu_change).toBeNull()
     expect(marked.meals_served).toBeNull()
     expect(marked.note).toBe('')
   })
 
   it('devolve o que estava digitado quando ela desmarca (CA#3 da US006)', () => {
-    const day = dayWithMeals()
+    const day = addFoodItem(dayWithMeals(), 'used', RICE)
     const kept = schoolDayContent(day)
     const marked = setNote(setNonSchoolDay(day, true), 'Conselho de classe')
 
@@ -130,6 +139,7 @@ describe('o dia não letivo', () => {
     expect(back.note).toBeNull()
     expect(back.meals_served).toBe(312)
     expect(mealOf(back, 'morning_snack')?.description).toBe('Pão com manteiga')
+    expect(back.food_items).toEqual([{ ...RICE, quantity: 1 }])
   })
 })
 
@@ -155,48 +165,48 @@ describe('o número de refeições', () => {
 })
 
 // ---------------------------------------------------------------------------
-// Os gêneros utilizados e a alteração do cardápio (issue #63)
+// Os gêneros do dia e a alteração do cardápio (issues #63 e #172)
 // ---------------------------------------------------------------------------
 
 const RICE = { food_item_id: 'rice', name: 'Arroz', unit: 'quilo' }
 const EGG = { food_item_id: null, name: 'Ovo', unit: 'bandeja' }
 
-describe('os gêneros de uma refeição', () => {
+describe('os gêneros do dia', () => {
   it('entram com a quantidade em 1 e com a unidade do catálogo', () => {
-    const day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
-    const [item] = mealOf(day, 'lunch')?.food_items ?? []
+    const day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    const [item] = day.food_items ?? []
 
     expect(item).toEqual({ ...RICE, quantity: 1 })
   })
 
   it('não entram duas vezes, nem voltam para 1 quando ela repete o gesto', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
-    day = setFoodItemQuantity(day, 'lunch', 'meal', 'arroz', 4)
+    let day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    day = setFoodItemQuantity(day, 'used', 'arroz', 4)
     // O mesmo gênero, com a caixa e o espaço que o servidor normalizaria.
-    day = addFoodItem(day, 'lunch', 'meal', { ...RICE, name: ' ARROZ ' })
+    day = addFoodItem(day, 'used', { ...RICE, name: ' ARROZ ' })
 
-    expect(mealOf(day, 'lunch')?.food_items).toEqual([{ ...RICE, quantity: 4 }])
+    expect(day.food_items).toEqual([{ ...RICE, quantity: 4 }])
   })
 
   it('andam de um em um, e o "−" de quem está em 1 tira o gênero', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
-    day = stepFoodItemQuantity(day, 'lunch', 'meal', 'arroz', 1)
-    expect(mealOf(day, 'lunch')?.food_items[0].quantity).toBe(2)
+    let day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    day = stepFoodItemQuantity(day, 'used', 'arroz', 1)
+    expect(day.food_items[0].quantity).toBe(2)
 
-    day = stepFoodItemQuantity(day, 'lunch', 'meal', 'arroz', -1)
-    expect(mealOf(day, 'lunch')?.food_items[0].quantity).toBe(1)
+    day = stepFoodItemQuantity(day, 'used', 'arroz', -1)
+    expect(day.food_items[0].quantity).toBe(1)
 
-    day = stepFoodItemQuantity(day, 'lunch', 'meal', 'arroz', -1)
-    expect(mealOf(day, 'lunch')?.food_items).toEqual([])
+    day = stepFoodItemQuantity(day, 'used', 'arroz', -1)
+    expect(day.food_items).toEqual([])
   })
 
   it('não passam do que o banco guarda, e não descem abaixo de 1', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
-    day = setFoodItemQuantity(day, 'lunch', 'meal', 'arroz', 99_999)
-    expect(mealOf(day, 'lunch')?.food_items[0].quantity).toBe(32_767)
+    let day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    day = setFoodItemQuantity(day, 'used', 'arroz', 99_999)
+    expect(day.food_items[0].quantity).toBe(32_767)
 
-    day = setFoodItemQuantity(day, 'lunch', 'meal', 'arroz', 0)
-    expect(mealOf(day, 'lunch')?.food_items[0].quantity).toBe(1)
+    day = setFoodItemQuantity(day, 'used', 'arroz', 0)
+    expect(day.food_items[0].quantity).toBe(1)
   })
 
   it('aceitam só dígitos no campo da quantidade', () => {
@@ -207,18 +217,18 @@ describe('os gêneros de uma refeição', () => {
   })
 
   it('não se misturam com os da troca: são duas listas', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
-    day = addFoodItem(day, 'lunch', 'menu_change', EGG)
+    let day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    day = addFoodItem(day, 'menu_change', EGG)
 
-    expect(mealOf(day, 'lunch')?.food_items).toHaveLength(1)
-    expect(mealOf(day, 'lunch')?.menu_change?.food_items).toHaveLength(1)
-    expect(mealOf(day, 'lunch')?.food_items[0].name).toBe('Arroz')
+    expect(day.food_items).toHaveLength(1)
+    expect(day.menu_change?.food_items).toHaveLength(1)
+    expect(day.food_items[0].name).toBe('Arroz')
   })
 
   it('não mexem na descrição nem na aceitação da refeição (CA#3 da US002)', () => {
     let day = dayWithMeals()
-    day = addFoodItem(day, 'morning_snack', 'menu_change', EGG)
-    day = setMenuChangeReason(day, 'morning_snack', 'Não veio o pão.')
+    day = addFoodItem(day, 'menu_change', EGG)
+    day = setMenuChangeReason(day, 'Não veio o pão.')
 
     const meal = mealOf(day, 'morning_snack')
     expect(meal?.description).toBe('Pão com manteiga')
@@ -228,81 +238,73 @@ describe('os gêneros de uma refeição', () => {
 
 describe('a alteração do cardápio', () => {
   it('nasce do primeiro gesto, mesmo antes de ter motivo', () => {
-    const day = addFoodItem(emptyDay(DATE), 'lunch', 'menu_change', EGG)
-    const change = mealOf(day, 'lunch')?.menu_change
+    const day = addFoodItem(emptyDay(DATE), 'menu_change', EGG)
+    const change = day.menu_change
 
     expect(change?.reason).toBe('')
     expect(change?.food_items).toEqual([{ ...EGG, quantity: 1 }])
   })
 
   it('é uma só por refeição (RN#2 da US002)', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'menu_change', EGG)
-    const born = mealOf(day, 'lunch')?.menu_change?.id
-    day = addFoodItem(day, 'lunch', 'menu_change', RICE)
+    let day = addFoodItem(emptyDay(DATE), 'menu_change', EGG)
+    const born = day.menu_change?.id
+    day = addFoodItem(day, 'menu_change', RICE)
 
-    expect(mealOf(day, 'lunch')?.menu_change?.id).toBe(born)
-    expect(mealOf(day, 'lunch')?.menu_change?.food_items).toHaveLength(2)
+    expect(day.menu_change?.id).toBe(born)
+    expect(day.menu_change?.food_items).toHaveLength(2)
   })
 
   it('só está inteira com gênero e motivo', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'menu_change', EGG)
-    expect(
-      menuChangeIsComplete(mealOf(day, 'lunch')?.menu_change ?? null)
-    ).toBe(false)
+    let day = addFoodItem(emptyDay(DATE), 'menu_change', EGG)
+    expect(menuChangeIsComplete(day.menu_change ?? null)).toBe(false)
 
-    day = setMenuChangeReason(day, 'lunch', '   ')
-    expect(
-      menuChangeIsComplete(mealOf(day, 'lunch')?.menu_change ?? null)
-    ).toBe(false)
+    day = setMenuChangeReason(day, '   ')
+    expect(menuChangeIsComplete(day.menu_change ?? null)).toBe(false)
 
-    day = setMenuChangeReason(day, 'lunch', 'Não veio o frango.')
-    expect(
-      menuChangeIsComplete(mealOf(day, 'lunch')?.menu_change ?? null)
-    ).toBe(true)
+    day = setMenuChangeReason(day, 'Não veio o frango.')
+    expect(menuChangeIsComplete(day.menu_change ?? null)).toBe(true)
   })
 
   it('aberta e fechada sem nada dentro é vazia, e sai do dia', () => {
-    let day = setMenuChangeReason(emptyDay(DATE), 'lunch', '')
-    expect(menuChangeIsEmpty(mealOf(day, 'lunch')?.menu_change ?? null)).toBe(
-      true
-    )
+    let day = setMenuChangeReason(emptyDay(DATE), '')
+    expect(menuChangeIsEmpty(day.menu_change ?? null)).toBe(true)
 
-    day = setMenuChange(day, 'lunch', null)
-    expect(mealOf(day, 'lunch')?.menu_change).toBeNull()
+    day = setMenuChange(day, null)
+    expect(day.menu_change).toBeNull()
   })
 
   it('volta ao que era quando ela cancela', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'menu_change', EGG)
-    day = setMenuChangeReason(day, 'lunch', 'Não veio o frango.')
-    const before = mealOf(day, 'lunch')?.menu_change ?? null
+    let day = addFoodItem(emptyDay(DATE), 'menu_change', EGG)
+    day = setMenuChangeReason(day, 'Não veio o frango.')
+    const before = day.menu_change ?? null
 
-    day = setMenuChangeReason(day, 'lunch', 'outra coisa')
-    day = removeFoodItem(day, 'lunch', 'menu_change', 'ovo')
-    day = setMenuChange(day, 'lunch', before)
+    day = setMenuChangeReason(day, 'outra coisa')
+    day = removeFoodItem(day, 'menu_change', 'ovo')
+    day = setMenuChange(day, before)
 
-    expect(mealOf(day, 'lunch')?.menu_change).toEqual(before)
+    expect(day.menu_change).toEqual(before)
   })
 })
 
 describe('o que a fila deixa subir', () => {
   it('segura o dia enquanto a alteração não tem motivo nem gênero', () => {
-    let day = addFoodItem(emptyDay(DATE), 'lunch', 'menu_change', EGG)
+    let day = addFoodItem(emptyDay(DATE), 'menu_change', EGG)
     expect(canBeSent(day)).toBe(false)
 
-    day = setMenuChangeReason(day, 'lunch', 'Não veio o frango.')
+    day = setMenuChangeReason(day, 'Não veio o frango.')
     expect(canBeSent(day)).toBe(true)
 
-    day = removeFoodItem(day, 'lunch', 'menu_change', 'ovo')
+    day = removeFoodItem(day, 'menu_change', 'ovo')
     expect(canBeSent(day)).toBe(false)
   })
 
   it('deixa subir a refeição com gêneros e sem alteração nenhuma', () => {
-    const day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', RICE)
+    const day = addFoodItem(emptyDay(DATE), 'used', RICE)
     expect(canBeSent(day)).toBe(true)
   })
 
   it('segura o gênero a nascer que ficou sem unidade', () => {
-    const day = addFoodItem(emptyDay(DATE), 'lunch', 'meal', {
+    const day = addFoodItem(emptyDay(DATE), 'used', {
       food_item_id: null,
       name: 'Feijão preto',
       unit: null,

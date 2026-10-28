@@ -6,12 +6,18 @@ import 'day.dart';
 import 'month_gateway.dart';
 
 /// Um dia do mês com as suas refeições, o par que a visão do mês (US008)
-/// consulta para calcular os cinco estados.
+/// consulta para calcular os cinco estados — mais se o dia tem gênero
+/// lançado, que desde a decisão 14 da E4 conta para ele estar preenchido.
 class MealMapWithMeals {
-  const MealMapWithMeals({required this.mealMap, required this.meals});
+  const MealMapWithMeals({
+    required this.mealMap,
+    required this.meals,
+    this.hasFoodItems = false,
+  });
 
   final MealMap mealMap;
   final List<Meal> meals;
+  final bool hasFoodItems;
 }
 
 /// A cópia local do mês (CA#1 da issue #102), no mesmo espírito do
@@ -39,11 +45,33 @@ class MonthRepository {
         _db.meals,
       )..where((t) => t.mealMapId.isIn(ids))).get();
 
+      final withItems = {
+        ...(await (_db.selectOnly(_db.mealMapFoodItems, distinct: true)
+              ..addColumns([_db.mealMapFoodItems.mealMapId])
+              ..where(_db.mealMapFoodItems.mealMapId.isIn(ids)))
+            .map((row) => row.read(_db.mealMapFoodItems.mealMapId)!)
+            .get()),
+        ...(await (_db.selectOnly(_db.menuChanges)
+              ..addColumns([_db.menuChanges.mealMapId])
+              ..join([
+                innerJoin(
+                  _db.menuChangeFoodItems,
+                  _db.menuChangeFoodItems.menuChangeId.equalsExp(
+                    _db.menuChanges.id,
+                  ),
+                ),
+              ])
+              ..where(_db.menuChanges.mealMapId.isIn(ids)))
+            .map((row) => row.read(_db.menuChanges.mealMapId)!)
+            .get()),
+      };
+
       return [
         for (final map in maps)
           MealMapWithMeals(
             mealMap: map,
             meals: meals.where((meal) => meal.mealMapId == map.id).toList(),
+            hasFoodItems: withItems.contains(map.id),
           ),
       ];
     });
@@ -81,10 +109,10 @@ class MonthRepository {
                     type: meal.type,
                     description: meal.description,
                     acceptance: meal.acceptance,
-                    foodItems: meal.foodItems,
-                    menuChange: meal.menuChange,
                   ),
               ],
+              foodItems: map.foodItems,
+              menuChange: map.menuChange,
             ),
           ),
         );

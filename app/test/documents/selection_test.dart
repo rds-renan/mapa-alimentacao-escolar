@@ -25,6 +25,7 @@ void main() {
     bool unsent = false,
     int? mealsServed = 300,
     List<MealRecord> meals = meals,
+    bool hasFoodItems = true,
   }) => DayRecord(
     id: id,
     nonSchoolDay: nonSchoolDay,
@@ -33,12 +34,19 @@ void main() {
     locked: locked,
     unsent: unsent,
     meals: meals,
+    hasFoodItems: hasFoodItems,
   );
 
   final date = DateTime(2026, 9, 1);
 
   test('dia preenchido e enviado entra', () {
     expect(toOption(date, day()).eligible, isTrue);
+  });
+
+  test('dia sem gênero lançado é pendente e não entra (decisão 14 da E4)', () {
+    final option = toOption(date, day(hasFoodItems: false));
+    expect(option.eligible, isFalse);
+    expect(missingReason(option), MissingReason.pending);
   });
 
   test('dia não letivo entra: também é registro do mês', () {
@@ -187,4 +195,6 @@ DayPayload _draft({required bool nonSchoolDay, required int mealsServed}) =>
       note: null,
       mealsServed: mealsServed,
       meals: const [],
+      foodItems: const [],
+      menuChange: null,
     );

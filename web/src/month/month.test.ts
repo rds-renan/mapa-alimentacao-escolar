@@ -31,6 +31,7 @@ function day(overrides: Partial<DayRecord> = {}): DayRecord {
     mealsServed: null,
     locked: false,
     reopened: false,
+    hasFoodItems: true,
     meals: [],
     pendingUpload: false,
     ...overrides,
@@ -49,7 +50,21 @@ describe('estados do dia', () => {
   })
 
   it('registro que existe mas em que ninguém escreveu nada também é vazio', () => {
-    expect(dayState(day())).toBe('empty')
+    expect(dayState(day({ hasFoodItems: false }))).toBe('empty')
+  })
+
+  it('sem gênero lançado, o dia com as três refeições ainda está pendente', () => {
+    const record = day({
+      meals: THREE_MEALS,
+      mealsServed: 310,
+      hasFoodItems: false,
+    })
+    expect(dayState(record)).toBe('pending')
+    expect(daySummary(record)).toBe('faltam os gêneros')
+  })
+
+  it('o gênero sozinho já tira o dia do vazio', () => {
+    expect(dayState(day({ hasFoodItems: true }))).toBe('pending')
   })
 
   it('as três refeições e o número de refeições fazem o dia completo', () => {
@@ -229,9 +244,11 @@ describe('o rascunho do aparelho e a linha do servidor', () => {
       type: meal.type,
       description: meal.description,
       acceptance: meal.acceptance,
-      food_items: [],
-      menu_change: null,
     })),
+    food_items: [
+      { food_item_id: null, name: 'Arroz', unit: 'kg', quantity: 3 },
+    ],
+    menu_change: null,
   }
 
   it('o rascunho prevalece: é ele que ainda não foi confirmado', () => {

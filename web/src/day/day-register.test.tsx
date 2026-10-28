@@ -176,7 +176,7 @@ describe('o registro de um dia comum', () => {
     await waitFor(async () => {
       const day = (await storedDay())?.day
       expect(day?.meals[0].acceptance).toBeNull()
-      expect(day?.meals[0].food_items).toEqual([])
+      expect(day?.food_items).toEqual([])
       expect(day?.meals_served).toBeNull()
     })
   })

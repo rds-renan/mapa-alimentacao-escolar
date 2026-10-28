@@ -17,9 +17,8 @@ import type {
 
 /**
  * A ordem em que as refeições aparecem no documento. O preenchimento acha cada
- * linha pelo rótulo, então ela não decide onde a refeição cai — decide a ordem
- * das colunas que listam **várias**: os gêneros da troca e a justificativa,
- * montados na ordem desta lista.
+ * linha pelo rótulo, então ela não decide onde a refeição cai; ordenar aqui é
+ * o que faz o mesmo dia chegar igual ao preenchedor duas vezes.
  */
 const MEAL_ORDER: MealKind[] = ["morning_snack", "lunch", "afternoon_snack"];
 
@@ -30,15 +29,11 @@ export const MEAL_MAP_SELECT = `
   non_school_day,
   note,
   meals_served,
-  meal (
-    type,
-    description,
-    acceptance,
-    meal_food_item ( quantity, food_item ( name, default_unit ) ),
-    menu_change (
-      reason,
-      menu_change_food_item ( quantity, food_item ( name, default_unit ) )
-    )
+  meal ( type, description, acceptance ),
+  meal_map_food_item ( quantity, food_item ( name, default_unit ) ),
+  menu_change (
+    reason,
+    menu_change_food_item ( quantity, food_item ( name, default_unit ) )
   )
 `;
 
@@ -61,8 +56,6 @@ interface MealRow {
   type: MealKind;
   description: string | null;
   acceptance: Acceptance | null;
-  meal_food_item: UsedFoodItemRow[] | null;
-  menu_change: MenuChangeRow | MenuChangeRow[] | null;
 }
 
 export interface MealMapRow {
@@ -72,6 +65,8 @@ export interface MealMapRow {
   note: string | null;
   meals_served: number | null;
   meal: MealRow[] | null;
+  meal_map_food_item: UsedFoodItemRow[] | null;
+  menu_change: MenuChangeRow | MenuChangeRow[] | null;
 }
 
 /**
@@ -115,8 +110,6 @@ function toMeal(row: MealRow): Meal {
     // (CA#3 da US001).
     description: row.description ?? "",
     acceptance: row.acceptance,
-    foodItems: toFoodItems(row.meal_food_item),
-    change: toMenuChange(row.menu_change),
   };
 }
 
@@ -132,6 +125,8 @@ function toMealMap(row: MealMapRow): MealMap {
     note: row.note,
     mealCount: row.meals_served,
     meals,
+    foodItems: toFoodItems(row.meal_map_food_item),
+    change: toMenuChange(row.menu_change),
   };
 }
 

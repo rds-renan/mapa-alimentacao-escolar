@@ -13,11 +13,11 @@ import 'register.dart';
 /// `web/src/day/food-item-sheet.tsx` (issue #106).
 ///
 /// Uma folha que sobe sobre o registro, e não uma tela de destino: mandar a
-/// merendeira ao catálogo no meio de uma refeição é literalmente sair do
+/// merendeira ao catálogo no meio do registro é literalmente sair do
 /// fluxo — ela perderia o lugar, e o item cadastrado lá não se prenderia
-/// sozinho à refeição (decisão 7 da E3). Por isso o cadastro de um gênero
+/// sozinho ao dia (decisão 7 da E3). Por isso o cadastro de um gênero
 /// novo mora aqui dentro, no fim da lista: o pior caso vira dois gestos, e o
-/// gênero escolhido entra na refeição já com a quantidade em 1.
+/// gênero escolhido entra no dia já com a quantidade em 1.
 ///
 /// **Funciona sem rede, as duas metades.** A lista é a cópia do catálogo no
 /// aparelho (issue #102); abrir a folha pede uma atualização por baixo, que
@@ -28,7 +28,6 @@ import 'register.dart';
 /// Devolve o gênero escolhido, ou nulo se ela fechou sem escolher.
 Future<FoodItemChoice?> showFoodItemSheet(
   BuildContext context, {
-  required String type,
   required String mapDate,
   required List<String> chosen,
   required CatalogRepository catalog,
@@ -38,25 +37,19 @@ Future<FoodItemChoice?> showFoodItemSheet(
     isScrollControlled: true,
     useSafeArea: true,
     showDragHandle: true,
-    builder: (context) => FoodItemSheet(
-      type: type,
-      mapDate: mapDate,
-      chosen: chosen,
-      catalog: catalog,
-    ),
+    builder: (context) =>
+        FoodItemSheet(mapDate: mapDate, chosen: chosen, catalog: catalog),
   );
 }
 
 class FoodItemSheet extends StatefulWidget {
   const FoodItemSheet({
     super.key,
-    required this.type,
     required this.mapDate,
     required this.chosen,
     required this.catalog,
   });
 
-  final String type;
   final String mapDate;
 
   /// As chaves ([foodItemKey]) que já estão na lista de destino.
@@ -143,7 +136,7 @@ class _FoodItemSheetState extends State<FoodItemSheet> {
                         style: theme.textTheme.titleLarge,
                       ),
                       Text(
-                        mealSubtitle(widget.type, widget.mapDate),
+                        dayTitle(widget.mapDate),
                         style: theme.textTheme.bodySmall?.copyWith(
                           color: theme.colorScheme.onSurfaceVariant,
                         ),

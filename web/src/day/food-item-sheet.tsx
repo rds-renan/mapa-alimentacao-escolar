@@ -18,19 +18,19 @@ import {
   type FoodItem,
 } from '@/food-items/catalog'
 import { useFoodItems } from '@/food-items/queries'
-import type { FoodItemPayload, MealType } from '@/local/day'
+import type { FoodItemPayload } from '@/local/day'
 
-import { FOOD_ITEM_SHEET_MESSAGES, mealSubtitle } from './messages'
+import { FOOD_ITEM_SHEET_MESSAGES, dayTitle } from './messages'
 
 /*
  * Escolher gênero — tela 3b (US009, US003).
  *
  * Uma folha que sobe sobre o registro, e não uma tela de destino: mandar a
- * merendeira ao catálogo no meio de uma refeição é literalmente sair do fluxo
- * — ela perderia o lugar, e o item cadastrado lá não se prenderia sozinho à
- * refeição (decisão 7 da E3). Por isso o cadastro de um gênero novo mora aqui
+ * merendeira ao catálogo no meio do registro é literalmente sair do fluxo
+ * — ela perderia o lugar, e o item cadastrado lá não se prenderia sozinho ao
+ * dia (decisão 7 da E3). Por isso o cadastro de um gênero novo mora aqui
  * dentro, no fim da lista: o pior caso vira dois gestos, e o gênero escolhido
- * entra na refeição já com a quantidade em 1.
+ * entra no dia já com a quantidade em 1.
  *
  * O gênero cadastrado aqui nasce de verdade no envio, não agora: `save_meal_map`
  * cria no catálogo o que ainda não existir, na mesma operação que grava o dia.
@@ -41,14 +41,12 @@ import { FOOD_ITEM_SHEET_MESSAGES, mealSubtitle } from './messages'
  */
 export function FoodItemSheet({
   open,
-  type,
   mapDate,
   chosen,
   onOpenChange,
   onChoose,
 }: {
   open: boolean
-  type: MealType
   mapDate: string
   /** Os nomes normalizados que já estão na lista de destino. */
   chosen: string[]
@@ -92,7 +90,7 @@ export function FoodItemSheet({
         <div className="flex items-start gap-2 px-4 pt-3 pb-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <SheetTitle>{FOOD_ITEM_SHEET_MESSAGES.title}</SheetTitle>
-            <SheetDescription>{mealSubtitle(type, mapDate)}</SheetDescription>
+            <SheetDescription>{dayTitle(mapDate)}</SheetDescription>
           </div>
 
           <SheetClose asChild>

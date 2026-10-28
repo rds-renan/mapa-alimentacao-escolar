@@ -85,6 +85,14 @@ function mapOf(
     meals_served: 312,
     locked: true,
     meal: THREE_MEALS,
+    food_items: [
+      {
+        food_item_id: 'f-arroz',
+        name: 'Arroz',
+        default_unit: 'kg',
+        quantity: 3,
+      },
+    ],
     ...overrides,
   }
 }

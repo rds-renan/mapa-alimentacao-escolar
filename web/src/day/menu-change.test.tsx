@@ -67,7 +67,7 @@ const CATALOG = [
   { id: 'milk', name: 'Leite em pó', default_unit: 'saco' },
 ]
 
-/** Um dia que já voltou do servidor com a troca do almoço registrada. */
+/** Um dia que já voltou do servidor com a troca registrada. */
 function withChange(): MealMapRow {
   return {
     map_date: DATE,
@@ -80,20 +80,20 @@ function withChange(): MealMapRow {
         type: 'lunch',
         description: 'Arroz, feijão e frango',
         acceptance: 'good',
-        menu_change: {
-          id: 'change-1',
-          reason: 'Não veio o frango na entrega da semana.',
-          food_items: [
-            {
-              food_item_id: 'egg',
-              name: 'Ovo',
-              default_unit: 'bandeja',
-              quantity: 3,
-            },
-          ],
-        },
       },
     ],
+    menu_change: {
+      id: 'change-1',
+      reason: 'Não veio o frango na entrega da semana.',
+      food_items: [
+        {
+          food_item_id: 'egg',
+          name: 'Ovo',
+          default_unit: 'bandeja',
+          quantity: 3,
+        },
+      ],
+    },
   }
 }
 
@@ -135,6 +135,11 @@ async function storedLunch() {
   return day?.meals.find((meal) => meal.type === 'lunch')
 }
 
+/** O dia guardado no aparelho: é nele que moram os gêneros e a alteração. */
+async function storedContent() {
+  return (await storedDay())?.day
+}
+
 /** Abre a folha 3b a partir do cartão aberto e escolhe um gênero do catálogo. */
 async function chooseFromCatalog(name: string) {
   fireEvent.click(screen.getByRole('button', { name: /Adicionar gênero/ }))
@@ -158,6 +163,19 @@ afterEach(() => {
 })
 
 describe('os gêneros utilizados', () => {
+  it('ficam num cartão do dia, fora das refeições (decisão 14 da E4)', async () => {
+    renderDay()
+    await dayLoaded()
+
+    const card = screen.getByRole('region', { name: 'Gêneros do dia' })
+    expect(within(card).getByText('Vazio')).toBeVisible()
+
+    await chooseFromCatalog('Arroz')
+
+    expect(await within(card).findByText('Preenchido')).toBeVisible()
+    await waitFor(async () => expect((await storedLunch()) ?? null).toBeNull())
+  })
+
   it('são escolhidos sem sair da tela do registro (decisão 7 da E3)', async () => {
     renderDay()
     await dayLoaded()
@@ -169,7 +187,7 @@ describe('os gêneros utilizados', () => {
     expect(screen.getByLabelText('Cardápio previsto')).toBeInTheDocument()
 
     await waitFor(async () => {
-      expect((await storedLunch())?.food_items).toEqual([
+      expect((await storedContent())?.food_items).toEqual([
         {
           food_item_id: 'rice',
           name: 'Arroz',
@@ -193,12 +211,12 @@ describe('os gêneros utilizados', () => {
 
     fireEvent.click(screen.getByRole('button', { name: 'Um a mais de Arroz' }))
     await waitFor(async () =>
-      expect((await storedLunch())?.food_items[0].quantity).toBe(2)
+      expect((await storedContent())?.food_items[0].quantity).toBe(2)
     )
 
     fireEvent.change(quantity, { target: { value: '4a,5' } })
     await waitFor(async () =>
-      expect((await storedLunch())?.food_items[0].quantity).toBe(45)
+      expect((await storedContent())?.food_items[0].quantity).toBe(45)
     )
   })
 
@@ -213,7 +231,7 @@ describe('os gêneros utilizados', () => {
     )
 
     await waitFor(async () =>
-      expect((await storedLunch())?.food_items).toEqual([])
+      expect((await storedContent())?.food_items).toEqual([])
     )
   })
 
@@ -236,11 +254,11 @@ describe('os gêneros utilizados', () => {
 
     fireEvent.click(within(sheet).getByRole('button', { name: 'saco' }))
     fireEvent.click(
-      within(sheet).getByRole('button', { name: 'Adicionar à refeição' })
+      within(sheet).getByRole('button', { name: 'Adicionar ao dia' })
     )
 
     await waitFor(async () => {
-      expect((await storedLunch())?.food_items).toEqual([
+      expect((await storedContent())?.food_items).toEqual([
         {
           food_item_id: null,
           name: 'Feijão preto',
@@ -264,7 +282,7 @@ describe('os gêneros utilizados', () => {
       await within(sheet).findByText(/Não deu para carregar o catálogo/)
     ).toBeVisible()
     expect(
-      within(sheet).getByRole('button', { name: 'Adicionar à refeição' })
+      within(sheet).getByRole('button', { name: 'Adicionar ao dia' })
     ).toBeInTheDocument()
   })
 
@@ -304,7 +322,7 @@ describe('a alteração do cardápio', () => {
     )
     const dialog = await screen.findByRole('dialog')
     expect(
-      within(dialog).getByText(/continua registrado como o cardápio previsto/)
+      within(dialog).getByText(/continuam registradas como o cardápio previsto/)
     ).toBeVisible()
 
     await chooseFromCatalogInside(dialog, 'Arroz')
@@ -319,12 +337,13 @@ describe('a alteração do cardápio', () => {
       const lunch = await storedLunch()
       expect(lunch?.description).toBe('Arroz, feijão e frango')
       expect(lunch?.acceptance).toBe('good')
-      expect(lunch?.menu_change?.reason).toBe('Não veio o frango na entrega.')
-      expect(lunch?.menu_change?.food_items).toHaveLength(1)
+      const day = await storedContent()
+      expect(day?.menu_change?.reason).toBe('Não veio o frango na entrega.')
+      expect(day?.menu_change?.food_items).toHaveLength(1)
     })
   })
 
-  it('é uma só por refeição: o botão vira o resumo do que foi registrado', async () => {
+  it('é uma só por dia: o botão vira o resumo do que foi registrado', async () => {
     givenMealMaps([withChange()])
     renderDay()
     await dayLoaded()
@@ -385,7 +404,7 @@ describe('a alteração do cardápio', () => {
 
     await waitFor(async () => {
       const record = await storedDay()
-      expect(record?.day.meals[0].menu_change?.food_items).toHaveLength(1)
+      expect(record?.day.menu_change?.food_items).toHaveLength(1)
       // Guardado, e não enviado: a fila não tenta o que voltaria recusado.
       expect(record?.attempts).toBe(0)
     })
@@ -406,7 +425,7 @@ describe('a alteração do cardápio', () => {
     fireEvent.click(within(dialog).getByRole('button', { name: 'Cancelar' }))
 
     await waitFor(async () =>
-      expect((await storedLunch())?.menu_change?.reason).toBe(
+      expect((await storedContent())?.menu_change?.reason).toBe(
         'Não veio o frango na entrega da semana.'
       )
     )
@@ -425,7 +444,7 @@ describe('a alteração do cardápio', () => {
     )
 
     await waitFor(async () =>
-      expect((await storedLunch())?.menu_change).toBeNull()
+      expect((await storedContent())?.menu_change).toBeNull()
     )
     expect(
       await screen.findByRole('button', { name: 'Alteração do cardápio' })
@@ -450,7 +469,7 @@ describe('a alteração do cardápio', () => {
         screen.getByRole('button', { name: 'Alteração do cardápio' })
       ).toBeInTheDocument()
     )
-    expect((await storedLunch())?.menu_change ?? null).toBeNull()
+    expect((await storedContent())?.menu_change ?? null).toBeNull()
   })
 })
 

@@ -38,24 +38,23 @@ function schoolDay(date: string, overrides: Partial<MealMap> = {}): MealMap {
         kind: "morning_snack",
         description: "Leite com achocolatado, Biscoito",
         acceptance: "great",
-        foodItems: [{ name: "Leite", amount: 10, unit: "L" }],
-        change: null,
       },
       {
         kind: "lunch",
         description: "Arroz, Feijão, Carne moída",
         acceptance: "poor",
-        foodItems: [{ name: "Arroz", amount: 8, unit: "kg" }],
-        change: null,
       },
       {
         kind: "afternoon_snack",
         description: "Suco de laranja, Bolo",
         acceptance: null,
-        foodItems: [{ name: "Arroz", amount: 2, unit: "kg" }],
-        change: null,
       },
     ],
+    foodItems: [
+      { name: "Arroz", amount: 10, unit: "kg" },
+      { name: "Leite", amount: 10, unit: "L" },
+    ],
+    change: null,
     ...overrides,
   };
 }
@@ -258,37 +257,30 @@ Deno.test("a aceitação é marcada só na opção registrada", () => {
   assertStringIncludes(cellText(rows[3], 1), "( ) ótimo   ( ) bom   ( ) ruim");
 });
 
-Deno.test("os gêneros do dia são consolidados numa coluna só", () => {
+Deno.test("os gêneros do dia saem numa coluna só", () => {
   const rows = rowsOf(fill(documentWith([schoolDay("2026-09-01")])));
   const items = cellText(rows[1], 2);
 
-  // Arroz aparece em duas refeições, 8 kg e 2 kg, e sai somado uma vez só.
   assertStringIncludes(items, "Arroz — 10 kg");
   assertStringIncludes(items, "Leite — 10 L");
-  assertEquals(items.split("Arroz").length - 1, 1);
-});
-
-Deno.test("o mesmo gênero em unidades diferentes não é somado", () => {
-  const day = schoolDay("2026-09-01");
-  day.meals[0].foodItems = [{ name: "Ovo", amount: 2, unit: "kg" }];
-  day.meals[1].foodItems = [{ name: "Ovo", amount: 30, unit: "unidade" }];
-
-  const items = cellText(rowsOf(fill(documentWith([day])))[1], 2);
-  assertStringIncludes(items, "Ovo — 2 kg");
-  assertStringIncludes(items, "Ovo — 30 unidade");
 });
 
 Deno.test("a alteração aparece na coluna própria e a justificativa na última linha", () => {
-  const day = schoolDay("2026-09-01");
-  day.meals[1].change = {
-    reason: "o frango não chegou na entrega",
-    foodItems: [{ name: "Ovo", amount: 120, unit: "unidade" }],
-  };
+  const day = schoolDay("2026-09-01", {
+    change: {
+      reason: "o frango não chegou na entrega",
+      foodItems: [{ name: "Ovo", amount: 120, unit: "unidade" }],
+    },
+  });
 
   const rows = rowsOf(fill(documentWith([day])));
-  assertStringIncludes(cellText(rows[1], 3), "Almoço:");
   assertStringIncludes(cellText(rows[1], 3), "Ovo — 120 unidade");
-  assertStringIncludes(cellText(rows[4], 1), "Almoço: o frango não chegou na entrega");
+  // A alteração é do dia (decisão 14 da E4): sai sem o nome da refeição.
+  assertEquals(cellText(rows[1], 3).includes("Almoço:"), false);
+  assertStringIncludes(
+    cellText(rows[4], 1),
+    "Mudança no cardápio, justificativa: o frango não chegou na entrega",
+  );
   // A descrição da refeição continua fiel ao cardápio previsto (achado da E4).
   assertStringIncludes(cellText(rows[2], 1), "Almoço: Arroz, Feijão, Carne moída");
 });
@@ -301,6 +293,8 @@ Deno.test("dia não letivo traz a observação e dispensa o número de refeiçõ
       note: "Feriado",
       mealCount: null,
       meals: [],
+      foodItems: [],
+      change: null,
     },
   ])));
 
@@ -387,29 +381,6 @@ Deno.test("dia letivo com refeição faltando não inventa conteúdo", () => {
   assertStringIncludes(missing, "( ) ótimo   ( ) bom   ( ) ruim");
   assertEquals(missing.includes("Leite"), false);
   assertStringIncludes(cellText(rows[3], 1), "Lanche da tarde:");
-});
-
-Deno.test("duas refeições alteradas no mesmo dia aparecem separadas", () => {
-  const day = schoolDay("2026-09-01");
-  day.meals[0].change = {
-    reason: "o leite azedou",
-    foodItems: [{ name: "Suco", amount: 8, unit: "L" }],
-  };
-  day.meals[1].change = {
-    reason: "o frango não chegou",
-    foodItems: [{ name: "Ovo", amount: 120, unit: "unidade" }],
-  };
-
-  const rows = rowsOf(fill(documentWith([day])));
-  const changes = cellText(rows[1], 3);
-  assertStringIncludes(changes, "Lanche da manhã:");
-  assertStringIncludes(changes, "Suco — 8 L");
-  assertStringIncludes(changes, "Almoço:");
-  assertStringIncludes(changes, "Ovo — 120 unidade");
-
-  const reasons = cellText(rows[4], 1);
-  assertStringIncludes(reasons, "Lanche da manhã: o leite azedou");
-  assertStringIncludes(reasons, "Almoço: o frango não chegou");
 });
 
 Deno.test("um dia deslocado no modelo não contamina o documento inteiro", () => {

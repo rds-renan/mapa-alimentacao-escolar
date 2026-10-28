@@ -42,6 +42,11 @@ const cook: Profile = {
   school_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 }
 
+/** Um gênero lançado: desde a decisão 14 da E4, o dia sem gênero não está pronto. */
+const GENEROS: MealMapRow['food_items'] = [
+  { food_item_id: 'f-arroz', name: 'Arroz', default_unit: 'kg', quantity: 3 },
+]
+
 function meals(): MealMapRow['meal'] {
   return [
     {
@@ -63,6 +68,7 @@ const SETEMBRO: MealMapRow[] = [
     meals_served: 310,
     locked: true,
     meal: meals(),
+    food_items: GENEROS,
   },
   // Quarta, pronta.
   {
@@ -72,6 +78,7 @@ const SETEMBRO: MealMapRow[] = [
     meals_served: 305,
     locked: false,
     meal: meals(),
+    food_items: GENEROS,
   },
   // Quinta, faltando o lanche da tarde.
   {
@@ -81,6 +88,7 @@ const SETEMBRO: MealMapRow[] = [
     meals_served: 308,
     locked: false,
     meal: meals().filter((meal) => meal.type !== 'afternoon_snack'),
+    food_items: GENEROS,
   },
   // Sexta, dia não letivo.
   {
@@ -274,9 +282,11 @@ describe('o dia que ainda está no aparelho', () => {
           type: meal.type,
           description: meal.description,
           acceptance: meal.acceptance,
-          food_items: [],
-          menu_change: null,
         })),
+        food_items: [
+          { food_item_id: null, name: 'Arroz', unit: 'kg', quantity: 3 },
+        ],
+        menu_change: null,
       },
       attempts: 0,
       rejection: null,

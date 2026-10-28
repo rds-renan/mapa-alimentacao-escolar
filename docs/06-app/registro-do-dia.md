@@ -38,7 +38,7 @@ mês só passou a fazer o mesmo na E7 (issue #150).
   já convergido (`meal_maps`/`meals`, issue #102) para um dia só, em
   `Stream<ConfirmedDay?>` — ao lado de `MonthRepository`, que lê o mês
   inteiro para a visão dele. Desde a #106, `ConfirmedDay.day` vem inteiro,
-  com os gêneros e a alteração de cada refeição.
+  com os gêneros e a alteração do dia.
 - **`SyncEngine.load`/`SyncEngine.save`** (issue #103) são o rascunho —
   `syncEngineProvider`, novo em
   [`local_providers.dart`](../../app/lib/local/local_providers.dart), nasce
@@ -193,7 +193,7 @@ que esta issue cobre, sem tela, mesmo raciocínio de
 | Descrição sem aceitação, e o contrário | a refeição é pendente, não preenchida |
 | Descrição só com espaço | a refeição continua vazia |
 | Dia em branco, dia começado | abre na primeira refeição que falta |
-| Andamento do dia letivo e do não letivo | quatro partes e uma parte |
+| Andamento do dia letivo e do não letivo | cinco partes e uma parte |
 | Escrever numa refeição | não mexe nas outras nem no número do dia |
 | Marcar dia não letivo | tira refeições e número do payload |
 | Desmarcar | devolve o que estava digitado (CA#3 da US006) |

@@ -363,14 +363,14 @@ describe('o gênero desativado, visto do registro do dia', () => {
         type: 'morning_snack',
         description: 'Pão com manteiga',
         acceptance: 'great',
-        food_items: [
-          {
-            food_item_id: 'food-manteiga',
-            name: 'Manteiga',
-            default_unit: 'pote',
-            quantity: 2,
-          },
-        ],
+      },
+    ],
+    food_items: [
+      {
+        food_item_id: 'food-manteiga',
+        name: 'Manteiga',
+        default_unit: 'pote',
+        quantity: 2,
       },
     ],
   }

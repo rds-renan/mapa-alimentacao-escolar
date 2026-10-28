@@ -8,9 +8,16 @@ import 'register.dart';
 /// `web/src/day/meal-badge.tsx`. Mesmo raciocínio do [DayBadge] da visão do
 /// mês: cor **e** rótulo, nunca só a cor.
 class MealBadge extends StatelessWidget {
-  const MealBadge({super.key, required this.state});
+  const MealBadge({
+    super.key,
+    required this.state,
+    this.labels = mealStateLabels,
+  });
 
   final MealState state;
+
+  /// Os gêneros do dia usam as mesmas cores, no masculino.
+  final Map<MealState, String> labels;
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +58,7 @@ class MealBadge extends StatelessWidget {
           borderRadius: BorderRadius.circular(999),
         ),
         child: Text(
-          mealStateLabels[state]!,
+          labels[state]!,
           style: theme.textTheme.labelSmall?.copyWith(
             color: foreground,
             fontWeight: FontWeight.w500,

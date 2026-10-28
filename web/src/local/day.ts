@@ -37,8 +37,6 @@ export interface MealPayload {
   /** O cardápio previsto — continua sendo ele mesmo quando houve troca. */
   description: string | null
   acceptance: AcceptanceLevel | null
-  food_items: FoodItemPayload[]
-  menu_change: MenuChangePayload | null
 }
 
 export interface DayPayload {
@@ -52,6 +50,10 @@ export interface DayPayload {
   note: string | null
   meals_served: number | null
   meals: MealPayload[]
+  /** Os gêneros utilizados no dia — do dia, não da refeição (decisão 14 da E4). */
+  food_items: FoodItemPayload[]
+  /** A alteração do cardápio, no máximo uma por dia. */
+  menu_change: MenuChangePayload | null
 }
 
 /** O que `save_meal_map` devolve. O contrato inteiro está na doc da gravação. */
@@ -94,36 +96,35 @@ export const MEAL_ORDER: MealType[] = [
  *
  * São duas dobras, e as duas têm a mesma forma: o meio do caminho de um
  * preenchimento que o servidor só aceita inteiro. A do dia não letivo exige a
- * observação e proíbe refeições; a da alteração do cardápio exige o motivo e
- * ao menos um gênero. Todas estão na tabela de erros da gravação do dia.
+ * observação e proíbe refeições e gêneros; a da alteração do cardápio exige o
+ * motivo e ao menos um gênero. Todas estão na tabela de erros da gravação do
+ * dia.
+ *
+ * A refeição em si nunca impede o envio — descrição e aceitação nulas são o
+ * registro parcial, de propósito (CA#3 da US001).
  */
 export function canBeSent(day: DayPayload): boolean {
   if (day.non_school_day) {
-    return notBlank(day.note) && day.meals.length === 0
+    return (
+      notBlank(day.note) &&
+      day.meals.length === 0 &&
+      day.food_items.length === 0 &&
+      day.menu_change === null
+    )
   }
 
-  return day.meals.every(mealCanBeSent)
+  if (!day.food_items.every(itemCanBeSent)) return false
+  if (!day.menu_change) return true
+
+  return (
+    notBlank(day.menu_change.reason) &&
+    day.menu_change.food_items.length > 0 &&
+    day.menu_change.food_items.every(itemCanBeSent)
+  )
 }
 
 function notBlank(text: string | null): boolean {
   return text !== null && text.trim() !== ''
-}
-
-/*
- * A refeição em si nunca impede o envio — descrição e aceitação nulas são o
- * registro parcial, de propósito (CA#3 da US001). O que impede é o que o
- * servidor recusa: alteração sem motivo ou sem gênero, e gênero a nascer sem
- * unidade.
- */
-function mealCanBeSent(meal: MealPayload): boolean {
-  if (!meal.food_items.every(itemCanBeSent)) return false
-  if (!meal.menu_change) return true
-
-  return (
-    notBlank(meal.menu_change.reason) &&
-    meal.menu_change.food_items.length > 0 &&
-    meal.menu_change.food_items.every(itemCanBeSent)
-  )
 }
 
 /*
@@ -151,6 +152,8 @@ export function emptyDay(mapDate: string): DayPayload {
     note: null,
     meals_served: null,
     meals: [],
+    food_items: [],
+    menu_change: null,
   }
 }
 
@@ -199,15 +202,86 @@ export function adoptServerIds(
   return {
     ...day,
     id: response.meal_map_id,
-    meals: day.meals.map((meal) => ({
-      ...meal,
-      food_items: meal.food_items.map(adoptItem),
-      menu_change: meal.menu_change
-        ? {
-            ...meal.menu_change,
-            food_items: meal.menu_change.food_items.map(adoptItem),
-          }
-        : null,
+    food_items: day.food_items.map(adoptItem),
+    menu_change: day.menu_change
+      ? {
+          ...day.menu_change,
+          food_items: day.menu_change.food_items.map(adoptItem),
+        }
+      : null,
+  }
+}
+
+/** O dia como era guardado antes da decisão 14: os gêneros em cada refeição. */
+interface LegacyMeal extends MealPayload {
+  food_items?: FoodItemPayload[]
+  menu_change?: MenuChangePayload | null
+}
+
+/*
+ * Soma por nome normalizado, que é como o servidor decide que dois gêneros
+ * são o mesmo; a unidade é do catálogo, então somar é sempre somar a mesma
+ * coisa. Entre as duas linhas, fica a que já conhece o gênero do catálogo.
+ */
+function sumByName(items: FoodItemPayload[]): FoodItemPayload[] {
+  const byName = new Map<string, FoodItemPayload>()
+  for (const item of items) {
+    const key = normalizedName(item.name)
+    const running = byName.get(key)
+    if (!running) {
+      byName.set(key, item)
+      continue
+    }
+    const kept = running.food_item_id ? running : item
+    byName.set(key, { ...kept, quantity: running.quantity + item.quantity })
+  }
+  return [...byName.values()]
+}
+
+/**
+ * Traz para o formato de hoje um dia guardado no aparelho antes da decisão 14
+ * da E4 — rascunho ou fila. É a mesma junção da migration
+ * `20261028120000_generos_do_dia.sql`: os gêneros das refeições viram os do
+ * dia, somando o que se repete, e as alterações viram uma, com as
+ * justificativas na ordem das refeições. O dia que já está no formato novo
+ * atravessa intacto.
+ */
+export function upgradeDay(stored: DayPayload): DayPayload {
+  const meals = stored.meals as LegacyMeal[]
+  const legacy = meals.some(
+    (meal) => meal.food_items !== undefined || meal.menu_change !== undefined
+  )
+  if (!legacy && stored.food_items !== undefined) return stored
+
+  const ordered = [...meals].sort(
+    (a, b) => MEAL_ORDER.indexOf(a.type) - MEAL_ORDER.indexOf(b.type)
+  )
+  const changes = ordered
+    .map((meal) => meal.menu_change ?? null)
+    .filter((change): change is MenuChangePayload => change !== null)
+
+  return {
+    ...stored,
+    meals: meals.map(({ id, type, description, acceptance }) => ({
+      id,
+      type,
+      description,
+      acceptance,
     })),
+    food_items: sumByName([
+      ...(stored.food_items ?? []),
+      ...ordered.flatMap((meal) => meal.food_items ?? []),
+    ]),
+    menu_change:
+      changes.length === 0
+        ? (stored.menu_change ?? null)
+        : {
+            id: changes[0].id,
+            reason: changes
+              .map((change) => change.reason.trim())
+              .filter((reason) => reason !== '')
+              .join(' / '),
+            food_items: sumByName(changes.flatMap((c) => c.food_items)),
+          },
   }
 }

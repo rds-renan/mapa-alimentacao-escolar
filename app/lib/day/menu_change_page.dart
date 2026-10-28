@@ -12,13 +12,12 @@ import 'register.dart';
 /// por acidente seria a surpresa.
 enum MenuChangeExit { cancel, remove }
 
-/// Abre a alteração do cardápio de uma refeição por cima do registro.
+/// Abre a alteração do cardápio do dia por cima do registro.
 ///
 /// [day] é o dia vivo: cada tecla desta tela passa pelo registro, que grava
 /// e devolve o dia novo por aqui — a tela não guarda cópia nenhuma.
 Future<MenuChangeExit?> showMenuChangePage(
   BuildContext context, {
-  required String type,
   required String mapDate,
   required ValueListenable<DayPayload?> day,
   required bool readOnly,
@@ -31,9 +30,8 @@ Future<MenuChangeExit?> showMenuChangePage(
       builder: (context) => ValueListenableBuilder<DayPayload?>(
         valueListenable: day,
         builder: (context, value, _) => MenuChangePage(
-          type: type,
           mapDate: mapDate,
-          change: value == null ? null : mealOf(value, type)?.menuChange,
+          change: value?.menuChange,
           readOnly: readOnly,
           actions: actions,
           onReasonChange: onReasonChange,
@@ -53,9 +51,9 @@ Future<MenuChangeExit?> showMenuChangePage(
 /// sentido à justificativa (decisão 8 da E3, decisão 7 da E4). É por isso que
 /// o aviso do alto existe.
 ///
-/// Há no máximo uma alteração por refeição (RN#2 da US002): a justificativa
+/// Há no máximo uma alteração por dia (decisão 14 da E4): a justificativa
 /// cobre a modificação inteira e os gêneros são uma lista, então duas trocas
-/// no mesmo almoço são um registro só.
+/// no mesmo dia são um registro só.
 ///
 /// Os botões do rodapé não são um "salvar" — não existe salvar neste
 /// aplicativo (decisão 3 da E3). Cada tecla daqui já está no aparelho antes
@@ -63,7 +61,6 @@ Future<MenuChangeExit?> showMenuChangePage(
 class MenuChangePage extends StatelessWidget {
   const MenuChangePage({
     super.key,
-    required this.type,
     required this.mapDate,
     required this.change,
     required this.readOnly,
@@ -71,7 +68,6 @@ class MenuChangePage extends StatelessWidget {
     required this.onReasonChange,
   });
 
-  final String type;
   final String mapDate;
   final MenuChangePayload? change;
   final bool readOnly;
@@ -109,7 +105,7 @@ class MenuChangePage extends StatelessWidget {
           children: [
             const Text(MenuChangeMessages.title),
             Text(
-              mealSubtitle(type, mapDate),
+              dayTitle(mapDate),
               style: theme.textTheme.bodySmall?.copyWith(
                 color: theme.colorScheme.onSurfaceVariant,
               ),
@@ -129,7 +125,7 @@ class MenuChangePage extends StatelessWidget {
         children: [
           _Note(
             icon: Icons.info_outline,
-            text: MenuChangeMessages.notice(type),
+            text: MenuChangeMessages.notice,
             background: tokens.accent,
             border: tokens.accentBorder,
             foreground: tokens.accentForeground,

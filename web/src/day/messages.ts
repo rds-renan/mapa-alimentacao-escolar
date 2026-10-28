@@ -45,6 +45,13 @@ export const MEAL_STATE_LABELS: Record<MealState, string> = {
   empty: 'Vazia',
 }
 
+/** O cartão dos gêneros do dia: tem gênero lançado ou não tem. */
+export const FOOD_ITEMS_STATE_LABELS: Record<MealState, string> = {
+  complete: 'Preenchido',
+  pending: 'Pendente',
+  empty: 'Vazio',
+}
+
 /** Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004). */
 export const ACCEPTANCE_ORDER: AcceptanceLevel[] = ['great', 'good', 'poor']
 
@@ -104,8 +111,12 @@ export const DAY_MESSAGES = {
   mealsServedLess: 'Uma refeição a menos',
   mealsServedMore: 'Uma refeição a mais',
 
+  /*
+   * Um cartão só para o dia (decisão 14 da E4): é como ela confere a saída da
+   * despensa, e é como o documento imprime — uma célula por dia.
+   */
+  foodItemsTitle: 'Gêneros do dia',
   foodItemsLabel: 'Gêneros utilizados',
-  foodItemsOptional: 'opcional',
   addFoodItem: 'Adicionar gênero',
   menuChange: 'Alteração do cardápio',
   /*
@@ -124,11 +135,6 @@ export const DAY_MESSAGES = {
   progress: 'Partes preenchidas do dia',
 } as const
 
-/** "Almoço · Terça, 9 de setembro" — o subtítulo das telas 3a e 3b. */
-export function mealSubtitle(type: MealType, date: string): string {
-  return `${MEAL_TITLES[type]} · ${dayTitle(date)}`
-}
-
 /*
  * A alteração do cardápio — tela 3a (US002).
  *
@@ -140,8 +146,8 @@ export function mealSubtitle(type: MealType, date: string): string {
 export const MENU_CHANGE_MESSAGES = {
   title: 'Alteração do cardápio',
   close: 'Fechar a alteração do cardápio',
-  notice: (type: MealType) =>
-    `O ${MEAL_LABELS[type]} continua registrado como o cardápio previsto. Aqui vão só os gêneros que você usou no lugar.`,
+  notice:
+    'As refeições continuam registradas como o cardápio previsto. Aqui vão só os gêneros que você usou no lugar.',
   itemsLabel: 'Gêneros utilizados na troca',
   reasonLabel: 'Motivo',
   reasonPlaceholder: 'Toque para escrever o motivo da troca',
@@ -186,11 +192,11 @@ export const FOOD_ITEM_SHEET_MESSAGES = {
   noResults: 'Nenhum gênero com esse nome. Cadastre abaixo.',
   alreadyChosen: 'já está aqui',
   newTitle: 'Não está na lista?',
-  newHint: 'Cadastre aqui e o item já entra na refeição.',
+  newHint: 'Cadastre aqui e o item já entra no dia.',
   newNameLabel: 'Nome do gênero',
   newNamePlaceholder: 'Ex.: feijão preto',
   newUnitLabel: 'Unidade padrão',
-  add: 'Adicionar à refeição',
+  add: 'Adicionar ao dia',
 } as const
 
 function capitalize(text: string): string {

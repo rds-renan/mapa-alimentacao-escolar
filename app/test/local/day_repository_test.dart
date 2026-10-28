@@ -63,8 +63,8 @@ void main() {
     expect(confirmed.day.meals.single.description, 'Arroz e feijão');
     expect(confirmed.day.meals.single.acceptance, 'great');
     // Sem gênero nem alteração no banco, a leitura não inventa nenhum.
-    expect(confirmed.day.meals.single.foodItems, isEmpty);
-    expect(confirmed.day.meals.single.menuChange, isNull);
+    expect(confirmed.day.foodItems, isEmpty);
+    expect(confirmed.day.menuChange, isNull);
   });
 
   test('mapa bloqueado chega marcado', () async {
@@ -131,44 +131,42 @@ void main() {
               type: 'lunch',
               description: 'Arroz, feijão e frango',
               acceptance: 'good',
-              foodItems: [
-                FoodItemPayload(
-                  foodItemId: 'rice',
-                  name: 'Arroz',
-                  unit: 'quilo',
-                  quantity: 4,
-                ),
-                FoodItemPayload(
-                  foodItemId: 'beans',
-                  name: 'Feijão',
-                  unit: 'quilo',
-                  quantity: 2,
-                ),
-              ],
-              menuChange: MenuChangePayload(
-                id: 'change-1',
-                reason: 'Falta de entrega do fornecedor',
-                foodItems: [
-                  FoodItemPayload(
-                    foodItemId: 'egg',
-                    name: 'Ovo',
-                    unit: 'bandeja',
-                    quantity: 3,
-                  ),
-                ],
-              ),
             ),
             RemoteMeal(id: 'meal-2', type: 'morning_snack'),
           ],
+          foodItems: [
+            FoodItemPayload(
+              foodItemId: 'rice',
+              name: 'Arroz',
+              unit: 'quilo',
+              quantity: 4,
+            ),
+            FoodItemPayload(
+              foodItemId: 'beans',
+              name: 'Feijão',
+              unit: 'quilo',
+              quantity: 2,
+            ),
+          ],
+          menuChange: MenuChangePayload(
+            id: 'change-1',
+            reason: 'Falta de entrega do fornecedor',
+            foodItems: [
+              FoodItemPayload(
+                foodItemId: 'egg',
+                name: 'Ovo',
+                unit: 'bandeja',
+                quantity: 3,
+              ),
+            ],
+          ),
         ),
       ];
     await MonthRepository(db, gateway).refreshMonth(DateTime(2026, 9));
 
     final day = (await repository.watchDay('2026-09-10').first)!.day;
-    final lunch = day.meals.firstWhere((meal) => meal.type == 'lunch');
-    final snack = day.meals.firstWhere((meal) => meal.type == 'morning_snack');
-
-    expect(lunch.foodItems.map((item) => item.toJson()).toList(), [
+    expect(day.meals, hasLength(2));
+    expect(day.foodItems.map((item) => item.toJson()).toList(), [
       {'food_item_id': 'rice', 'name': 'Arroz', 'unit': 'quilo', 'quantity': 4},
       {
         'food_item_id': 'beans',
@@ -177,11 +175,9 @@ void main() {
         'quantity': 2,
       },
     ]);
-    expect(lunch.menuChange!.id, 'change-1');
-    expect(lunch.menuChange!.reason, 'Falta de entrega do fornecedor');
-    expect(lunch.menuChange!.foodItems.single.name, 'Ovo');
-    expect(lunch.menuChange!.foodItems.single.quantity, 3);
-    expect(snack.foodItems, isEmpty);
-    expect(snack.menuChange, isNull);
+    expect(day.menuChange!.id, 'change-1');
+    expect(day.menuChange!.reason, 'Falta de entrega do fornecedor');
+    expect(day.menuChange!.foodItems.single.name, 'Ovo');
+    expect(day.menuChange!.foodItems.single.quantity, 3);
   });
 }

@@ -43,17 +43,12 @@ DayPayload _dayFor(String updatedAt, {String mapDate = _date}) => DayPayload(
       type: 'morning_snack',
       description: 'Pão com manteiga e leite com achocolatado',
       acceptance: 'great',
-      foodItems: [
-        FoodItemPayload(
-          foodItemId: null,
-          name: 'Pão',
-          unit: 'quilo',
-          quantity: 4,
-        ),
-      ],
-      menuChange: null,
     ),
   ],
+  foodItems: [
+    FoodItemPayload(foodItemId: null, name: 'Pão', unit: 'quilo', quantity: 4),
+  ],
+  menuChange: null,
 );
 
 // O "Pão" de [_dayFor] vai sem identificador, e a resposta de verdade traz
@@ -243,7 +238,7 @@ void main() {
       expect(stored?.day.updatedAt, '2026-09-10T18:35:00-03:00');
       expect(stored?.day.id, 'c0000010-0000-4000-8000-000000000010');
       expect(
-        stored?.day.meals[0].foodItems[0].foodItemId,
+        stored?.day.foodItems[0].foodItemId,
         '5005748a-0000-4000-8000-000000000001',
       );
     });
@@ -382,6 +377,8 @@ void main() {
       note: note,
       mealsServed: null,
       meals: const [],
+      foodItems: const [],
+      menuChange: null,
     );
 
     test(
@@ -539,34 +536,34 @@ void main() {
           type: 'lunch',
           description: '  Arroz, feijão e frango  ',
           acceptance: 'good',
-          foodItems: [
-            FoodItemPayload(
-              foodItemId: null,
-              name: 'pão',
-              unit: 'quilo',
-              quantity: 4,
-            ),
-            FoodItemPayload(
-              foodItemId: 'f0000000-0000-4000-8000-000000000002',
-              name: 'Arroz',
-              unit: 'quilo',
-              quantity: 6,
-            ),
-          ],
-          menuChange: MenuChangePayload(
-            id: 'd0000000-0000-4000-8000-000000000001',
-            reason: 'Faltou carne',
-            foodItems: [
-              FoodItemPayload(
-                foodItemId: 'f0000000-0000-4000-8000-000000000003',
-                name: 'Frango',
-                unit: 'quilo',
-                quantity: 5,
-              ),
-            ],
-          ),
         ),
       ],
+      foodItems: [
+        FoodItemPayload(
+          foodItemId: null,
+          name: 'pão',
+          unit: 'quilo',
+          quantity: 4,
+        ),
+        FoodItemPayload(
+          foodItemId: 'f0000000-0000-4000-8000-000000000002',
+          name: 'Arroz',
+          unit: 'quilo',
+          quantity: 6,
+        ),
+      ],
+      menuChange: MenuChangePayload(
+        id: 'd0000000-0000-4000-8000-000000000001',
+        reason: 'Faltou carne',
+        foodItems: [
+          FoodItemPayload(
+            foodItemId: 'f0000000-0000-4000-8000-000000000003',
+            name: 'Frango',
+            unit: 'quilo',
+            quantity: 5,
+          ),
+        ],
+      ),
     );
 
     Map<String, dynamic> savedFull() => _saved(
@@ -627,12 +624,12 @@ void main() {
 
       final meal = day.meals.single;
       expect(meal.description, 'Arroz, feijão e frango');
-      expect(meal.foodItems.map((item) => (item.foodItemId, item.name)), [
+      expect(day.foodItems.map((item) => (item.foodItemId, item.name)), [
         ('5005748a-0000-4000-8000-000000000001', 'Pão'),
         ('f0000000-0000-4000-8000-000000000002', 'Arroz'),
       ]);
-      expect(meal.menuChange?.reason, 'Faltou carne');
-      expect(meal.menuChange?.foodItems.single.name, 'Frango');
+      expect(day.menuChange?.reason, 'Faltou carne');
+      expect(day.menuChange?.foodItems.single.name, 'Frango');
     });
 
     test('enviar, reabrir e editar: o reenvio carrega o dia inteiro', () async {
@@ -651,13 +648,14 @@ void main() {
       expect(resent['id'], 'c0000010-0000-4000-8000-000000000010');
       expect(resent['meals_served'], 315);
       final meal = (resent['meals'] as List).single as Map<String, dynamic>;
-      expect(meal['food_items'], hasLength(2));
+      expect(meal.containsKey('food_items'), isFalse);
+      expect(resent['food_items'], hasLength(2));
       expect(
-        (meal['food_items'] as List).first['food_item_id'],
+        (resent['food_items'] as List).first['food_item_id'],
         '5005748a-0000-4000-8000-000000000001',
       );
       expect(
-        (meal['menu_change'] as Map<String, dynamic>)['food_items'],
+        (resent['menu_change'] as Map<String, dynamic>)['food_items'],
         hasLength(1),
       );
     });
@@ -690,6 +688,8 @@ void main() {
             locked: false,
             updatedAt: DateTime.utc(2026, 9, 10, 12),
             meals: const [],
+            foodItems: const [],
+            menuChange: null,
           ),
         ];
       gateway.enqueueSaved(_saved());
@@ -721,6 +721,8 @@ void main() {
             locked: false,
             updatedAt: DateTime.utc(2026, 9, 11, 10),
             meals: const [],
+            foodItems: const [],
+            menuChange: null,
           ),
         ];
       final refetched = <String>[];

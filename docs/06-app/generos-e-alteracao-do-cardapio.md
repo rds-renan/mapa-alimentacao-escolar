@@ -1,20 +1,28 @@
 # Gêneros utilizados e alteração do cardápio no aplicativo
 
 A US002 e a US003 dentro do [registro do dia](registro-do-dia.md) — a lista
-de gêneros com stepper em cada refeição, a folha de escolher gênero (tela 3b
+de gêneros com stepper, a folha de escolher gênero (tela 3b
 da E3) e a alteração do cardápio (tela 3a) —, issue #106. O comportamento é o
 da web, descrito em
 [os gêneros utilizados e a alteração do cardápio](../05-web/registro-do-dia.md#os-gêneros-utilizados-e-a-alteração-do-cardápio);
 o que segue registra só o que é do aplicativo. O código está em
 [`app/lib/day/`](../../app/lib/day/) (`food_item_list.dart`,
-`food_item_sheet.dart`, `menu_change_page.dart` e as regras em
-`register.dart`) e em [`app/lib/food_items/catalog.dart`](../../app/lib/food_items/catalog.dart).
+`food_item_sheet.dart`, `menu_change_page.dart`, `day_food_items_card.dart` e
+as regras em `register.dart`) e em [`app/lib/food_items/catalog.dart`](../../app/lib/food_items/catalog.dart).
+
+> **Revisto na E7.** Os gêneros e a alteração saíram de dentro de cada
+> refeição e passaram a ser do dia, num cartão próprio abaixo das três
+> refeições ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
+> O que mudou no aplicativo está em
+> [os gêneros passaram a ser do dia](#os-gêneros-passaram-a-ser-do-dia); o
+> resto deste documento descreve a #106 como ela foi feita, com a refeição
+> no lugar onde hoje está o dia.
 
 ## Os critérios de aceite
 
 | Critério | Onde |
 |---|---|
-| No máximo uma alteração por refeição, com motivo em texto livre | registrada, a alteração vira resumo no cartão, e o botão que a criaria some — não há por onde nascer a segunda. O motivo é texto livre com três sugestões em pílula (RNF#1 da US002) |
+| No máximo uma alteração por dia, com motivo em texto livre | registrada, a alteração vira resumo no cartão, e o botão que a criaria some — não há por onde nascer a segunda. O motivo é texto livre com três sugestões em pílula (RNF#1 da US002) |
 | Gêneros com stepper em números inteiros | `FoodItemListView`: "−" e "+" de um em um, o número no meio é campo com teclado numérico e só aceita dígitos; o "−" de quem está em 1 tira o gênero da lista (quantidade zero não existe, RN#1 da US003) |
 | Folha de escolher gênero com busca e cadastro, sem rede | a lista vem do catálogo **no aparelho**, a busca ignora acento e caixa, e o gênero novo sobe sem identificador, com a unidade escolhida — `save_meal_map` o cria pelo nome na mesma operação que grava o dia |
 
@@ -43,6 +51,38 @@ A gravação do dia (`writeConfirmedDay`, a mesma do `refreshMonth` e, desde a
 #124, da fila ao confirmar um envio) apaga os filhos à mão antes de regravá-lo, e não pela
 cascata do esquema: o SQLite só respeita chave estrangeira com
 `PRAGMA foreign_keys` ligado, e este banco nunca o ligou.
+
+## Os gêneros passaram a ser do dia
+
+Na E7 (issue #172) o cartão **Gêneros do dia** (`DayFoodItemsCard`) tirou os
+gêneros e a alteração dos três cartões de refeição. O cartão da refeição
+ficou com o cardápio previsto e a aceitação, e o selo dele diz só isso; o
+cartão novo tem o seu próprio selo, e o dia só fica completo com ao menos um
+gênero — sem ele, fica pendente e não entra no documento. O andamento do dia
+passou de quatro partes para cinco.
+
+Três lugares tinham o formato antigo guardado, e cada um é convertido onde
+mora, sem perder nada:
+
+- **O banco local** passou para o `schemaVersion` 6. A migração lê
+  `meal_food_items` antes de apagá-la, soma o mesmo gênero entre as
+  refeições, na ordem delas, e grava em `meal_map_food_items`, ligada ao
+  mapa; `menu_changes` passa a apontar para o mapa, uma por dia. Um banco
+  anterior à versão 3, que ainda não tinha gênero nenhum, só ganha as
+  tabelas novas.
+- **O rascunho e a fila** guardam o dia como JSON. `DayPayload.fromJson` lê
+  as duas formas: encontrando gêneros dentro da refeição, junta-os no dia e
+  soma os repetidos, e junta as alterações com os motivos emendados. Um dia
+  que estava na fila quando o aplicativo foi atualizado sobe na forma nova.
+- **O servidor** foi migrado à parte, pela migration
+  `20261028120000_generos_do_dia.sql`, e recusa o formato antigo. A
+  [versão mínima](versao-minima.md) sobe para 5 na mesma leva, para que um
+  aparelho com a versão anterior seja mandado atualizar em vez de ter o
+  envio recusado.
+
+A consulta do mês (`SupabaseMonthGateway`) passou a pedir
+`meal_map_food_item` e `menu_change` no nível do mapa, a mesma de
+`web/src/day/queries.ts`.
 
 ## A folha 3b é uma folha modal; a tela 3a é uma rota
 
@@ -103,7 +143,7 @@ testes) e `flutter build apk --debug`.
 | O mesmo gênero de novo, com outra caixa | não duplica nem volta para 1 |
 | "−" e "+" | andam de um em um, e o "−" em 1 tira o gênero |
 | Quantidade digitada | só dígitos, zero é vazio, corta no `smallint` |
-| Gêneros da refeição e da troca | não se misturam (decisão 7 da E4) |
+| Gêneros do dia e da troca | não se misturam |
 | Gênero cadastrado na folha | sobe sem identificador e com unidade, e o dia pode subir |
 | Primeiro gênero da troca | cria a alteração, ainda sem motivo |
 | Segundo gênero da troca | entra na mesma alteração |
@@ -125,10 +165,10 @@ faz a volta inteira — mês baixado, dia lido com os gêneros e a alteração.
 | Cenário | O que se afirma |
 |---|---|
 | Adicionar gênero | a folha abre, esconde o desativado, busca sem acento; o escolhido entra em 1 e o stepper anda |
-| Gênero já na refeição | aparece marcado na folha |
-| Sem rede nenhuma | a folha avisa que o catálogo não foi baixado, e o gênero cadastrado ali entra na refeição e no rascunho sem identificador |
+| Gênero já no dia | aparece marcado na folha |
+| Sem rede nenhuma | a folha avisa que o catálogo não foi baixado, e o gênero cadastrado ali entra no dia e no rascunho sem identificador |
 | Alteração do cardápio | gênero pela folha por cima da 3a, motivo por sugestão, resumo no cartão, e o botão de criar outra some |
-| Cancelar | devolve a refeição sem alteração |
+| Cancelar | devolve o dia sem alteração |
 | Fechar pelo voltar do Android com tudo apagado | não deixa alteração vazia |
 | Mapa bloqueado | gêneros e alteração visíveis, sem editar; a 3a só tem "Fechar" |
 
@@ -139,3 +179,13 @@ nasceram pelo nome e a leitura tem a forma que o aplicativo espera.
 
 **Não testado**: o caminho no aparelho físico — fica para o teste manual,
 como nas issues anteriores.
+
+Na E7, com a #172, mais o que a mudança para o dia pediu: em
+[`day_test.dart`](../../app/test/local/day_test.dart), o rascunho no formato
+antigo lido com os gêneros somados no dia; em
+[`app_database_test.dart`](../../app/test/local/app_database_test.dart), a
+migração da versão 5 para a 6 com o mesmo gênero em duas refeições e duas
+alterações no mesmo dia; e, na visão do mês e na escolha de mapas, o dia sem
+gênero contado como pendente. No A52, contra o Supabase local: o dia do seed
+abre com o cartão novo, e somar, tirar, escolher gênero e editar a alteração
+gravam no nível do dia.

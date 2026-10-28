@@ -20,6 +20,8 @@ describe('o que sair do aplicativo apaga', () => {
       note: null,
       meals_served: 312,
       meals: [],
+      food_items: [],
+      menu_change: null,
     })
 
     await clearLocalData()

@@ -84,16 +84,17 @@ values
   ('e0000001-0000-4000-8000-000000000003', 'c0000001-0000-4000-8000-000000000001',
    'afternoon_snack', 'Banana e leite', 'good');
 
-insert into public.meal_food_item (meal_id, food_item_id, quantity)
+-- Os gêneros e a alteração são do dia, não da refeição (decisão 14).
+insert into public.meal_map_food_item (meal_map_id, food_item_id, quantity)
 values
-  ('e0000001-0000-4000-8000-000000000002', 'f0000001-0000-4000-8000-000000000001', 3),
-  ('e0000001-0000-4000-8000-000000000002', 'f0000002-0000-4000-8000-000000000002', 2),
-  ('e0000001-0000-4000-8000-000000000001', 'f0000007-0000-4000-8000-000000000007', 4);
+  ('c0000001-0000-4000-8000-000000000001', 'f0000001-0000-4000-8000-000000000001', 3),
+  ('c0000001-0000-4000-8000-000000000001', 'f0000002-0000-4000-8000-000000000002', 2),
+  ('c0000001-0000-4000-8000-000000000001', 'f0000007-0000-4000-8000-000000000007', 4);
 
 -- A refeição continua descrevendo o cardápio previsto; a alteração diz o que
 -- entrou no lugar e por quê (decisão 7).
-insert into public.menu_change (id, meal_id, reason)
-values ('b0000001-0000-4000-8000-000000000001', 'e0000001-0000-4000-8000-000000000002',
+insert into public.menu_change (id, meal_map_id, reason)
+values ('b0000001-0000-4000-8000-000000000001', 'c0000001-0000-4000-8000-000000000001',
         'Não veio o frango na entrega da semana.');
 
 insert into public.menu_change_food_item (menu_change_id, food_item_id, quantity)

@@ -62,6 +62,11 @@ export interface DayRecord {
    */
   reopened: boolean
   meals: MealRecord[]
+  /**
+   * O dia tem gêneros lançados — os utilizados ou os de uma troca. Desde a
+   * decisão 14 da E4 eles são do dia e contam para ele estar preenchido.
+   */
+  hasFoodItems: boolean
   /** Está guardado no aparelho e ainda não foi confirmado pelo servidor. */
   pendingUpload: boolean
 }
@@ -266,7 +271,7 @@ export function filled(text: string | null): boolean {
 /**
  * Uma refeição está pronta quando descreve o que foi servido **e** tem a
  * aceitação: sem ela o registro da refeição não se conclui (CA#3 da US004).
- * Gêneros continuam opcionais (RN#3 da US001) e por isso não entram na conta.
+ * Os gêneros não entram aqui: são do dia (decisão 14 da E4).
  */
 export function mealIsComplete(
   meal: Pick<MealRecord, 'description' | 'acceptance'> | undefined
@@ -276,11 +281,26 @@ export function mealIsComplete(
   )
 }
 
+/**
+ * O dia tem gênero lançado, nos utilizados ou numa troca? Na alteração o que
+ * entrou também saiu da despensa, e a merendeira que só registrou a troca já
+ * lançou o que o documento pede daquele dia.
+ */
+export function dayHasFoodItems(day: {
+  food_items: unknown[]
+  menu_change: { food_items: unknown[] } | null
+}): boolean {
+  return (
+    day.food_items.length > 0 || (day.menu_change?.food_items.length ?? 0) > 0
+  )
+}
+
 /** Um dia que existe mas em que ninguém escreveu nada ainda é um dia vazio. */
 function hasContent(record: DayRecord): boolean {
   return (
     record.nonSchoolDay ||
     record.mealsServed !== null ||
+    record.hasFoodItems ||
     record.meals.some(
       (meal) => filled(meal.description) || meal.acceptance !== null
     )
@@ -300,12 +320,20 @@ export function dayState(record: DayRecord | undefined): DayState {
   if (!hasContent(record)) return 'empty'
 
   const byType = new Map(record.meals.map((meal) => [meal.type, meal]))
+  /*
+   * Os gêneros contam (decisão 14 da E4): o dia com as três refeições prontas
+   * e nada lançado é justamente o que ela precisa achar para completar.
+   */
   const complete =
     record.mealsServed !== null &&
+    record.hasFoodItems &&
     MEAL_ORDER.every((type) => mealIsComplete(byType.get(type)))
 
   return complete ? 'complete' : 'pending'
 }
+
+/** As partes que já são plural sozinhas: "faltam os gêneros". */
+const PLURAL_PARTS = ['as três refeições', 'os gêneros']
 
 /** O que ainda falta num dia pendente, em português corrente. */
 function missingParts(record: DayRecord): string {
@@ -320,9 +348,10 @@ function missingParts(record: DayRecord): string {
       : missingMeals.map((type) => `o ${MEAL_LABELS[type]}`)
 
   if (record.mealsServed === null) items.push('o número de refeições')
+  if (!record.hasFoodItems) items.push('os gêneros')
 
   const verb =
-    items.length > 1 || items[0] === 'as três refeições' ? 'faltam' : 'falta'
+    items.length > 1 || PLURAL_PARTS.includes(items[0]) ? 'faltam' : 'falta'
   const list =
     items.length > 1
       ? `${items.slice(0, -1).join(', ')} e ${items[items.length - 1]}`
@@ -419,6 +448,7 @@ export function recordFromDraft(draft: DayPayload): DayRecord {
       description: meal.description,
       acceptance: meal.acceptance,
     })),
+    hasFoodItems: dayHasFoodItems(draft),
     pendingUpload: true,
   }
 }

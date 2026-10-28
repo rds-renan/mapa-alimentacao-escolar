@@ -34,13 +34,9 @@ Os documentos ainda dentro da janela de 7 dias, com o período, quantos mapas co
 
 ![Registro do dia](../assets/e3-3-registro-do-dia.png)
 
-As três refeições em cartões expansíveis, com aceitação em três botões, gêneros opcionais com stepper de inteiros, o número único de refeições do dia e a alternância de dia não letivo. Não há botão de salvar: a faixa do topo diz o estado do salvamento. **US001, US003, US004, US005, US009, US010.**
+As três refeições em cartões expansíveis, com o cardápio previsto e a aceitação em três botões; abaixo delas, o cartão dos gêneros do dia, com stepper de inteiros e a alteração do cardápio — registrada, ela aparece ali com os gêneros da troca e o motivo, porque é isso que sai no documento oficial —; o número único de refeições do dia e a alternância de dia não letivo. Não há botão de salvar: a faixa do topo diz o estado do salvamento. **US001, US002, US003, US004, US005, US009, US010.**
 
-### 3 · Registro do dia — refeição com alteração do cardápio
-
-![Registro do dia com a alteração registrada no cartão](../assets/e3-3-registro-do-dia-alteracao.png)
-
-Segundo estado da mesma tela: registrada a alteração, ela aparece dentro do cartão da refeição — os gêneros usados na troca, com as suas quantidades, e o motivo —, porque é isso que sai no documento oficial. A linha da refeição continua sendo o cardápio previsto. **US002, US003, US007.**
+> **Revisto na E7.** Até a E7, os gêneros e a alteração ficavam dentro do cartão de cada refeição, e havia um segundo estado desta tela, com o almoço aberto, para mostrar a alteração no cartão dele. Nos testes com as merendeiras os dois passaram a ser do dia — ver [decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md).
 
 ### 3a · Alteração do cardápio
 
@@ -52,7 +48,7 @@ Os gêneros usados na troca, com as suas quantidades, e o motivo em texto livre.
 
 ![Escolher gênero](../assets/e3-3b-escolher-genero.png)
 
-Sheet sobre o registro: busca no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade padrão — o item cadastrado já entra na refeição, sem sair do dia. **US009, US003.**
+Sheet sobre o registro: busca no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade padrão — o item cadastrado já entra no dia, sem sair do registro. **US009, US003.**
 
 ### 4 · Catálogo de gêneros
 

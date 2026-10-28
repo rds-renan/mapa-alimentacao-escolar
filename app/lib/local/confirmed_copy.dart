@@ -8,8 +8,8 @@ import 'day.dart';
 /// os dois fatos que só ele conhece: se o mapa está bloqueado e se a direção
 /// o reabriu (issue #152).
 ///
-/// O dia vem inteiro, com os gêneros utilizados e a alteração do cardápio de
-/// cada refeição (issue #106): é isto que a tela reenvia a cada tecla, e o
+/// O dia vem inteiro, com os gêneros utilizados e a alteração do cardápio do
+/// dia (issues #106 e #172): é isto que a tela reenvia a cada tecla, e o
 /// contrato de `save_meal_map` substitui a lista inteira — ler o dia sem os
 /// gêneros e reenviá-lo os apagaria do servidor.
 class ConfirmedDay {
@@ -39,12 +39,10 @@ class ConfirmedDay {
 /// uma linha sem chave.
 ConfirmedDay? savedDay(DayPayload sent, SaveResponse response) {
   final day = adoptServerIds(sent, response);
-  final unresolved = day.meals.any(
-    (meal) => [
-      ...meal.foodItems,
-      ...?meal.menuChange?.foodItems,
-    ].any((item) => item.foodItemId == null),
-  );
+  final unresolved = [
+    ...day.foodItems,
+    ...?day.menuChange?.foodItems,
+  ].any((item) => item.foodItemId == null);
   if (unresolved) return null;
   final catalog = {for (final item in response.foodItems) item.id: item};
 
@@ -84,16 +82,16 @@ ConfirmedDay? savedDay(DayPayload sent, SaveResponse response) {
             type: meal.type,
             description: trimmed(meal.description),
             acceptance: meal.acceptance,
-            foodItems: asCatalog(meal.foodItems),
-            menuChange: meal.menuChange == null
-                ? null
-                : MenuChangePayload(
-                    id: meal.menuChange!.id,
-                    reason: meal.menuChange!.reason.trim(),
-                    foodItems: asCatalog(meal.menuChange!.foodItems),
-                  ),
           ),
       ],
+      foodItems: asCatalog(day.foodItems),
+      menuChange: day.menuChange == null
+          ? null
+          : MenuChangePayload(
+              id: day.menuChange!.id,
+              reason: day.menuChange!.reason.trim(),
+              foodItems: asCatalog(day.menuChange!.foodItems),
+            ),
     ),
   );
 }
@@ -129,7 +127,7 @@ Future<bool> writeConfirmedDay(AppDatabase db, ConfirmedDay confirmed) async {
   }
 
   for (final map in previous) {
-    await _deleteMealsOf(db, map.id);
+    await _deleteChildrenOf(db, map.id);
   }
   await (db.delete(
     db.mealMaps,
@@ -165,46 +163,46 @@ Future<bool> writeConfirmedDay(AppDatabase db, ConfirmedDay confirmed) async {
           acceptance: Value(meal.acceptance),
         ),
       );
+    }
 
-      for (final (position, item) in _distinct(meal.foodItems).indexed) {
-        batch.insert(
-          db.mealFoodItems,
-          MealFoodItemsCompanion.insert(
-            mealId: meal.id,
-            position: position,
-            foodItemId: item.foodItemId!,
-            name: item.name,
-            unit: Value(item.unit),
-            quantity: item.quantity,
-          ),
-        );
-      }
-
-      final change = meal.menuChange;
-      if (change == null) continue;
-
+    for (final (position, item) in _distinct(day.foodItems).indexed) {
       batch.insert(
-        db.menuChanges,
-        MenuChangesCompanion.insert(
-          id: change.id,
-          mealId: meal.id,
-          reason: change.reason,
+        db.mealMapFoodItems,
+        MealMapFoodItemsCompanion.insert(
+          mealMapId: day.id,
+          position: position,
+          foodItemId: item.foodItemId!,
+          name: item.name,
+          unit: Value(item.unit),
+          quantity: item.quantity,
         ),
       );
+    }
 
-      for (final (position, item) in _distinct(change.foodItems).indexed) {
-        batch.insert(
-          db.menuChangeFoodItems,
-          MenuChangeFoodItemsCompanion.insert(
-            menuChangeId: change.id,
-            position: position,
-            foodItemId: item.foodItemId!,
-            name: item.name,
-            unit: Value(item.unit),
-            quantity: item.quantity,
-          ),
-        );
-      }
+    final change = day.menuChange;
+    if (change == null) return;
+
+    batch.insert(
+      db.menuChanges,
+      MenuChangesCompanion.insert(
+        id: change.id,
+        mealMapId: day.id,
+        reason: change.reason,
+      ),
+    );
+
+    for (final (position, item) in _distinct(change.foodItems).indexed) {
+      batch.insert(
+        db.menuChangeFoodItems,
+        MenuChangeFoodItemsCompanion.insert(
+          menuChangeId: change.id,
+          position: position,
+          foodItemId: item.foodItemId!,
+          name: item.name,
+          unit: Value(item.unit),
+          quantity: item.quantity,
+        ),
+      );
     }
   });
 
@@ -229,25 +227,22 @@ List<FoodItemPayload> _distinct(List<FoodItemPayload> items) {
   return byId.values.toList();
 }
 
-/// Apaga as refeições de um dia com tudo que pende delas. À mão, e não pelo
+/// Apaga as refeições, os gêneros e a alteração de um dia. À mão, e não pelo
 /// `onDelete: cascade` do esquema: o SQLite só respeita chave estrangeira
 /// com `PRAGMA foreign_keys` ligado, e este banco nunca o ligou.
-Future<void> _deleteMealsOf(AppDatabase db, String mealMapId) async {
-  final mealIds = db.selectOnly(db.meals)
-    ..addColumns([db.meals.id])
-    ..where(db.meals.mealMapId.equals(mealMapId));
+Future<void> _deleteChildrenOf(AppDatabase db, String mealMapId) async {
   final changeIds = db.selectOnly(db.menuChanges)
     ..addColumns([db.menuChanges.id])
-    ..where(db.menuChanges.mealId.isInQuery(mealIds));
+    ..where(db.menuChanges.mealMapId.equals(mealMapId));
 
   await (db.delete(
     db.menuChangeFoodItems,
   )..where((t) => t.menuChangeId.isInQuery(changeIds))).go();
   await (db.delete(
     db.menuChanges,
-  )..where((t) => t.mealId.isInQuery(mealIds))).go();
+  )..where((t) => t.mealMapId.equals(mealMapId))).go();
   await (db.delete(
-    db.mealFoodItems,
-  )..where((t) => t.mealId.isInQuery(mealIds))).go();
+    db.mealMapFoodItems,
+  )..where((t) => t.mealMapId.equals(mealMapId))).go();
   await (db.delete(db.meals)..where((t) => t.mealMapId.equals(mealMapId))).go();
 }

@@ -80,15 +80,14 @@ test('a merendeira registra um dia e chega ao documento oficial', async ({
     await page.getByLabel('Refeições servidas no dia').fill(MEALS_SERVED)
   })
 
-  await test.step(`anota ${FOOD_ITEM.toLowerCase()} nos gêneros do almoço`, async () => {
-    await openMeal(page, 'Almoço')
+  await test.step(`anota ${FOOD_ITEM.toLowerCase()} nos gêneros do dia`, async () => {
     await page.getByRole('button', { name: 'Adicionar gênero' }).click()
 
     const sheet = page.getByRole('dialog')
     await expect(sheet.getByText('Escolher gênero')).toBeVisible()
     await sheet.getByRole('button', { name: FOOD_ITEM }).click()
 
-    // Escolhido, ele entra na refeição já com a quantidade em 1.
+    // Escolhido, ele entra no dia já com a quantidade em 1.
     await expect(
       page.getByRole('textbox', { name: `Quantidade de ${FOOD_ITEM}` })
     ).toHaveValue('1')

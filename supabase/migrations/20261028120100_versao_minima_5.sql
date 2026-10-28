@@ -1,0 +1,11 @@
+-- O mínimo do aplicativo sobe para 5 (issues #172 e #179).
+--
+-- O APK 0.1.4+5 precisa estar publicado em app-v0.1.4 antes desta migration
+-- chegar à produção (docs/06-app/versao-minima.md#como-subir-o-mínimo).
+--
+-- Desta vez a subida é de contrato: a migration anterior muda o formato da
+-- save_meal_map, e o aplicativo até a 0.1.3 ainda manda os gêneros dentro de
+-- cada refeição. Sem a trava, o envio dele seria recusado como dia inválido,
+-- e a merendeira veria um erro no dia em vez do convite para atualizar. As
+-- duas migrations vão no mesmo `db push`.
+update public.app_version set minimum_build = 5, updated_at = now();

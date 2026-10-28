@@ -79,7 +79,15 @@ function buildMealMap(year: number, month: number, day: number): MealMap {
   const date = `${year}-${pad(month)}-${pad(day)}`;
   const note = NON_SCHOOL_DAYS[day];
   if (note) {
-    return { date, schoolDay: false, note, mealCount: null, meals: [] };
+    return {
+      date,
+      schoolDay: false,
+      note,
+      mealCount: null,
+      meals: [],
+      foodItems: [],
+      change: null,
+    };
   }
 
   const rotation = day % 5;
@@ -91,28 +99,16 @@ function buildMealMap(year: number, month: number, day: number): MealMap {
       description: MORNING_SNACKS[rotation],
       // Um dia sem aceitação registrada: o campo não é obrigatório.
       acceptance: day === 15 ? null : pick(day, 0),
-      foodItems: [
-        { name: "Leite", amount: 12, unit: "L" },
-        { name: "Açúcar", amount: 2, unit: "kg" },
-      ],
-      change: null,
     },
     {
       kind: "lunch",
       description: LUNCHES[rotation],
       acceptance: pick(day, 1),
-      foodItems: [...STAPLES.map((item) => ({ ...item }))],
-      change: change ? { reason: change.reason, foodItems: change.items } : null,
     },
     {
       kind: "afternoon_snack",
       description: AFTERNOON_SNACKS[rotation],
       acceptance: pick(day, 2),
-      foodItems: [
-        { name: "Pão", amount: 140, unit: "unidade" },
-        { name: "Fruta da estação", amount: 10, unit: "kg" },
-      ],
-      change: null,
     },
   ];
 
@@ -123,6 +119,14 @@ function buildMealMap(year: number, month: number, day: number): MealMap {
     // Um dia sem contagem: o registro pode ficar parcial.
     mealCount: day === 11 ? null : 130 + ((day * 7) % 25),
     meals,
+    foodItems: [
+      { name: "Leite", amount: 12, unit: "L" },
+      { name: "Açúcar", amount: 2, unit: "kg" },
+      ...STAPLES.map((item) => ({ ...item })),
+      { name: "Pão", amount: 140, unit: "unidade" },
+      { name: "Fruta da estação", amount: 10, unit: "kg" },
+    ].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
+    change: change ? { reason: change.reason, foodItems: change.items } : null,
   };
 }
 

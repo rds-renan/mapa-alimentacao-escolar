@@ -73,6 +73,8 @@ void main() {
             acceptance: 'great',
           ),
         ],
+        foodItems: const [],
+        menuChange: null,
       ),
       RemoteMealMap(
         id: 'map-2',
@@ -83,6 +85,8 @@ void main() {
         locked: false,
         updatedAt: DateTime(2026, 9, 11, 8),
         meals: const [],
+        foodItems: const [],
+        menuChange: null,
       ),
     ];
 
@@ -110,6 +114,8 @@ void main() {
         meals: const [
           RemoteMeal(id: 'meal-1', type: 'lunch', acceptance: 'poor'),
         ],
+        foodItems: const [],
+        menuChange: null,
       ),
     ];
     await repository.refreshMonth(september);
@@ -127,6 +133,8 @@ void main() {
           RemoteMeal(id: 'meal-1', type: 'lunch', acceptance: 'great'),
           RemoteMeal(id: 'meal-2', type: 'afternoon_snack', acceptance: 'good'),
         ],
+        foodItems: const [],
+        menuChange: null,
       ),
     ];
     await repository.refreshMonth(september);
@@ -163,6 +171,8 @@ void main() {
           locked: false,
           updatedAt: DateTime(2026, 9, 10, 12),
           meals: const [],
+          foodItems: const [],
+          menuChange: null,
         ),
       ];
       await repository.refreshMonth(september);
@@ -195,7 +205,10 @@ void main() {
   test(
     'refreshMonth substitui também os gêneros e a alteração do dia',
     () async {
-      RemoteMealMap day(List<RemoteMeal> meals) => RemoteMealMap(
+      RemoteMealMap day(
+        List<FoodItemPayload> foodItems,
+        MenuChangePayload? menuChange,
+      ) => RemoteMealMap(
         id: 'map-1',
         mapDate: DateTime(2026, 9, 10),
         nonSchoolDay: false,
@@ -203,62 +216,84 @@ void main() {
         mealsServed: null,
         locked: false,
         updatedAt: DateTime(2026, 9, 10, 18),
-        meals: meals,
+        meals: const [RemoteMeal(id: 'meal-1', type: 'lunch')],
+        foodItems: foodItems,
+        menuChange: menuChange,
       );
 
       gateway.maps = [
-        day(const [
-          RemoteMeal(
-            id: 'meal-1',
-            type: 'lunch',
+        day(
+          const [
+            FoodItemPayload(
+              foodItemId: 'rice',
+              name: 'Arroz',
+              unit: 'quilo',
+              quantity: 4,
+            ),
+          ],
+          const MenuChangePayload(
+            id: 'change-1',
+            reason: 'Item impróprio',
             foodItems: [
               FoodItemPayload(
-                foodItemId: 'rice',
-                name: 'Arroz',
-                unit: 'quilo',
-                quantity: 4,
+                foodItemId: 'egg',
+                name: 'Ovo',
+                unit: 'bandeja',
+                quantity: 3,
               ),
             ],
-            menuChange: MenuChangePayload(
-              id: 'change-1',
-              reason: 'Item impróprio',
-              foodItems: [
-                FoodItemPayload(
-                  foodItemId: 'egg',
-                  name: 'Ovo',
-                  unit: 'bandeja',
-                  quantity: 3,
-                ),
-              ],
-            ),
           ),
-        ]),
+        ),
       ];
       await repository.refreshMonth(september);
+      expect(
+        (await repository.watchMonth(september).first).single.hasFoodItems,
+        isTrue,
+      );
 
       // A colega tirou a alteração e trocou o gênero pela web.
       gateway.maps = [
         day(const [
-          RemoteMeal(
-            id: 'meal-1',
-            type: 'lunch',
-            foodItems: [
-              FoodItemPayload(
-                foodItemId: 'beans',
-                name: 'Feijão',
-                unit: 'quilo',
-                quantity: 2,
-              ),
-            ],
+          FoodItemPayload(
+            foodItemId: 'beans',
+            name: 'Feijão',
+            unit: 'quilo',
+            quantity: 2,
           ),
-        ]),
+        ], null),
       ];
       await repository.refreshMonth(september);
 
-      final items = await db.select(db.mealFoodItems).get();
+      final items = await db.select(db.mealMapFoodItems).get();
       expect(items.map((item) => item.foodItemId), ['beans']);
       expect(await db.select(db.menuChanges).get(), isEmpty);
       expect(await db.select(db.menuChangeFoodItems).get(), isEmpty);
+    },
+  );
+
+  test(
+    'o dia sem gênero lançado sai marcado assim para a visão do mês',
+    () async {
+      gateway.maps = [
+        RemoteMealMap(
+          id: 'map-1',
+          mapDate: DateTime(2026, 9, 10),
+          nonSchoolDay: false,
+          note: null,
+          mealsServed: 300,
+          locked: false,
+          updatedAt: DateTime(2026, 9, 10, 18),
+          meals: const [],
+          foodItems: const [],
+          menuChange: null,
+        ),
+      ];
+      await repository.refreshMonth(september);
+
+      expect(
+        (await repository.watchMonth(september).first).single.hasFoodItems,
+        isFalse,
+      );
     },
   );
 }

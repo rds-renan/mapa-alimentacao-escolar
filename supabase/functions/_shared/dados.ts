@@ -1,7 +1,7 @@
 // O que entra no preenchimento.
 //
 // Os nomes seguem o schema da E4 (decisão 13): `meal_map`, `meal`,
-// `menu_change`, `meal_food_item`. O conteúdo — descrição da refeição, nome do
+// `menu_change`, `meal_map_food_item`. O conteúdo — descrição da refeição, nome do
 // gênero, justificativa — é texto em português, como cadastrado.
 
 export type MealKind = "morning_snack" | "lunch" | "afternoon_snack";
@@ -16,9 +16,10 @@ export interface FoodItemAmount {
 }
 
 /**
- * A troca de item na refeição. A descrição da refeição permanece fiel ao
+ * A troca no cardápio do dia. A descrição da refeição permanece fiel ao
  * cardápio previsto (achado da E4): o que a alteração guarda são os gêneros
- * efetivamente usados na troca e o motivo. No máximo uma por refeição.
+ * efetivamente usados na troca e o motivo. No máximo uma por dia (decisão 14
+ * da E4).
  */
 export interface MenuChange {
   reason: string;
@@ -29,8 +30,6 @@ export interface Meal {
   kind: MealKind;
   description: string;
   acceptance: Acceptance | null;
-  foodItems: FoodItemAmount[];
-  change: MenuChange | null;
 }
 
 export interface MealMap {
@@ -40,6 +39,9 @@ export interface MealMap {
   note: string | null;
   mealCount: number | null;
   meals: Meal[];
+  /** Os gêneros do dia, em ordem de nome. Alimentam a coluna GÊNEROS UTILIZADOS. */
+  foodItems: FoodItemAmount[];
+  change: MenuChange | null;
 }
 
 export interface DocumentData {
@@ -127,23 +129,4 @@ export function formatAmount(amount: number): string {
 
 export function formatFoodItem(item: FoodItemAmount): string {
   return `${item.name} — ${formatAmount(item.amount)} ${item.unit}`;
-}
-
-/**
- * Consolida os gêneros do dia inteiro: a coluna GÊNEROS UTILIZADOS é mesclada
- * no dia, mas o registro é por refeição. Gêneros de mesma unidade somam; o
- * mesmo gênero em unidades diferentes vira duas linhas, porque somar `kg` com
- * `unidade` seria inventar um número.
- */
-export function consolidateFoodItems(meals: Meal[]): FoodItemAmount[] {
-  const totals = new Map<string, FoodItemAmount>();
-  for (const meal of meals) {
-    for (const item of meal.foodItems) {
-      const key = `${item.name} @ ${item.unit}`;
-      const running = totals.get(key);
-      if (running) running.amount += item.amount;
-      else totals.set(key, { ...item });
-    }
-  }
-  return [...totals.values()].sort((a, b) => a.name.localeCompare(b.name, "pt-BR"));
 }

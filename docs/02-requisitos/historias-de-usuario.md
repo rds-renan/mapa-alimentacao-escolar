@@ -28,6 +28,7 @@
   - RN#1 Cada dia letivo tem exatamente três refeições: lanche da manhã, almoço e lanche da tarde.
   - RN#2 O cardápio oficial é a referência do que servir; o mapa documenta o que foi de fato executado.
   - RN#3 Gêneros usados e quantidades nunca são obrigatórios para concluir o registro de uma refeição.
+  - *Revisto na E7:* os gêneros passaram a ser do dia, não da refeição. A refeição continua se concluindo sem eles, mas o **dia** só fica completo com ao menos um gênero; sem gênero, fica pendente e não entra no documento ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
 - **Requisitos não funcionais:**
   - RNF#1 O registro de um dia comum deve ser concluído em menos de 2 minutos.
 - **Prioridade:** A — **Pontos de história:** 5

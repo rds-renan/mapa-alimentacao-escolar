@@ -61,7 +61,7 @@ export function duplicateOf(
 /**
  * A unidade de um gênero que já existe está sendo trocada.
  *
- * Vale um aviso na tela porque a troca alcança o passado: `meal_food_item`
+ * Vale um aviso na tela porque a troca alcança o passado: `meal_map_food_item`
  * guarda a quantidade e o gênero, e a unidade é lida do catálogo — trocar
  * "pote" por "quilo" faz um dia já registrado passar a dizer "3 quilos de
  * manteiga", e sair assim no documento do mapa que ainda não foi gerado.

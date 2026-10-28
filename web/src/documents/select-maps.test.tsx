@@ -44,6 +44,11 @@ const cook: Profile = {
   school_id: 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa',
 }
 
+/** Um gênero lançado: desde a decisão 14 da E4, o dia sem gênero não está pronto. */
+const GENEROS: MealMapRow['food_items'] = [
+  { food_item_id: 'f-arroz', name: 'Arroz', default_unit: 'kg', quantity: 3 },
+]
+
 function meals(): MealMapRow['meal'] {
   return [
     {
@@ -71,6 +76,7 @@ function setembro(changes: Record<string, Partial<MealMapRow>> = {}) {
       meals_served: 300,
       locked: false,
       meal: meals(),
+      food_items: GENEROS,
       ...changes[date],
     })
   }
@@ -240,9 +246,11 @@ describe('o dia que ainda não subiu', () => {
           type: meal.type,
           description: meal.description,
           acceptance: meal.acceptance,
-          food_items: [],
-          menu_change: null,
         })),
+        food_items: [
+          { food_item_id: null, name: 'Arroz', unit: 'kg', quantity: 3 },
+        ],
+        menu_change: null,
       },
       attempts: 0,
       rejection: null,

@@ -44,14 +44,20 @@ void main() {
   });
 
   group('o andamento do dia', () {
-    test('conta as três refeições e o número de refeições', () {
+    test('conta as três refeições, o número de refeições e os gêneros do '
+        'dia', () {
       final progress = dayProgress(_dayWithMeals());
       expect(progress.done, 2);
-      expect(progress.total, 4);
+      expect(progress.total, 5);
 
       final empty = dayProgress(emptyDay(_date));
       expect(empty.done, 0);
-      expect(empty.total, 4);
+      expect(empty.total, 5);
+
+      final withItems = dayProgress(
+        addFoodItem(_dayWithMeals(), FoodItemList.used, _rice),
+      );
+      expect(withItems.done, 3);
     });
 
     test('no dia não letivo, conta só a observação', () {
@@ -109,17 +115,22 @@ void main() {
   group('o dia não letivo', () {
     test('tira as refeições e o número do dia que vai subir (RN#1 da '
         'US006)', () {
-      final marked = setNonSchoolDay(_dayWithMeals(), true);
+      final marked = setNonSchoolDay(
+        addFoodItem(_dayWithMeals(), FoodItemList.used, _rice),
+        true,
+      );
 
       expect(marked.nonSchoolDay, isTrue);
       expect(marked.meals, isEmpty);
+      expect(marked.foodItems, isEmpty);
+      expect(marked.menuChange, isNull);
       expect(marked.mealsServed, isNull);
       expect(marked.note, '');
     });
 
     test('devolve o que estava digitado quando ela desmarca (CA#3 da '
         'US006)', () {
-      final day = _dayWithMeals();
+      final day = addFoodItem(_dayWithMeals(), FoodItemList.used, _rice);
       final kept = schoolDayContent(day);
       final marked = setNote(setNonSchoolDay(day, true), 'Conselho de classe');
 
@@ -129,6 +140,7 @@ void main() {
       expect(back.note, isNull);
       expect(back.mealsServed, 312);
       expect(mealOf(back, 'morning_snack')?.description, 'Pão com manteiga');
+      expect(back.foodItems.single.name, 'Arroz');
     });
   });
 
@@ -158,13 +170,8 @@ void main() {
     const egg = (foodItemId: null, name: 'Ovo', unit: 'bandeja');
 
     test('entram com a quantidade em 1', () {
-      final day = addFoodItem(
-        emptyDay(_date),
-        'lunch',
-        FoodItemList.meal,
-        rice,
-      );
-      final item = mealOf(day, 'lunch')!.foodItems.single;
+      final day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      final item = day.foodItems.single;
 
       expect(item.foodItemId, 'rice');
       expect(item.unit, 'quilo');
@@ -172,30 +179,30 @@ void main() {
     });
 
     test('o mesmo gênero não entra duas vezes nem volta para 1', () {
-      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
-      day = setFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 4);
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      day = setFoodItemQuantity(day, FoodItemList.used, 'arroz', 4);
       // O mesmo gênero, com a caixa e o espaço que o servidor normalizaria.
-      day = addFoodItem(day, 'lunch', FoodItemList.meal, (
+      day = addFoodItem(day, FoodItemList.used, (
         foodItemId: null,
         name: ' ARROZ ',
         unit: 'quilo',
       ));
 
-      final items = mealOf(day, 'lunch')!.foodItems;
+      final items = day.foodItems;
       expect(items, hasLength(1));
       expect(items.single.quantity, 4);
     });
 
     test('andam de um em um, e o "−" de quem está em 1 tira o gênero', () {
-      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
-      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 1);
-      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 2);
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      day = stepFoodItemQuantity(day, FoodItemList.used, 'arroz', 1);
+      expect(day.foodItems.single.quantity, 2);
 
-      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', -1);
-      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 1);
+      day = stepFoodItemQuantity(day, FoodItemList.used, 'arroz', -1);
+      expect(day.foodItems.single.quantity, 1);
 
-      day = stepFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', -1);
-      expect(mealOf(day, 'lunch')!.foodItems, isEmpty);
+      day = stepFoodItemQuantity(day, FoodItemList.used, 'arroz', -1);
+      expect(day.foodItems, isEmpty);
     });
 
     test('a quantidade digitada é inteira, maior que zero e cabe no banco', () {
@@ -204,33 +211,26 @@ void main() {
       expect(parseQuantity('0'), isNull);
       expect(parseQuantity(''), isNull);
 
-      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
-      day = setFoodItemQuantity(
-        day,
-        'lunch',
-        FoodItemList.meal,
-        'arroz',
-        99999,
-      );
-      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 32767);
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      day = setFoodItemQuantity(day, FoodItemList.used, 'arroz', 99999);
+      expect(day.foodItems.single.quantity, 32767);
 
-      day = setFoodItemQuantity(day, 'lunch', FoodItemList.meal, 'arroz', 0);
-      expect(mealOf(day, 'lunch')!.foodItems.single.quantity, 1);
+      day = setFoodItemQuantity(day, FoodItemList.used, 'arroz', 0);
+      expect(day.foodItems.single.quantity, 1);
     });
 
     test('as duas listas não se misturam (decisão 7 da E4)', () {
-      var day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, rice);
-      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, egg);
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      day = addFoodItem(day, FoodItemList.menuChange, egg);
 
-      final lunch = mealOf(day, 'lunch')!;
-      expect(lunch.foodItems.single.name, 'Arroz');
-      expect(lunch.menuChange!.foodItems.single.name, 'Ovo');
+      expect(day.foodItems.single.name, 'Arroz');
+      expect(day.menuChange!.foodItems.single.name, 'Ovo');
     });
 
     test('o gênero cadastrado na folha sobe com a unidade e sem id, e o dia '
         'pode subir', () {
-      final day = addFoodItem(emptyDay(_date), 'lunch', FoodItemList.meal, egg);
-      final item = mealOf(day, 'lunch')!.foodItems.single;
+      final day = addFoodItem(emptyDay(_date), FoodItemList.used, egg);
+      final item = day.foodItems.single;
 
       expect(item.foodItemId, isNull);
       expect(item.unit, 'bandeja');
@@ -243,71 +243,57 @@ void main() {
     const rice = (foodItemId: 'rice', name: 'Arroz', unit: 'quilo');
 
     test('nasce do primeiro gênero da troca, sem motivo ainda', () {
-      final day = addFoodItem(
-        emptyDay(_date),
-        'lunch',
-        FoodItemList.menuChange,
-        egg,
-      );
-      final change = mealOf(day, 'lunch')!.menuChange!;
+      final day = addFoodItem(emptyDay(_date), FoodItemList.menuChange, egg);
+      final change = day.menuChange!;
 
       expect(change.reason, '');
       expect(change.foodItems.single.quantity, 1);
     });
 
     test('é uma só por refeição: o segundo gênero entra na mesma', () {
-      var day = addFoodItem(
-        emptyDay(_date),
-        'lunch',
-        FoodItemList.menuChange,
-        egg,
-      );
-      final born = mealOf(day, 'lunch')!.menuChange!.id;
-      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, rice);
-      day = setMenuChangeReason(day, 'lunch', 'Falta de entrega');
+      var day = addFoodItem(emptyDay(_date), FoodItemList.menuChange, egg);
+      final born = day.menuChange!.id;
+      day = addFoodItem(day, FoodItemList.menuChange, rice);
+      day = setMenuChangeReason(day, 'Falta de entrega');
 
-      final change = mealOf(day, 'lunch')!.menuChange!;
+      final change = day.menuChange!;
       expect(change.id, born);
       expect(change.foodItems, hasLength(2));
       expect(change.reason, 'Falta de entrega');
     });
 
     test('só está inteira com gênero e motivo, e só então o dia sobe', () {
-      var day = addFoodItem(
-        emptyDay(_date),
-        'lunch',
-        FoodItemList.menuChange,
-        egg,
-      );
-      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+      var day = addFoodItem(emptyDay(_date), FoodItemList.menuChange, egg);
+      expect(menuChangeIsComplete(day.menuChange), isFalse);
       expect(canBeSent(day), isFalse);
 
-      day = setMenuChangeReason(day, 'lunch', '   ');
-      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+      day = setMenuChangeReason(day, '   ');
+      expect(menuChangeIsComplete(day.menuChange), isFalse);
 
-      day = setMenuChangeReason(day, 'lunch', 'Item impróprio');
-      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isTrue);
+      day = setMenuChangeReason(day, 'Item impróprio');
+      expect(menuChangeIsComplete(day.menuChange), isTrue);
       expect(canBeSent(day), isTrue);
 
-      day = removeFoodItem(day, 'lunch', FoodItemList.menuChange, 'ovo');
-      expect(menuChangeIsComplete(mealOf(day, 'lunch')!.menuChange), isFalse);
+      day = removeFoodItem(day, FoodItemList.menuChange, 'ovo');
+      expect(menuChangeIsComplete(day.menuChange), isFalse);
     });
 
     test('vazia é vazia, e tirá-la deixa a refeição sem alteração', () {
-      var day = setMenuChangeReason(emptyDay(_date), 'lunch', '');
-      expect(menuChangeIsEmpty(mealOf(day, 'lunch')!.menuChange), isTrue);
+      var day = setMenuChangeReason(emptyDay(_date), '');
+      expect(menuChangeIsEmpty(day.menuChange), isTrue);
 
-      day = setMenuChange(day, 'lunch', null);
-      expect(mealOf(day, 'lunch')!.menuChange, isNull);
+      day = setMenuChange(day, null);
+      expect(day.menuChange, isNull);
     });
 
     test('mexer na alteração não mexe no cardápio previsto', () {
       var day = _dayWithMeals();
-      day = addFoodItem(day, 'lunch', FoodItemList.menuChange, egg);
-      day = setMenuChangeReason(day, 'lunch', 'Item impróprio');
+      day = addFoodItem(day, FoodItemList.menuChange, egg);
+      day = setMenuChangeReason(day, 'Item impróprio');
 
       expect(mealOf(day, 'lunch')!.description, 'Arroz, feijão e frango');
-      expect(mealOf(day, 'morning_snack')!.menuChange, isNull);
+      expect(mealOf(day, 'morning_snack')!.description, 'Pão com manteiga');
+      expect(day.menuChange!.reason, 'Item impróprio');
     });
   });
 
@@ -327,3 +313,5 @@ void main() {
     });
   });
 }
+
+const _rice = (foodItemId: 'rice', name: 'Arroz', unit: 'quilo');

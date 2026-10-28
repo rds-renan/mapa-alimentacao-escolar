@@ -148,7 +148,7 @@ export function FoodItemForm({
 
         {/*
          * O aviso da consequência retroativa: a unidade mora no catálogo, e
-         * `meal_food_item` guarda só a quantidade — trocá-la reescreve o que
+         * `meal_map_food_item` guarda só a quantidade — trocá-la reescreve o que
          * os dias já registrados dizem. Não é proibição, é o que ela precisa
          * saber para decidir, e por isso aparece no lugar onde ela está
          * decidindo.

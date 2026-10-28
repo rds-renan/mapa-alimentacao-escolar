@@ -42,7 +42,7 @@ FoodItem? duplicateOf(FoodItemDraft draft, List<FoodItem> items) {
 
 /// A unidade de um gênero que já existe está sendo trocada.
 ///
-/// Vale um aviso porque a troca alcança o passado: `meal_food_item` guarda a
+/// Vale um aviso porque a troca alcança o passado: `meal_map_food_item` guarda a
 /// quantidade e o gênero, e a unidade é lida do catálogo — trocar "pote" por
 /// "quilo" faz um dia já registrado passar a dizer "3 quilos de manteiga".
 bool unitChanged(FoodItemDraft draft, List<FoodItem> items) {

@@ -21,7 +21,7 @@ O [modelo ER](modelo-er.md#o-que-o-banco-garante-e-o-que-fica-para-a-aplicação
 
 ### Mapa bloqueado não aceita edição
 
-A RN#1 da US007 vale no banco, não só na tela — um cliente desatualizado não pode sobrescrever um mapa que já saiu em documento oficial. Um gatilho em `meal_map` e em tudo que pende dele (`meal`, `meal_food_item`, `menu_change`, `menu_change_food_item`) recusa a escrita quando o mapa está bloqueado. Cada tabela informa ao gatilho como chegar até o mapa, e a linha é lida como `jsonb` porque `NEW` não existe em `DELETE` e `OLD` não existe em `INSERT`.
+A RN#1 da US007 vale no banco, não só na tela — um cliente desatualizado não pode sobrescrever um mapa que já saiu em documento oficial. Um gatilho em `meal_map` e em tudo que pende dele (`meal`, `meal_map_food_item`, `menu_change`, `menu_change_food_item`) recusa a escrita quando o mapa está bloqueado. Cada tabela informa ao gatilho como chegar até o mapa, e a linha é lida como `jsonb` porque `NEW` não existe em `DELETE` e `OLD` não existe em `INSERT`.
 
 A mensagem devolvida já é a que a pessoa pode ler: *"Este mapa já está em um documento gerado e não pode ser alterado"*, com a dica de que a direção pode reabri-lo.
 
@@ -45,7 +45,7 @@ O histórico é somente inserção: `meal_map_unlock` não tem política de `ins
 | `profile` | lê a escola, edita o próprio | lê, cria e desativa | — |
 | `food_item` | lê, cria e edita | lê | — |
 | `meal_map` | lê e escreve (se não bloqueado) | lê; reabre pela função | bloqueia na geração |
-| `meal`, `meal_food_item`, `menu_change`, `menu_change_food_item` | lê e escreve (se o mapa não estiver bloqueado) | lê | — |
+| `meal`, `meal_map_food_item`, `menu_change`, `menu_change_food_item` | lê e escreve (se o mapa não estiver bloqueado) | lê | — |
 | `document_template` | lê | lê e substitui | lê na geração |
 | `generated_document`, `document_meal_map` | lê | lê | escreve |
 | `meal_map_unlock` | lê | lê | — |
