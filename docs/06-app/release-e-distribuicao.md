@@ -287,6 +287,37 @@ atualização a quem já tem o MAE, antes do teste das merendeiras.
 Conferida no A52 em 11/10, com o APK da release e a conta de produção: app
 fechado pelos recentes, Wi-Fi e dados desligados, abrir levou direto ao mês.
 
+## A 0.1.4
+
+| | |
+|---|---|
+| Versão | `0.1.4+5` |
+| Tag | `app-v0.1.4`, criada em 28/10/2026 |
+| Release | [MAE 0.1.4](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.4), com `mae-0.1.4.apk` (22,9 MB, só `arm64-v8a`) |
+
+Leva as duas primeiras correções do teste com as merendeiras: o código do
+primeiro acesso digitado direto no app (#171) e os gêneros e a alteração do
+cardápio passando a ser do dia (#172,
+[gêneros e alteração do cardápio](generos-e-alteracao-do-cardapio.md#os-gêneros-passaram-a-ser-do-dia)).
+Desta vez o mínimo subiu porque o contrato mudou: a `save_meal_map` nova
+recusa o dia com os gêneros dentro da refeição, que é o que o aplicativo
+anterior manda.
+
+A ordem foi a de [como subir o mínimo](versao-minima.md#como-subir-o-mínimo),
+com um passo a mais: a migration dos gêneros apaga a tabela que a geração do
+documento lia, então o `db push` e o deploy da `generate-document` foram
+feitos em seguida, depois da release publicada. Na produção, os 182 gêneros
+por refeição viraram 178 por dia — os quatro repetidos foram somados — e
+nenhum dia que estava completo ficou sem gênero.
+
+O caminho crítico foi percorrido no A52 com o build 0.1.4+5 contra o
+Supabase local: dia registrado sem rede, subindo sozinho ao voltar,
+documento gerado com o gênero do dia e compartilhado.
+
+Conferida no A52 em 28/10, com o APK da release e a conta de produção: o mês
+abre com os mesmos estados de antes da migração, e um dia preenchido mostra os
+gêneros já juntos no cartão do dia.
+
 ## O registro de desenvolvedor
 
 Desde 30/09/2026, aparelhos Android certificados no Brasil só instalam e

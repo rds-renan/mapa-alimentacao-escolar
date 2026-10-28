@@ -41,6 +41,7 @@ ninguém.
 | 2 | 02/10/2026, só na produção | subido à mão no teste da atualização de ponta a ponta, sem migration: o repositório ficou em 1 até a linha de baixo |
 | 3 | 11/10/2026, [`20261011130000_versao_minima_3.sql`](../../supabase/migrations/20261011130000_versao_minima_3.sql) | a 0.1.2 com as correções da E7 (#155); iguala o repositório e a produção |
 | 4 | 12/10/2026, [`20261012030000_versao_minima_4.sql`](../../supabase/migrations/20261012030000_versao_minima_4.sql) | a 0.1.3, que abre no mês sem internet (#164) |
+| 5 | 28/10/2026, [`20261028120100_versao_minima_5.sql`](../../supabase/migrations/20261028120100_versao_minima_5.sql) | a 0.1.4, com os gêneros do dia (#172): a `save_meal_map` passou a recusar o formato anterior |
 
 Quem está logado lê. Ninguém escreve pela API: não há política de escrita, e
 os privilégios que o Supabase concede por padrão foram revogados, para que a
