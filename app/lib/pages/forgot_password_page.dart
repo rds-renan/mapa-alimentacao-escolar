@@ -16,6 +16,11 @@ import '../widgets/password_field.dart';
 /// navegador — o caminho que a web percorre em duas telas (pedido de link e
 /// senha nova) aqui é um só, porque o que chega por e-mail não é um link
 /// para abrir, é um número para digitar. Serve também o convite da direção.
+///
+/// Quem já tem um código na mão — o do e-mail de primeiro acesso, ou um
+/// pedido antes de o Android fechar o app enquanto ela lia o e-mail — pula
+/// o pedido por "Já tenho um código" (issue #171). Pedir de novo mandaria
+/// outro código e invalidaria o que ela já tem.
 class ForgotPasswordPage extends ConsumerStatefulWidget {
   const ForgotPasswordPage({super.key});
 
@@ -33,6 +38,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
 
   bool _emailInvalid = false;
   bool _codeSent = false;
+
+  /// O código veio de antes, e não do pedido feito nesta tela: muda o texto
+  /// de cima e não mostra o "já está a caminho".
+  bool _codeFromBefore = false;
   bool _submitting = false;
   String? _error;
 
@@ -73,6 +82,22 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
       } else {
         _codeSent = true;
       }
+    });
+  }
+
+  void _useCodeInHand() {
+    if (!isValidEmail(_emailController.text)) {
+      setState(() {
+        _emailInvalid = true;
+        _error = null;
+      });
+      return;
+    }
+
+    setState(() {
+      _error = null;
+      _codeSent = true;
+      _codeFromBefore = true;
     });
   }
 
@@ -117,6 +142,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
   void _startOver() {
     setState(() {
       _codeSent = false;
+      _codeFromBefore = false;
       _error = null;
       _codeController.clear();
       _passwordController.clear();
@@ -136,7 +162,10 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             style: Theme.of(context).textTheme.titleLarge,
           ),
           Text(
-            _codeSent
+            _codeFromBefore
+                ? 'Digite o código de 6 dígitos que chegou para '
+                      '$_displayEmail e a senha nova.'
+                : _codeSent
                 ? 'Chegou um código de 6 dígitos para $_displayEmail. '
                       'Digite-o abaixo com a senha nova.'
                 : 'Informe o e-mail do seu acesso. Mandamos um código para '
@@ -186,7 +215,7 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
             ),
           ],
           if (_error != null) FormMessage(_error!),
-          if (_error == null && _codeSent)
+          if (_error == null && _codeSent && !_codeFromBefore)
             const FormMessage(
               AuthMessages.codeSent,
               kind: FormMessageKind.success,
@@ -204,13 +233,22 @@ class _ForgotPasswordPageState extends ConsumerState<ForgotPasswordPage> {
           if (_codeSent)
             TextButton(
               onPressed: _submitting ? null : _startOver,
-              child: const Text('Pedir código para outro e-mail'),
+              child: Text(
+                _codeFromBefore
+                    ? 'Pedir um código novo'
+                    : 'Pedir código para outro e-mail',
+              ),
             )
-          else
+          else ...[
+            OutlinedButton(
+              onPressed: _submitting ? null : _useCodeInHand,
+              child: const Text('Já tenho um código'),
+            ),
             TextButton(
               onPressed: () => context.pop(),
               child: const Text('Voltar para o login'),
             ),
+          ],
         ],
       ),
     );
