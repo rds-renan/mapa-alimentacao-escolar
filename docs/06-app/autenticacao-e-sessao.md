@@ -138,6 +138,18 @@ Nada do que é conta abre o navegador (decisão 9 da E6). A tela
 descartada, e quem define a senha de verdade é esta mesma tela — pedir o
 código é pedir a primeira senha e a senha nova com o mesmo gesto.
 
+**Quem já tem o código não pede outro** (issue #171, achado no teste da
+Merendeira 2). A criação de acesso já manda o e-mail com o código, mas a tela
+só mostrava o campo do código depois de "Enviar o código", que manda um
+código **novo** e invalida o do e-mail. O primeiro acesso só dava certo por
+acaso, pedindo a recuperação de novo. Agora o primeiro passo tem também "Já
+tenho um código": confere o e-mail e vai direto ao código e à senha nova, sem
+chamar o servidor. O mesmo botão socorre quem pediu o código e voltou do
+e-mail com o app reaberto do zero (o Android pode fechá-lo enquanto ela lê o
+Gmail). A tela de entrar não mudou: o desenho do login é um só para a web e o
+app, e o caminho continua sendo "Esqueci minha senha". O e-mail diz os dois
+toques, e o modelo é colado à mão na produção.
+
 Testado contra o Supabase local, de ponta a ponta, pela API (sem passar pelo
 aplicativo): `POST /auth/v1/recover` → o código chegou no Mailpit dentro do
 modelo novo → `POST /auth/v1/verify` com `type=recovery` devolveu uma sessão
