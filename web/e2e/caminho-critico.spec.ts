@@ -97,8 +97,8 @@ test('a merendeira registra um dia e chega ao documento oficial', async ({
 
   await test.step('o dia sobe sozinho, sem botão de salvar', async () => {
     /*
-     * A faixa é a decisão 3 da E3 em uma linha, e é ela que diz que o dia
-     * chegou ao servidor. Sem isto o mapa não teria identificador de lá, e a
+     * O aviso da nuvem é a decisão 3 da E3 em uma linha — um toast desde a
+     * issue #178 —, e é ele que diz que o dia chegou ao servidor. Sem isto o mapa não teria identificador de lá, e a
      * tela seguinte não o deixaria entrar no documento.
      */
     await expect(page.getByText('Salvo na nuvem.')).toBeVisible({

@@ -43,7 +43,7 @@ import {
 import { chosenNames } from '@/food-items/catalog'
 import { MEAL_ORDER, type MealType, type MenuChangePayload } from '@/local/day'
 import { ConflictNotice } from '@/local/conflict-notice'
-import { SyncBanner } from '@/local/sync-banner'
+import { useCloudNotices } from '@/local/use-cloud-notices'
 import { dayAndMonth, monthKeyOf, monthLabel, shiftDate } from '@/month/month'
 import { dayPath, MONTH_PARAM, ROUTES } from '@/routes'
 
@@ -82,6 +82,7 @@ function DayScreen({ mapDate }: { mapDate: string }) {
   const navigate = useNavigate()
   const { day, locked, reopened, loading, failed, status, retry, change } =
     useDay(mapDate)
+  useCloudNotices(mapDate, status)
 
   const [openMeal, setOpenMeal] = useState<MealType | null>(null)
   /** A tela 3a, a alteração do cardápio do dia, está aberta. */
@@ -236,7 +237,6 @@ function DayScreen({ mapDate }: { mapDate: string }) {
         </div>
       </header>
 
-      <SyncBanner status={status} />
       <ConflictNotice />
 
       {locked ? (

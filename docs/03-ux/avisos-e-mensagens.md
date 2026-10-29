@@ -14,17 +14,19 @@
 
 ## Mensagens dentro da tela
 
-![Erro de login, faixa de salvamento nos seus estados e aviso de geração sem internet](../assets/e3-avisos-na-tela.png)
+![Erro de login e aviso de geração sem internet](../assets/e3-avisos-na-tela.png)
 
-Ficam no lugar onde a coisa acontece e permanecem enquanto valem. A faixa de salvamento tem os três estados da [decisão 3](decisoes-de-design.md) e, desde a E6, a frase própria da recusa do banco (refs #125). A geração sem internet não promete mais que "os mapas sobem e o documento fica pronto": não existe fila de geração (decisão 10), e a frase passou a ser "Sem internet não dá para gerar o documento. Quando voltar, é só tocar em Gerar documento." O erro de login não diz qual dos dois campos está errado: só a direção cria acesso (US016), e apontar o campo certo ajudaria justamente quem não deveria entrar.
+Ficam no lugar onde a coisa acontece e permanecem enquanto valem. Até a E7, a faixa de salvamento também morava aqui; desde a issue #178 os estados dela são avisos de passagem, na seção abaixo. A geração sem internet não promete mais que "os mapas sobem e o documento fica pronto": não existe fila de geração (decisão 10), e a frase passou a ser "Sem internet não dá para gerar o documento. Quando voltar, é só tocar em Gerar documento." O erro de login não diz qual dos dois campos está errado: só a direção cria acesso (US016), e apontar o campo certo ajudaria justamente quem não deveria entrar.
 
 > **Acrescentado na E6 (refs #113).** A faixa ganhou um quarto estado, só do aplicativo: **"Salvo no seu celular. Vai para a nuvem depois que você atualizar o MAE."** Aparece quando o aplicativo está abaixo da versão mínima que o banco aceita. O registro continua, mas a frase de sempre, "a gente atualiza na nuvem quando a internet voltar", seria falsa, porque com internet o dia também não sobe. Ver a [versão mínima do aplicativo](../06-app/versao-minima.md).
 
 ## Mensagens por cima da tela
 
-![Avisos de passagem, confirmação antes de gerar e diálogo de falha](../assets/e3-avisos-por-cima.png)
+![Avisos da nuvem e Desfazer, confirmação antes de gerar e diálogo de falha](../assets/e3-avisos-por-cima.png)
 
 Duas naturezas diferentes: o **aviso de passagem** some sozinho e nunca carrega informação que precise ser relida; o **diálogo** interrompe e exige uma decisão.
+
+> **Revisto na E7.** Os avisos de passagem ganharam conteúdo de verdade. Os estados de salvamento da [decisão 3](decisoes-de-design.md), com a frase da recusa do banco e a da versão desatualizada, saíram da faixa fixa do alto do dia e viraram snackbar no app e toast no canto superior direito na web (issue #178). Só aparecem quando a frase muda, e "Salvo no seu celular…" só aparece se o envio não acontecer em poucos segundos. O snackbar **"Arroz removido · Desfazer"** nasceu com o arrasto que tira um gênero do dia (issue #174), e o aviso da nuvem espera ele sair em vez de derrubá-lo. Os dois exemplos que a E3 desenhou aqui ("Feijão preto entrou no lanche da tarde." e "Aguardando internet… · Tentar") nunca chegaram ao produto e saíram do desenho.
 
 A confirmação antes de gerar é a única do fluxo da merendeira, e existe porque o bloqueio dos mapas é irreversível para ela — depois de gerado, corrigir passaria a ser assunto da direção. Confirmar tudo é o caminho para ela deixar de ler as confirmações.
 
@@ -40,4 +42,4 @@ O texto segue a mesma frase que a notificação tinha — "O documento ficou pro
 
 > **Acrescentado na E6 (refs #113).** Um segundo aviso de destaque: **"Atualize o MAE"**, com "Seus registros ficam salvos no aparelho e vão para a nuvem depois da atualização." e o botão "Atualizar". Aparece quando o aplicativo está abaixo da versão mínima que o banco aceita e, ao contrário do documento pronto, não tem X: enquanto ele estiver ali, nada vai para a nuvem. A tela não tranca, e ela continua registrando. "Atualizar" baixa a versão nova e abre o instalador do Android, e o próprio aviso mostra o andamento e, se der errado, o que fazer. Ver a [versão mínima do aplicativo](../06-app/versao-minima.md).
 
-Mapa enviado, gênero cadastrado e dia pendente **não** viram aviso. Avisar de rotina é o caminho mais curto para ela passar a ignorar o destaque do alto — e aí o único que importa também passa batido.
+Gênero cadastrado e dia pendente **não** viram aviso, e "Salvo na nuvem." aparece uma vez, não a cada gravação. Avisar de rotina é o caminho mais curto para ela passar a ignorar o destaque do alto — e aí o único que importa também passa batido.

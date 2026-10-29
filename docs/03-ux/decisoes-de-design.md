@@ -34,6 +34,8 @@
 >
 > A revisão separou também um caso que a frase de falha cobria sem dizer: o banco **recusar** o dia (ele já está num documento gerado, ou uma quantidade não vale). Ali a internet funciona, e "aguardando internet" seria falso. A faixa diz então **"Ainda não foi para a nuvem. Seus dados estão seguros no aparelho."**, seguida da explicação do banco, que diz o que corrigir.
 
+>
+> **Revisto na E7 (issue #178).** As frases continuam as mesmas, mas deixaram de ser uma faixa fixa. A faixa acompanhava o estado a cada tecla: com rede, toda gravação passava por "Salvo no seu celular…" e, um segundo depois, por "Salvo na nuvem.", e a Merendeira 2 via a faixa aparecer, sumir e empurrar a tela enquanto digitava. Agora o estado é um aviso de passagem, snackbar no app e toast no canto superior direito na web, e só aparece quando a frase muda. "Salvo no seu celular…" espera alguns segundos antes de aparecer, porque com rede ele é só o instante entre gravar e subir. A faixa do cadeado ("Este dia já está em um documento gerado…") continua, porque não muda e o dia não é editável. Ver os [avisos e mensagens](avisos-e-mensagens.md).
 **Histórias**: US010, US011, US001.
 
 **Consequência no vocabulário**: o verbo "registrar" nomeia o fluxo inteiro ("registro do dia") e por isso não pode nomear nenhuma ação isolada dentro dele — num app sem botão de salvar, um botão que começa com "Registrar" é lido como "salvar isto aqui". Os controles internos são nomeados pelo assunto, não pelo verbo: o botão que abre a troca de item chama-se **"Alteração do cardápio"**.

@@ -205,6 +205,17 @@ void main() {
     'digitar e escolher a aceitação grava no aparelho sem botão de salvar',
     (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        for (var i = 0; i < 2; i++) {
+          syncGateway.enqueueSaved({
+            'status': 'saved',
+            'meal_map_id': 'map-1',
+            'map_date': '2026-09-01',
+            'locked': false,
+            'updated_at': '2026-09-09T10:00:00.000',
+            'updated_by': null,
+            'food_items': <Map<String, dynamic>>[],
+          });
+        }
         await openDay(tester, 1);
 
         await tester.enterText(
@@ -218,7 +229,33 @@ void main() {
         await tester.tap(find.text('Ótimo'));
         await tester.pump();
 
-        expect(find.text(syncMessages[SyncStatus.pending]!), findsOneWidget);
+        // Gravado no aparelho, o dia sobe logo depois. O "Salvo no seu
+        // celular…" de passagem não aparece: com rede seria mentira, e era
+        // ele que fazia a faixa piscar a cada letra (issue #178).
+        expect(find.text(syncMessages[SyncStatus.pending]!), findsNothing);
+        expect(find.byType(SnackBar), findsNothing);
+
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+        expect(
+          find.widgetWithText(SnackBar, syncMessages[SyncStatus.sent]!),
+          findsOneWidget,
+        );
+
+        // Mais uma letra, mais um envio: a frase é a mesma, e o aviso não
+        // se repete. (O prazo do snackbar só começa depois que ele termina
+        // de entrar, por isso duas esperas.)
+        await tester.pump(const Duration(seconds: 1));
+        await tester.pump(const Duration(seconds: 5));
+        await tester.pumpAndSettle();
+        expect(find.byType(SnackBar), findsNothing);
+        await tester.enterText(
+          find.byType(TextField).first,
+          'Pão com manteiga e leite',
+        );
+        await tester.pump(const Duration(seconds: 2));
+        await tester.pump();
+        expect(find.byType(SnackBar), findsNothing);
 
         await dispose(tester);
       });
@@ -276,7 +313,11 @@ void main() {
         );
         await tester.pump();
 
-        expect(find.text(syncMessages[SyncStatus.pending]!), findsOneWidget);
+        final draft = await container
+            .read(syncEngineProvider(cook.id))
+            .load('2026-09-01');
+        expect(draft!.nonSchoolDay, isTrue);
+        expect(draft.note, 'Conselho de classe');
 
         await dispose(tester);
       });
@@ -501,6 +542,60 @@ void main() {
       });
     },
   );
+
+  testWidgets('o aviso da nuvem espera o "Desfazer" sair, em vez de derrubá-lo '
+      '(issues #174 e #178)', (tester) async {
+    await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+      await seedCatalog();
+      await openDay(tester, 1);
+
+      await tester.tap(find.text('Adicionar gênero'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Arroz'));
+      await tester.pump();
+      await tester.tap(find.text('Adicionar 1 gênero'));
+      await tester.pumpAndSettle();
+
+      // Sem resposta do servidor, o primeiro envio falha e avisa.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      expect(
+        find.widgetWithText(SnackBar, syncMessages[SyncStatus.failed]!),
+        findsOneWidget,
+      );
+
+      // O próximo envio vai passar — enquanto o "Desfazer" está na tela.
+      syncGateway.enqueueSaved({
+        'status': 'saved',
+        'meal_map_id': 'map-1',
+        'map_date': '2026-09-01',
+        'locked': false,
+        'updated_at': '2026-09-09T10:00:00.000',
+        'updated_by': null,
+        'food_items': <Map<String, dynamic>>[],
+      });
+      await tester.drag(find.text('Arroz'), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Arroz removido'), findsOneWidget);
+
+      // A gravação do arrasto sobe depois de 1,2 s.
+      await tester.pump(const Duration(seconds: 2));
+      await tester.pump();
+      expect(find.text('Arroz removido'), findsOneWidget);
+      expect(find.text(syncMessages[SyncStatus.sent]!), findsNothing);
+
+      // Saiu o "Desfazer", entra o aviso guardado.
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+      expect(find.text('Arroz removido'), findsNothing);
+      expect(
+        find.widgetWithText(SnackBar, syncMessages[SyncStatus.sent]!),
+        findsOneWidget,
+      );
+
+      await dispose(tester);
+    });
+  });
 
   testWidgets(
     'arrastar para o lado tira o gênero, e o "Desfazer" devolve com a mesma '

@@ -4,6 +4,7 @@ import { QueryClientProvider } from '@tanstack/react-query'
 import { BrowserRouter } from 'react-router'
 
 import { AuthProvider } from '@/auth/auth-provider'
+import { Toaster } from '@/components/ui/sonner'
 import { createQueryClient } from '@/lib/query-client'
 import { SyncProvider } from '@/local/sync-provider'
 import { ThemeProvider } from '@/theme/theme-provider'
@@ -37,6 +38,7 @@ createRoot(document.getElementById('root')!).render(
             <SyncProvider>
               <App />
             </SyncProvider>
+            <Toaster />
           </AuthProvider>
         </QueryClientProvider>
       </BrowserRouter>
