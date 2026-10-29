@@ -15,13 +15,13 @@ import '../day/messages.dart';
 import '../day/non_school_day_card.dart';
 import '../day/register.dart';
 import '../local/day.dart';
+import '../local/cloud_notices.dart';
 import '../local/day_repository.dart';
 import '../local/local_providers.dart';
 import '../local/sync_engine.dart';
 import '../month/month.dart' show mealOrder, monthLabel, shiftDate;
 import '../theme/theme.dart';
 import '../widgets/conflict_notice.dart';
-import '../widgets/sync_banner.dart';
 
 /// O registro do dia (issues #105 e #106) — a tela central do produto
 /// (US001, com a US002 a US007 dentro dela). É a versão em Flutter de
@@ -82,6 +82,14 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
   /// cada notificação da fila enquanto ela continuar visível.
   String? _handledConflictAt;
 
+  /// Os avisos da nuvem em snackbar (issue #178): só quando a frase muda.
+  late final _cloudNotices = CloudNotices(show: _showCloudNotice);
+
+  /// O snackbar do "Desfazer" na tela, se houver. O aviso da nuvem não o
+  /// derruba: espera ele sair, e só o aviso mais recente aparece depois.
+  ScaffoldFeatureController<SnackBar, SnackBarClosedReason>? _undo;
+  String? _deferredCloudNotice;
+
   void _attachEngine(SyncEngine engine) {
     if (identical(_engine, engine)) return;
     _engine?.stateListenable.removeListener(_onSyncChange);
@@ -129,12 +137,29 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
       unawaited(_loadDraft());
     }
 
+    _cloudNotices.update(engine.state.days[widget.mapDate]);
     setState(() {});
+  }
+
+  /// Um aviso da nuvem por vez: o novo toma o lugar do anterior em vez de
+  /// entrar na fila, porque um aviso velho chegando depois diria um estado
+  /// que já passou.
+  void _showCloudNotice(String text) {
+    if (!mounted) return;
+    if (_undo != null) {
+      _deferredCloudNotice = text;
+      return;
+    }
+
+    ScaffoldMessenger.of(context)
+      ..removeCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
   }
 
   @override
   void dispose() {
     _engine?.stateListenable.removeListener(_onSyncChange);
+    _cloudNotices.dispose();
     _live.dispose();
     super.dispose();
   }
@@ -171,23 +196,34 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
 
     _change(removeFoodItem(_shown!, list, key));
 
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(DayMessages.foodItemRemoved(item.name)),
-          // Some sozinho: com ação, o padrão do Flutter é ficar até alguém
-          // fechar, e ele cobriria o rodapé do dia.
-          persist: false,
-          action: SnackBarAction(
-            label: DayMessages.undo,
-            onPressed: () {
-              if (!mounted || _shown == null) return;
-              _change(restoreFoodItem(_shown!, list, item, index));
-            },
-          ),
+    final messenger = ScaffoldMessenger.of(context)..removeCurrentSnackBar();
+    final controller = messenger.showSnackBar(
+      SnackBar(
+        content: Text(DayMessages.foodItemRemoved(item.name)),
+        // Some sozinho: com ação, o padrão do Flutter é ficar até alguém
+        // fechar, e ele cobriria o rodapé do dia.
+        persist: false,
+        action: SnackBarAction(
+          label: DayMessages.undo,
+          onPressed: () {
+            if (!mounted || _shown == null) return;
+            _change(restoreFoodItem(_shown!, list, item, index));
+          },
         ),
-      );
+      ),
+    );
+
+    _undo = controller;
+    unawaited(
+      controller.closed.then((_) {
+        // Um "Desfazer" mais novo pode ter tomado o lugar deste.
+        if (!identical(_undo, controller)) return;
+        _undo = null;
+        final deferred = _deferredCloudNotice;
+        _deferredCloudNotice = null;
+        if (deferred != null) _showCloudNotice(deferred);
+      }),
+    );
   }
 
   /// Abre a folha 3b e põe os gêneros marcados na lista. Aberta de dentro da
@@ -330,7 +366,6 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
           ),
           body: Column(
             children: [
-              SyncBanner(status: engine.state.days[widget.mapDate]),
               ConflictNotice(
                 conflicts: engine.state.conflicts
                     .where((one) => one.mapDate == widget.mapDate)

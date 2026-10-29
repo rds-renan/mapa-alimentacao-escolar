@@ -88,6 +88,8 @@ declarada, na [camada local](camada-local.md).
 
 **Histórias**: US003, US004, US024.
 
+> **Acrescentado na E7 (issue #178).** Os avisos da nuvem viraram toast no canto superior direito, e o toast é o **sonner**, que é o componente de toast do próprio shadcn/ui. Foi a primeira dependência de componente fora do Radix: escrever à mão a fila, a região `aria-live` e a animação seria mais código nosso para fazer o que ele já faz. Ele segue o tema escolhido no aplicativo, e não o do sistema, e usa as cores do cartão ([`sonner.tsx`](../../web/src/components/ui/sonner.tsx)).
+
 ## 8. Os tipos do banco são gerados, não escritos
 
 **Decisão**: os tipos TypeScript das tabelas saem de `supabase gen types typescript` a partir das migrations, ficam versionados em `web/` e são regerados quando o schema muda. A CI falha se o arquivo versionado estiver defasado em relação às migrations.

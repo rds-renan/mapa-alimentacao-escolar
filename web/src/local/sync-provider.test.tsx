@@ -7,14 +7,13 @@ import { createQueryClient } from '@/lib/query-client'
 
 import { ConflictNotice } from './conflict-notice'
 import { emptyDay } from './day'
-import { SyncBanner } from './sync-banner'
 import { SyncProvider } from './sync-provider'
 import { useDayDraft } from './useDayDraft'
 import { useSync } from './useSync'
 
 /*
  * O vínculo com o React: a fila vive acima das rotas, a tela do dia grava por
- * um gancho e a faixa reflete o que a fila está fazendo. É o caminho que as
+ * um gancho e o estado reflete o que a fila está fazendo. É o caminho que as
  * issues #61 e #62 vão usar, exercitado aqui inteiro.
  */
 
@@ -44,7 +43,8 @@ function DayScreen() {
   return (
     <>
       <ConflictNotice />
-      <SyncBanner status={status} />
+      {/* O estado como a tela do dia o recebe; o aviso em si é da #178. */}
+      {status ? <p role="status">{status.message}</p> : null}
       <button
         onClick={() => void update({ ...emptyDay(DATE), meals_served: 312 })}
       >

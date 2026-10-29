@@ -87,11 +87,13 @@ mesmas três frases da faixa de salvamento (decisão 3 da E3) e o mesmo texto de
 conflito da web, palavra por palavra. `pendingOnSignOutMessage` não tem
 equivalente aqui — não existe o "sair apaga" que ela avisaria.
 
-[`SyncBanner`](../../app/lib/widgets/sync_banner.dart) e
-[`ConflictNotice`](../../app/lib/widgets/conflict_notice.dart) são as
-versões em Dart de `sync-banner.tsx` e `conflict-notice.tsx` — a tela de
-[registro do dia](registro-do-dia.md) (#105) é quem as monta, chamando
-`engine.save()` a cada campo e desenhando as duas por cima do formulário.
+[`ConflictNotice`](../../app/lib/widgets/conflict_notice.dart) é a versão
+em Dart de `conflict-notice.tsx` — a tela de
+[registro do dia](registro-do-dia.md) (#105) é quem a monta, chamando
+`engine.save()` a cada campo. O estado de envio era uma faixa, o
+`SyncBanner`; desde a issue #178 ele é um snackbar, e quem decide quando ele
+aparece é [`CloudNotices`](../../app/lib/local/cloud_notices.dart): só quando
+a frase muda, com "Salvo no seu celular…" esperando 3 s.
 
 ## O que a #105 resolveu, e o que continua em aberto
 
@@ -114,7 +116,8 @@ versões em Dart de `sync-banner.tsx` e `conflict-notice.tsx` — a tela de
 [`sync_queue_store_test.dart`](../../app/test/local/sync_queue_store_test.dart),
 [`sync_engine_test.dart`](../../app/test/local/sync_engine_test.dart) (com
 `FakeSyncGateway` e `FakeConnectivityGateway`) e os testes de widget de
-`SyncBanner`/`ConflictNotice`:
+`ConflictNotice` (a faixa `SyncBanner` saiu na #178, e o teste dela virou o
+de `CloudNotices`):
 
 | Cenário | O que se afirma |
 |---|---|

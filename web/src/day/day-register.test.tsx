@@ -12,9 +12,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import App from '@/App'
 import type { Profile } from '@/auth/auth-context'
 import { AuthProvider } from '@/auth/auth-provider'
+import { Toaster } from '@/components/ui/sonner'
 import { SyncProvider } from '@/local/sync-provider'
 import { ThemeProvider } from '@/theme/theme-provider'
 import { getStoredDay } from '@/local/store'
+import { SYNC_MESSAGES } from '@/local/messages'
 
 vi.mock('@/lib/supabase', async () => await import('@/test/supabase-mock'))
 vi.mock('@/lib/local-data', () => ({ clearLocalData: vi.fn(async () => {}) }))
@@ -85,6 +87,7 @@ function renderDay(date = DATE) {
           </AuthProvider>
         </QueryClientProvider>
       </MemoryRouter>
+      <Toaster />
     </ThemeProvider>
   )
 }
@@ -121,6 +124,32 @@ beforeEach(() => {
 
 afterEach(() => {
   resetSupabaseMock()
+})
+
+describe('os avisos da nuvem (issue #178)', () => {
+  it('saem num toast, e não numa faixa que empurra a tela', async () => {
+    renderDay()
+    await dayLoaded()
+
+    typeDescription('Pão com manteiga')
+
+    // Aqui não há rede: o envio falha e o aviso diz isso, uma vez.
+    // O envio sai 1,2 s depois da última tecla.
+    expect(
+      await screen.findByText(SYNC_MESSAGES.failed, {}, { timeout: 3000 })
+    ).toBeInTheDocument()
+    expect(screen.queryByText(SYNC_MESSAGES.pending)).not.toBeInTheDocument()
+
+    typeDescription('Pão com manteiga e leite')
+    await waitFor(async () =>
+      expect((await storedDay())?.day.meals[0]?.description).toBe(
+        'Pão com manteiga e leite'
+      )
+    )
+    // O segundo envio falha com a mesma frase: o aviso não se repete.
+    await new Promise((resolve) => setTimeout(resolve, 1500))
+    expect(screen.getAllByText(SYNC_MESSAGES.failed)).toHaveLength(1)
+  })
 })
 
 describe('o registro de um dia comum', () => {

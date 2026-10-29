@@ -298,7 +298,7 @@ auditoria, e não vira recado
 O `locked` é lido do servidor, que é o único que o conhece. Quando a consulta
 não responde e a tela abre pelo rascunho, o bloqueio não é conhecido; se o dia
 tiver sido bloqueado nesse meio-tempo, quem recusa é a gravação, e a mensagem
-dela aparece na faixa de salvamento.
+dela aparece no aviso da nuvem (um toast desde a issue #178).
 
 ## O cabeçalho: andar entre dias, e o caminho de volta
 
