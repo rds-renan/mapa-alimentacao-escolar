@@ -6,18 +6,23 @@ import '../theme/theme.dart';
 import 'messages.dart';
 import 'register.dart';
 
-/// O que os steppers de uma lista fazem. O mesmo trio serve às duas listas
-/// da refeição — os gêneros dela e os da troca —, e quem monta diz qual.
+/// O que os steppers de uma lista fazem. As mesmas ações servem às duas
+/// listas do dia — os gêneros utilizados e os da troca —, e quem monta diz
+/// qual.
 class FoodItemActions {
   const FoodItemActions({
     required this.add,
     required this.step,
     required this.setQuantity,
+    required this.remove,
   });
 
   final VoidCallback add;
   final void Function(String key, int delta) step;
   final void Function(String key, int quantity) setQuantity;
+
+  /// O arrasto para o lado (issue #174).
+  final void Function(String key) remove;
 }
 
 /// Os gêneros de uma lista, cada um com o seu stepper (decisão 2 da E3) — a
@@ -34,6 +39,11 @@ class FoodItemActions {
 /// porque 12 potes não se alcançam a toques. A unidade vem do catálogo e não
 /// se edita aqui: é ela que mantém as quantidades comparáveis entre as duas
 /// merendeiras (RN#1 da US009).
+///
+/// **Arrastar a linha para o lado tira o gênero na hora** (issue #174). Um
+/// pão lançado no lugar errado com 120 unidades só saía apertando "−" até 1;
+/// o "−" em 1 continua tirando, mas o arrasto resolve num gesto, e quem
+/// monta a lista oferece o "Desfazer". Num dia trancado a linha não arrasta.
 class FoodItemListView extends StatelessWidget {
   const FoodItemListView({
     super.key,
@@ -55,12 +65,29 @@ class FoodItemListView extends StatelessWidget {
       spacing: kSpacingUnit * 2,
       children: [
         for (final item in items)
-          _FoodItemRow(
-            key: ValueKey(foodItemKey(item.name)),
-            item: item,
-            readOnly: readOnly,
-            actions: actions,
-          ),
+          if (readOnly)
+            _FoodItemRow(
+              key: ValueKey(foodItemKey(item.name)),
+              item: item,
+              readOnly: true,
+              actions: actions,
+            )
+          else
+            Dismissible(
+              key: ValueKey(foodItemKey(item.name)),
+              background: const _RemoveBackground(
+                alignment: Alignment.centerLeft,
+              ),
+              secondaryBackground: const _RemoveBackground(
+                alignment: Alignment.centerRight,
+              ),
+              onDismissed: (_) => actions.remove(foodItemKey(item.name)),
+              child: _FoodItemRow(
+                item: item,
+                readOnly: false,
+                actions: actions,
+              ),
+            ),
         if (!readOnly)
           OutlinedButton.icon(
             onPressed: actions.add,
@@ -71,6 +98,33 @@ class FoodItemListView extends StatelessWidget {
             ),
           ),
       ],
+    );
+  }
+}
+
+/// O que aparece por baixo da linha enquanto ela arrasta: a lixeira, do lado
+/// de onde a linha sai, na cor de erro do tema.
+class _RemoveBackground extends StatelessWidget {
+  const _RemoveBackground({required this.alignment});
+
+  final Alignment alignment;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = Theme.of(context).colorScheme;
+
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        color: colors.errorContainer,
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: kSpacingUnit * 4),
+        child: Align(
+          alignment: alignment,
+          child: Icon(Icons.delete_outline, color: colors.onErrorContainer),
+        ),
+      ),
     );
   }
 }

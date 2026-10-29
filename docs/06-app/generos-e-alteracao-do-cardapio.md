@@ -121,6 +121,22 @@ digitar outro número — sem isso, apagar devolveria 1 debaixo do dedo e o
 número seguinte sairia grudado nele. Ao sair do campo vazio, volta a mostrar a
 quantidade que vale.
 
+## Arrastar para o lado tira o gênero
+
+Desde a E7, arrastar a linha para qualquer lado tira o gênero na hora, nos
+gêneros do dia e nos da troca (issue #174). No teste da Merendeira 2, um pão
+lançado no lugar errado com 120 unidades só saía apertando "−" até 1. O "−" em
+1 continua tirando.
+
+O aviso embaixo ("Arroz removido · Desfazer") devolve o gênero ao mesmo lugar,
+com a mesma quantidade, por `restoreFoodItem`. Se ela já tiver posto o mesmo
+gênero de volta pela folha, o "Desfazer" não duplica. O aviso some sozinho em
+4 segundos (`persist: false`): com ação, o padrão do Flutter é ficar na tela
+até alguém fechar, cobrindo o rodapé do dia.
+
+Num dia trancado a linha não é `Dismissible`, então não arrasta. A web não
+ganhou o gesto: a issue é só do app.
+
 ## O catálogo antes da primeira rede
 
 Na web, a folha lê o catálogo do servidor e mostra um aviso se a leitura

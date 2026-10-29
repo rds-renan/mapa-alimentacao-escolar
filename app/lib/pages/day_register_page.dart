@@ -157,7 +157,37 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
           _change(stepFoodItemQuantity(_shown!, list, key, delta)),
       setQuantity: (key, quantity) =>
           _change(setFoodItemQuantity(_shown!, list, key, quantity)),
+      remove: (key) => _removeFoodItem(list, key),
     );
+  }
+
+  /// O arrasto para o lado tira o gênero na hora, e o aviso embaixo deixa
+  /// voltar atrás com a mesma quantidade, no mesmo lugar (issue #174).
+  void _removeFoodItem(FoodItemList list, String key) {
+    final items = foodItemsOf(_shown!, list);
+    final index = items.indexWhere((item) => foodItemKey(item.name) == key);
+    if (index < 0) return;
+    final item = items[index];
+
+    _change(removeFoodItem(_shown!, list, key));
+
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(DayMessages.foodItemRemoved(item.name)),
+          // Some sozinho: com ação, o padrão do Flutter é ficar até alguém
+          // fechar, e ele cobriria o rodapé do dia.
+          persist: false,
+          action: SnackBarAction(
+            label: DayMessages.undo,
+            onPressed: () {
+              if (!mounted || _shown == null) return;
+              _change(restoreFoodItem(_shown!, list, item, index));
+            },
+          ),
+        ),
+      );
   }
 
   /// Abre a folha 3b e põe os gêneros marcados na lista. Aberta de dentro da

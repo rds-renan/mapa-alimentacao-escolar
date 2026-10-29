@@ -364,6 +364,26 @@ DayPayload removeFoodItem(DayPayload day, FoodItemList list, String key) {
   );
 }
 
+/// Devolve um gênero tirado por engano ao lugar de onde saiu, com a
+/// quantidade que tinha — o "Desfazer" do arrasto (issue #174).
+///
+/// Se ela já pôs o mesmo gênero de volta por outro caminho, nada muda: a
+/// regra é a de [addFoodItem], a gravação fundiria os dois pelo nome. E se a
+/// lista encolheu no meio-tempo, ele vai para o fim.
+DayPayload restoreFoodItem(
+  DayPayload day,
+  FoodItemList list,
+  FoodItemPayload item,
+  int index,
+) {
+  return _changeList(day, list, (items) {
+    if (items.any((one) => foodItemKey(one.name) == foodItemKey(item.name))) {
+      return items;
+    }
+    return [...items]..insert(index.clamp(0, items.length), item);
+  });
+}
+
 /// Um a mais, um a menos — e, no "−" de quem está em 1, o gênero sai da
 /// lista.
 ///
