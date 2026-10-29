@@ -35,13 +35,20 @@ teclado e leitor de tela.
 ## A unidade, em texto livre com sugestões
 
 É aqui que o leque da [decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)
-se abre. A unidade é um campo de texto com as seis sugestões da E3 logo abaixo:
-tocar uma preenche o campo, e o que a cozinha usa fora delas — "bandeja",
-"fardo" — se escreve.
+se abre. A unidade é um campo de texto com as sugestões logo abaixo: tocar uma
+preenche o campo, e o que a cozinha usa fora delas — "bandeja", "fardo" — se
+escreve.
 
-A folha 3b continua com as seis fechadas, e a diferença é proposital: lá, um
-teclado no meio de uma refeição é que seria o custo; aqui, quem veio manter o
-catálogo já veio para digitar.
+A folha 3b continua só com as sugestões, sem campo livre, e a diferença é
+proposital: lá, um teclado no meio do registro é que seria o custo; aqui, quem
+veio manter o catálogo já veio para digitar.
+
+> **Revisto na E7.** Até a E7 eram seis sugestões ("quilo", "saco", "pote",
+> "litro", "lata", "unidade"). A Merendeira 1 pediu as unidades como vêm na
+> nota fiscal do fornecedor, onde elas conferem o que recebem, e ficaram só
+> **"kg"** e **"un"**, as duas que elas usam (issue #175). Uma migration levou
+> o catálogo junto: "quilo" virou "kg", e "unidade", "pote", "lata" e "litro"
+> viraram "un".
 
 ### Trocar a unidade alcança o passado
 

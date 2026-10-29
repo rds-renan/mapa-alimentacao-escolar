@@ -14,16 +14,12 @@ import '../local/day.dart' show normalizedName;
 ///
 /// A unidade é texto curto no banco e a lista **não** é fechada (decisão 8
 /// da E4) — mas quem abre o leque é a manutenção do catálogo. Aqui, no meio
-/// de uma refeição, são seis toques e nenhum teclado: é o desenho da tela 3b,
-/// e é o que faz o pior caso (o gênero não existe) caber em dois gestos.
-const List<String> unitSuggestions = [
-  'quilo',
-  'saco',
-  'pote',
-  'litro',
-  'lata',
-  'unidade',
-];
+/// do registro, é um toque e nenhum teclado.
+///
+/// São só "kg" e "un" desde a E7 (issue #175): é como vem na nota fiscal do
+/// fornecedor, onde elas conferem o que recebem, e são as duas que usam.
+/// Qualquer outra elas digitam no catálogo, que aceita texto livre.
+const List<String> unitSuggestions = ['kg', 'un'];
 
 /// O Dart não tem a normalização Unicode do `String.normalize('NFD')` do
 /// JavaScript, então os acentos saem por tabela. Cobrem o português, que é
@@ -46,16 +42,12 @@ String _fold(String text) =>
 bool matchesSearch(String name, String search) =>
     _fold(name).contains(_fold(search));
 
-/// "3 bandejas de ovo" — a quantidade como o cartão da refeição a resume.
+/// "3 kg de arroz" — a quantidade como o cartão do dia a resume.
 ///
-/// O plural é o "s" simples, e é uma aproximação assumida: as seis unidades
-/// sugeridas pluralizam assim, e uma unidade esquisita vinda do catálogo sai
-/// com um "s" a mais em vez de sair errada de gênero. O documento oficial não
-/// passa por aqui — lá o formato é "N unidade" (CA#3 da US003).
+/// Sem plural desde a E7 (issue #175): a unidade sai como está no catálogo,
+/// como na nota fiscal e no documento oficial. "kg" e "un" não têm plural, e
+/// o "s" simples de antes daria "3 kgs".
 String quantityLabel(int quantity, String? unit) {
   final one = (unit ?? '').trim();
-  if (one.isEmpty) return '$quantity';
-
-  final many = quantity > 1 && !one.endsWith('s') ? '${one}s' : one;
-  return '$quantity $many';
+  return one.isEmpty ? '$quantity' : '$quantity $one';
 }

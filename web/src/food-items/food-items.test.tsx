@@ -176,22 +176,22 @@ describe('cadastrar um gênero', () => {
     await catalogLoaded()
 
     typeName('Óleo de soja')
-    click('lata')
+    click('un')
     click('Adicionar ao catálogo')
 
     expect(await screen.findByRole('alert')).toHaveTextContent(
       'Óleo de soja entrou no catálogo.'
     )
     await waitFor(() => {
-      expect(listed()).toContain('Óleo de soja (lata)')
+      expect(listed()).toContain('Óleo de soja (un)')
     })
 
     expect(storedFoodItems()).toContainEqual(
-      expect.objectContaining({ name: 'Óleo de soja', default_unit: 'lata' })
+      expect.objectContaining({ name: 'Óleo de soja', default_unit: 'un' })
     )
   })
 
-  it('aceita a unidade que a cozinha usa, fora das seis sugeridas', async () => {
+  it('aceita a unidade que a cozinha usa, fora das sugeridas', async () => {
     renderCatalog()
     await catalogLoaded()
 

@@ -471,7 +471,7 @@ void main() {
           'Fubá',
         );
         await tester.pumpAndSettle();
-        await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
+        await tester.tap(find.widgetWithText(ChoiceChip, 'kg'));
         await tester.pumpAndSettle();
         await tester.tap(find.widgetWithText(OutlinedButton, 'Cadastrar'));
         await tester.pumpAndSettle();
@@ -608,7 +608,7 @@ void main() {
       final create = find.widgetWithText(OutlinedButton, 'Cadastrar');
       expect(tester.widget<OutlinedButton>(create).onPressed, isNull);
 
-      await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
+      await tester.tap(find.widgetWithText(ChoiceChip, 'kg'));
       await tester.pumpAndSettle();
       await tester.tap(create);
       await tester.pumpAndSettle();
@@ -626,7 +626,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Farinha de mandioca'), findsOneWidget);
-      expect(find.text('quilo'), findsOneWidget);
+      expect(find.text('kg'), findsOneWidget);
 
       final draft = await container
           .read(syncEngineProvider(cook.id))
@@ -634,7 +634,7 @@ void main() {
       final item = draft!.foodItems.single;
       expect(item.foodItemId, isNull);
       expect(item.name, 'Farinha de mandioca');
-      expect(item.unit, 'quilo');
+      expect(item.unit, 'kg');
       expect(item.quantity, 1);
 
       await dispose(tester);
@@ -844,9 +844,9 @@ void main() {
             .onPressed,
         isNull,
       );
-      expect(find.text('3 bandejas de ovo'), findsOneWidget);
+      expect(find.text('3 bandeja de ovo'), findsOneWidget);
 
-      await tester.tap(find.text('3 bandejas de ovo'));
+      await tester.tap(find.text('3 bandeja de ovo'));
       await tester.pumpAndSettle();
 
       expect(find.text('Cancelar'), findsNothing);
