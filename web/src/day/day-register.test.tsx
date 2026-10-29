@@ -1,5 +1,11 @@
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { fireEvent, render, screen, waitFor } from '@testing-library/react'
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react'
 import { MemoryRouter } from 'react-router'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -124,6 +130,14 @@ describe('o registro de um dia comum', () => {
 
     // O lanche da manhã já abre: é a primeira refeição que falta.
     typeDescription('Pão com manteiga e leite com achocolatado')
+
+    // Do pior para o melhor (issue #177).
+    expect(
+      within(screen.getByRole('group', { name: 'Aceitação' }))
+        .getAllByRole('button')
+        .map((button) => button.textContent)
+    ).toEqual(['Ruim', 'Bom', 'Ótimo'])
+
     fireEvent.click(screen.getByRole('button', { name: 'Ótimo' }))
 
     await waitFor(async () => {

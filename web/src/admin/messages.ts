@@ -336,7 +336,7 @@ export const DASHBOARD_MESSAGES = {
   acceptanceTitle: 'Aceitação por refeição',
   acceptanceSubtitle: 'Percentual das avaliações do mês',
   acceptanceHint:
-    'Cada refeição avaliada pela merendeira em um toque: ótimo, bom ou ruim.',
+    'Cada refeição avaliada pela merendeira em um toque: ruim, bom ou ótimo.',
   acceptanceEmpty:
     'Nenhuma refeição foi avaliada neste mês ainda. A aceitação aparece assim que a merendeira registrar o primeiro dia.',
 
@@ -434,5 +434,5 @@ export function acceptanceSummaryLabel(
 
   if (total === 0) return `${meal}: sem avaliação neste mês`
 
-  return `${meal}: ${counts.great} ótimo, ${counts.good} bom, ${counts.poor} ruim, de ${total} avaliações`
+  return `${meal}: ${counts.poor} ruim, ${counts.good} bom, ${counts.great} ótimo, de ${total} avaliações`
 }

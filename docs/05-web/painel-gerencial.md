@@ -114,11 +114,17 @@ ao ponto da legenda, e sem ele o fim da fatia some quando ela é a última.
 
 A cor não carrega a informação sozinha. Cada barra de aceitação tem o percentual
 escrito ao lado e um `aria-label` com a distribuição inteira em palavras
-("Lanche da tarde: 0 ótimo, 0 bom, 2 ruim, de 2 avaliações"); a legenda é
+("Lanche da tarde: 2 ruim, 0 bom, 0 ótimo, de 2 avaliações"); a legenda é
 `aria-hidden`, porque ela só explica a cor. As larguras são a proporção exata,
 sem arredondar — três inteiros arredondados somam 99 ou 101, e a sobra vira um
 degrau na ponta da barra. O arredondamento fica no rótulo, onde é lido, e não na
 geometria, onde se acumula.
+
+> **Revisto na E7.** Legenda, barra e frase iam de "ótimo" a "ruim". Quando a
+> Merendeira 1 pediu os botões do registro na ordem Ruim · Bom · Ótimo, o
+> painel acompanhou, para a direção ler na mesma ordem em que a merendeira
+> avalia (issue #177). O "62% ótimo" ficou logo depois da fatia do ótimo, que
+> passou a ser a última.
 
 ## O menu suspenso do mês, e os 17 kB que ele quase cobrou
 

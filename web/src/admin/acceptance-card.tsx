@@ -24,6 +24,10 @@ import {
  * em texto, e a frase do `aria-label` diz a distribuição inteira. É o que
  * mantém a leitura de pé no tema escuro, no monitor da secretaria e no leitor
  * de tela.
+ *
+ * Desde a E7, legenda, barra e frase vão do pior para o melhor, na mesma
+ * ordem dos botões do registro (issue #177). O "62% ótimo" fica logo depois
+ * da fatia do ótimo, que é a última.
  */
 export function AcceptanceCard({
   acceptance,
@@ -58,12 +62,12 @@ export function AcceptanceCard({
           aria-hidden="true"
           className="flex flex-wrap items-center gap-x-3.5 gap-y-1"
         >
-          <Legend color="bg-chart-1" label={DASHBOARD_MESSAGES.great} />
+          <Legend color="bg-chart-3" label={DASHBOARD_MESSAGES.poor} />
           <Legend
             color="border border-border bg-chart-2"
             label={DASHBOARD_MESSAGES.good}
           />
-          <Legend color="bg-chart-3" label={DASHBOARD_MESSAGES.poor} />
+          <Legend color="bg-chart-1" label={DASHBOARD_MESSAGES.great} />
         </ul>
       </div>
 
@@ -131,8 +135,8 @@ function AcceptanceRow({ meal }: { meal: MealAcceptance }) {
         ) : (
           <>
             <Segment
-              share={meal.shares.great}
-              className="rounded-l-sm bg-chart-1"
+              share={meal.shares.poor}
+              className="rounded-l-sm bg-chart-3"
             />
             {/*
              * O "bom" é claro demais para se sustentar sozinho sobre o cartão
@@ -146,8 +150,8 @@ function AcceptanceRow({ meal }: { meal: MealAcceptance }) {
               className="bg-chart-2 shadow-[inset_0_0_0_1px_var(--border)]"
             />
             <Segment
-              share={meal.shares.poor}
-              className="rounded-r-sm bg-chart-3"
+              share={meal.shares.great}
+              className="rounded-r-sm bg-chart-1"
             />
           </>
         )}

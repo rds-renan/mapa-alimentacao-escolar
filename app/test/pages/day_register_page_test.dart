@@ -179,6 +179,12 @@ void main() {
         expect(find.text('Ótimo'), findsOneWidget);
         expect(find.text('Bom'), findsOneWidget);
         expect(find.text('Ruim'), findsOneWidget);
+        // Do pior para o melhor (issue #177).
+        final left = [
+          for (final label in ['Ruim', 'Bom', 'Ótimo'])
+            tester.getTopLeft(find.text(label)).dx,
+        ];
+        expect(left, orderedEquals([...left]..sort()));
 
         // É um acordeão — só um cartão aberto por vez (decisão 5 da E3) —,
         // mas os outros dois abrem do mesmo jeito.

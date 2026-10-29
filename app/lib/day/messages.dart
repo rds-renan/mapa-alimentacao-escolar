@@ -53,8 +53,9 @@ const Map<MealState, String> foodItemsStateLabels = {
   MealState.empty: 'Vazio',
 };
 
-/// Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004).
-const List<String> acceptanceOrder = ['great', 'good', 'poor'];
+/// Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004):
+/// do pior para o melhor desde a E7, como a Merendeira 1 pediu (issue #177).
+const List<String> acceptanceOrder = ['poor', 'good', 'great'];
 
 const Map<String, String> acceptanceLabels = {
   'great': 'Ótimo',

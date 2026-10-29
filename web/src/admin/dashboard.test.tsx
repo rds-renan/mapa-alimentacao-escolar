@@ -205,7 +205,7 @@ describe('a aceitação por refeição', () => {
 
     expect(
       screen.getByRole('img', {
-        name: 'Lanche da tarde: 0 ótimo, 0 bom, 2 ruim, de 2 avaliações',
+        name: 'Lanche da tarde: 2 ruim, 0 bom, 0 ótimo, de 2 avaliações',
       })
     ).toBeInTheDocument()
   })
