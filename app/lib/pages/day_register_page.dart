@@ -160,7 +160,7 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
     );
   }
 
-  /// Abre a folha 3b e põe o gênero escolhido na lista. Aberta de dentro da
+  /// Abre a folha 3b e põe os gêneros marcados na lista. Aberta de dentro da
   /// tela 3a, a folha sobe por cima dela: as duas estão no mesmo
   /// `Navigator`.
   Future<void> _addFoodItem(FoodItemList list) async {
@@ -168,7 +168,7 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
     final profileId = _profileId;
     if (day == null || profileId == null) return;
 
-    final choice = await showFoodItemSheet(
+    final chosen = await showFoodItemSheet(
       context,
       mapDate: widget.mapDate,
       chosen: [
@@ -176,9 +176,9 @@ class _DayRegisterPageState extends ConsumerState<DayRegisterPage> {
       ],
       catalog: ref.read(catalogRepositoryProvider(profileId)),
     );
-    if (choice == null || !mounted) return;
+    if (chosen == null || !mounted) return;
 
-    _change(addFoodItem(_shown!, list, choice));
+    _change(addFoodItems(_shown!, list, chosen));
   }
 
   /// A tela 3a. A alteração como estava ao abrir é o que o "Cancelar"

@@ -15,10 +15,9 @@ import {
   isAlreadyChosen,
   matchesSearch,
   UNIT_SUGGESTIONS,
-  type FoodItem,
 } from '@/food-items/catalog'
 import { useFoodItems } from '@/food-items/queries'
-import type { FoodItemPayload } from '@/local/day'
+import { normalizedName, type FoodItemPayload } from '@/local/day'
 
 import { FOOD_ITEM_SHEET_MESSAGES, dayTitle } from './messages'
 
@@ -29,8 +28,14 @@ import { FOOD_ITEM_SHEET_MESSAGES, dayTitle } from './messages'
  * merendeira ao catálogo no meio do registro é literalmente sair do fluxo
  * — ela perderia o lugar, e o item cadastrado lá não se prenderia sozinho ao
  * dia (decisão 7 da E3). Por isso o cadastro de um gênero novo mora aqui
- * dentro, no fim da lista: o pior caso vira dois gestos, e o gênero escolhido
- * entra no dia já com a quantidade em 1.
+ * dentro, no fim da lista, e o gênero escolhido entra no dia já com a
+ * quantidade em 1.
+ *
+ * **Ela marca vários e adiciona de uma vez** (issue #173). Na medição da E7, o
+ * que mais pesava no registro era repetir "Adicionar gênero → escolher →
+ * voltar" para cada item. Por isso o toque na linha só marca, e o botão fixo
+ * no rodapé põe todos os marcados no dia. O gênero cadastrado aqui entra
+ * marcado, junto com os outros, e assim só um botão fecha a folha.
  *
  * O gênero cadastrado aqui nasce de verdade no envio, não agora: `save_meal_map`
  * cria no catálogo o que ainda não existir, na mesma operação que grava o dia.
@@ -39,19 +44,22 @@ import { FOOD_ITEM_SHEET_MESSAGES, dayTitle } from './messages'
  * Quem a abre a monta, e quem a fecha a desmonta — por isso a busca e o
  * cadastro começam em branco a cada abertura, sem nada a limpar.
  */
+type Choice = Omit<FoodItemPayload, 'quantity'>
+
 export function FoodItemSheet({
   open,
   mapDate,
   chosen,
   onOpenChange,
-  onChoose,
+  onAdd,
 }: {
   open: boolean
   mapDate: string
   /** Os nomes normalizados que já estão na lista de destino. */
   chosen: string[]
   onOpenChange(open: boolean): void
-  onChoose(item: Omit<FoodItemPayload, 'quantity'>): void
+  /** Os gêneros marcados, na ordem em que ela marcou. */
+  onAdd(items: Choice[]): void
 }) {
   const searchId = useId()
   const nameId = useId()
@@ -60,33 +68,74 @@ export function FoodItemSheet({
   /** Nulo enquanto ela não mexeu no campo: aí vale o que está na busca. */
   const [typedName, setTypedName] = useState<string | null>(null)
   const [unit, setUnit] = useState<string | null>(null)
+  /*
+   * O que ela marcou, pelo nome normalizado e na ordem em que marcou: os do
+   * catálogo e os cadastrados aqui, que ainda não têm identificador.
+   */
+  const [marked, setMarked] = useState<Map<string, Choice>>(() => new Map())
   const catalog = useFoodItems()
 
   const found = (catalog.data ?? []).filter((item) =>
     matchesSearch(item, search)
   )
+  const created = [...marked.values()].filter(
+    (item) => item.food_item_id === null
+  )
   const newName = typedName ?? search
-  const canAdd = newName.trim() !== '' && unit !== null
+  const canCreate = newName.trim() !== '' && unit !== null
 
-  function choose(item: FoodItem) {
-    onChoose({
-      food_item_id: item.id,
-      name: item.name,
-      unit: item.default_unit,
+  function toggle(key: string, item: Choice) {
+    setMarked((current) => {
+      const next = new Map(current)
+      if (!next.delete(key)) next.set(key, item)
+      return next
     })
-    onOpenChange(false)
   }
 
+  /*
+   * O gênero novo entra marcado e o cadastro volta ao começo, pronto para o
+   * próximo. Se o nome já existe no catálogo, quem fica marcado é o do
+   * catálogo: a gravação juntaria os dois pelo nome de qualquer jeito, e assim
+   * a unidade que vale é a que já está lá.
+   */
   function create() {
-    if (!canAdd) return
+    if (!canCreate) return
 
-    onChoose({ food_item_id: null, name: newName.trim(), unit })
+    const name = newName.trim()
+    const key = normalizedName(name)
+    const existing = (catalog.data ?? []).find(
+      (item) => normalizedName(item.name) === key
+    )
+
+    if (!chosen.includes(key)) {
+      setMarked((current) =>
+        new Map(current).set(
+          key,
+          existing
+            ? {
+                food_item_id: existing.id,
+                name: existing.name,
+                unit: existing.default_unit,
+              }
+            : { food_item_id: null, name, unit }
+        )
+      )
+    }
+    setSearch('')
+    setTypedName(null)
+    setUnit(null)
+  }
+
+  function add() {
+    if (marked.size === 0) return
+
+    onAdd([...marked.values()])
     onOpenChange(false)
   }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent side="bottom" className="gap-0 pb-4">
+      <SheetContent side="bottom" className="gap-0">
         <div className="flex items-start gap-2 px-4 pt-3 pb-3">
           <div className="flex min-w-0 flex-1 flex-col gap-0.5">
             <SheetTitle>{FOOD_ITEM_SHEET_MESSAGES.title}</SheetTitle>
@@ -121,6 +170,20 @@ export function FoodItemSheet({
         </div>
 
         <div className="flex flex-col border-t border-muted px-4">
+          {/*
+           * Os que ela cadastrou aqui ficam no alto, marcados, seja qual for a
+           * busca: ainda não estão no catálogo, e é aqui que ela os desmarca.
+           */}
+          {created.map((item) => (
+            <ChoiceRow
+              key={`novo-${normalizedName(item.name)}`}
+              name={item.name}
+              unit={item.unit ?? ''}
+              marked
+              onToggle={() => toggle(normalizedName(item.name), item)}
+            />
+          ))}
+
           {catalog.isPending ? (
             <p
               role="status"
@@ -149,25 +212,23 @@ export function FoodItemSheet({
             </p>
           ) : (
             found.map((item) => {
-              const already = isAlreadyChosen(item, chosen)
+              const key = normalizedName(item.name)
 
               return (
-                <button
+                <ChoiceRow
                   key={item.id}
-                  type="button"
-                  disabled={already}
-                  onClick={() => choose(item)}
-                  className="flex min-h-touch items-center gap-3 border-b border-muted py-2 text-left last:border-b-0 disabled:opacity-50"
-                >
-                  <span className="flex-1 truncate text-sm font-medium">
-                    {item.name}
-                  </span>
-                  <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-2xs font-medium text-muted-foreground">
-                    {already
-                      ? FOOD_ITEM_SHEET_MESSAGES.alreadyChosen
-                      : item.default_unit}
-                  </span>
-                </button>
+                  name={item.name}
+                  unit={item.default_unit}
+                  already={isAlreadyChosen(item, chosen)}
+                  marked={marked.has(key)}
+                  onToggle={() =>
+                    toggle(key, {
+                      food_item_id: item.id,
+                      name: item.name,
+                      unit: item.default_unit,
+                    })
+                  }
+                />
               )
             })
           )}
@@ -220,11 +281,66 @@ export function FoodItemSheet({
             </div>
           </div>
 
-          <Button type="button" disabled={!canAdd} onClick={create}>
-            {FOOD_ITEM_SHEET_MESSAGES.add}
+          <Button
+            type="button"
+            variant="outline"
+            disabled={!canCreate}
+            onClick={create}
+          >
+            {FOOD_ITEM_SHEET_MESSAGES.create}
+          </Button>
+        </div>
+
+        {/*
+         * Fixo embaixo, fora da rolagem: com a lista comprida, ela não precisa
+         * descer até o fim para adicionar o que marcou.
+         */}
+        <div className="sticky bottom-0 mt-3 border-t border-border bg-card px-4 pt-3 pb-4">
+          <Button
+            type="button"
+            className="w-full"
+            disabled={marked.size === 0}
+            onClick={add}
+          >
+            {FOOD_ITEM_SHEET_MESSAGES.add(marked.size)}
           </Button>
         </div>
       </SheetContent>
     </Sheet>
+  )
+}
+
+/*
+ * Uma linha da lista: a caixa de marcar, o nome e a unidade. O gênero que já
+ * está no dia aparece marcado e apagado, com "já está aqui" no lugar da
+ * unidade, e não se mexe.
+ */
+function ChoiceRow({
+  name,
+  unit,
+  marked,
+  already = false,
+  onToggle,
+}: {
+  name: string
+  unit: string
+  marked: boolean
+  already?: boolean
+  onToggle(): void
+}) {
+  return (
+    <label className="flex min-h-touch cursor-pointer items-center gap-3 border-b border-muted py-2 last:border-b-0 has-disabled:cursor-default has-disabled:opacity-50">
+      <input
+        type="checkbox"
+        checked={already || marked}
+        disabled={already}
+        onChange={onToggle}
+        className="size-4.5 shrink-0 accent-primary"
+      />
+      <span className="flex-1 truncate text-sm font-medium">{name}</span>
+      <span className="rounded-full border border-border bg-muted px-2.5 py-0.5 text-2xs font-medium text-muted-foreground">
+        {already ? FOOD_ITEM_SHEET_MESSAGES.alreadyChosen : unit}
+      </span>
+    </label>
   )
 }

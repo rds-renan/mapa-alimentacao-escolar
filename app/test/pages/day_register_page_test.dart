@@ -417,6 +417,8 @@ void main() {
         expect(find.text('Arroz'), findsNothing);
 
         await tester.tap(find.text('Feijão'));
+        await tester.pump();
+        await tester.tap(find.text('Adicionar 1 gênero'));
         await tester.pumpAndSettle();
 
         expect(find.text('Escolher gênero'), findsNothing);
@@ -439,6 +441,62 @@ void main() {
   );
 
   testWidgets(
+    'marca vários gêneros e adiciona todos de uma vez, na ordem em que marcou',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await seedCatalog();
+        await openDay(tester, 1);
+
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+
+        final none = find.widgetWithText(FilledButton, 'Adicionar ao dia');
+        expect(tester.widget<FilledButton>(none).onPressed, isNull);
+
+        await tester.tap(find.text('Ovo'));
+        await tester.pump();
+        await tester.tap(find.text('Arroz'));
+        await tester.pump();
+        await tester.tap(find.text('Feijão'));
+        await tester.pump();
+        expect(find.text('Adicionar 3 gêneros'), findsOneWidget);
+
+        // Tocar de novo desmarca.
+        await tester.tap(find.text('Feijão'));
+        await tester.pump();
+
+        // O cadastrado entra marcado, junto com os do catálogo.
+        await tester.enterText(
+          find.widgetWithText(TextField, 'Buscar gênero'),
+          'Fubá',
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.widgetWithText(OutlinedButton, 'Cadastrar'));
+        await tester.pumpAndSettle();
+        // A busca limpa, e a lista volta inteira.
+        expect(find.text('Feijão'), findsOneWidget);
+
+        await tester.tap(find.text('Adicionar 3 gêneros'));
+        await tester.pumpAndSettle();
+        expect(find.text('Escolher gênero'), findsNothing);
+
+        final draft = await container
+            .read(syncEngineProvider(cook.id))
+            .load('2026-09-01');
+        expect(
+          [for (final item in draft!.foodItems) (item.name, item.quantity)],
+          [('Ovo', 1), ('Arroz', 1), ('Fubá', 1)],
+        );
+        expect(draft.foodItems.last.foodItemId, isNull);
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets(
     'o gênero que já está na refeição aparece marcado e não entra de novo',
     (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
@@ -448,11 +506,25 @@ void main() {
         await tester.tap(find.text('Adicionar gênero'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Arroz'));
+        await tester.pump();
+        await tester.tap(find.text('Adicionar 1 gênero'));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text('Adicionar gênero'));
         await tester.pumpAndSettle();
         expect(find.text('já está aqui'), findsOneWidget);
+
+        // Já no dia, a linha não se marca de novo.
+        await tester.tap(find.text('já está aqui'));
+        await tester.pump();
+        expect(
+          tester
+              .widget<FilledButton>(
+                find.widgetWithText(FilledButton, 'Adicionar ao dia'),
+              )
+              .onPressed,
+          isNull,
+        );
 
         await tester.tap(find.byTooltip('Fechar a escolha de gênero'));
         await tester.pumpAndSettle();
@@ -484,12 +556,24 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      final add = find.widgetWithText(FilledButton, 'Adicionar ao dia');
-      expect(tester.widget<FilledButton>(add).onPressed, isNull);
+      final create = find.widgetWithText(OutlinedButton, 'Cadastrar');
+      expect(tester.widget<OutlinedButton>(create).onPressed, isNull);
 
       await tester.tap(find.widgetWithText(ChoiceChip, 'quilo'));
       await tester.pumpAndSettle();
-      await tester.tap(add);
+      await tester.tap(create);
+      await tester.pumpAndSettle();
+
+      // Cadastrado, ele fica marcado na folha, e o cadastro volta ao começo.
+      expect(find.text('Escolher gênero'), findsOneWidget);
+      expect(
+        tester
+            .widget<TextField>(find.widgetWithText(TextField, 'Nome do gênero'))
+            .controller!
+            .text,
+        isEmpty,
+      );
+      await tester.tap(find.text('Adicionar 1 gênero'));
       await tester.pumpAndSettle();
 
       expect(find.text('Farinha de mandioca'), findsOneWidget);
@@ -529,6 +613,8 @@ void main() {
         await tester.tap(find.text('Adicionar gênero'));
         await tester.pumpAndSettle();
         await tester.tap(find.text('Ovo'));
+        await tester.pump();
+        await tester.tap(find.text('Adicionar 1 gênero'));
         await tester.pumpAndSettle();
 
         expect(find.text('Ovo'), findsOneWidget);

@@ -4,6 +4,7 @@ import { canBeSent, emptyDay, type DayPayload } from '@/local/day'
 
 import {
   addFoodItem,
+  addFoodItems,
   dayProgress,
   firstUnfinishedMeal,
   mealOf,
@@ -186,6 +187,23 @@ describe('os gêneros do dia', () => {
     day = addFoodItem(day, 'used', { ...RICE, name: ' ARROZ ' })
 
     expect(day.food_items).toEqual([{ ...RICE, quantity: 4 }])
+  })
+
+  it('entram vários de uma vez, na ordem, sem repetir quem já está', () => {
+    let day = addFoodItem(emptyDay(DATE), 'used', RICE)
+    day = setFoodItemQuantity(day, 'used', 'arroz', 4)
+    day = addFoodItems(day, 'used', [EGG, RICE])
+
+    expect(day.food_items).toEqual([
+      { ...RICE, quantity: 4 },
+      { ...EGG, quantity: 1 },
+    ])
+  })
+
+  it('nenhum marcado não cria alteração do cardápio', () => {
+    expect(addFoodItems(emptyDay(DATE), 'menu_change', []).menu_change).toBe(
+      null
+    )
   })
 
   it('andam de um em um, e o "−" de quem está em 1 tira o gênero', () => {

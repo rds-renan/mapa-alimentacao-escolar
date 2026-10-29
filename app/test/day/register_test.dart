@@ -193,6 +193,22 @@ void main() {
       expect(items.single.quantity, 4);
     });
 
+    test('vários entram de uma vez, na ordem, sem repetir quem já está', () {
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      day = setFoodItemQuantity(day, FoodItemList.used, 'arroz', 4);
+      day = addFoodItems(day, FoodItemList.used, [egg, rice]);
+
+      expect(
+        [for (final item in day.foodItems) (item.name, item.quantity)],
+        [('Arroz', 4), ('Ovo', 1)],
+      );
+    });
+
+    test('nenhum marcado não cria alteração do cardápio', () {
+      final day = addFoodItems(emptyDay(_date), FoodItemList.menuChange, []);
+      expect(day.menuChange, isNull);
+    });
+
     test('andam de um em um, e o "−" de quem está em 1 tira o gênero', () {
       var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
       day = stepFoodItemQuantity(day, FoodItemList.used, 'arroz', 1);

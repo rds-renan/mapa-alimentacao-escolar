@@ -324,6 +324,19 @@ export function addFoodItem(
   )
 }
 
+/**
+ * Põe vários gêneros de uma vez, na ordem em que vieram (issue #173): é o que
+ * a folha 3b entrega quando ela marca vários antes de adicionar. Cada um segue
+ * a regra de `addFoodItem`.
+ */
+export function addFoodItems(
+  day: DayPayload,
+  list: FoodItemList,
+  items: Omit<FoodItemPayload, 'quantity'>[]
+): DayPayload {
+  return items.reduce((day, item) => addFoodItem(day, list, item), day)
+}
+
 export function setFoodItemQuantity(
   day: DayPayload,
   list: FoodItemList,

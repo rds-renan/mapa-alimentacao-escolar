@@ -20,7 +20,7 @@ import { MenuChangeDialog } from '@/day/menu-change-dialog'
 import { NonSchoolDayCard } from '@/day/non-school-day-card'
 import { useDay } from '@/day/queries'
 import {
-  addFoodItem,
+  addFoodItems,
   dayProgress,
   firstUnfinishedMeal,
   listOf,
@@ -373,7 +373,7 @@ function DayScreen({ mapDate }: { mapDate: string }) {
           onOpenChange={(open) => {
             if (!open) setSheetFor(null)
           }}
-          onChoose={(item) => change(addFoodItem(day, sheetFor, item))}
+          onAdd={(items) => change(addFoodItems(day, sheetFor, items))}
         />
       ) : null}
 

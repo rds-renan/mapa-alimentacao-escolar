@@ -199,9 +199,17 @@ class FoodItemSheetMessages {
   static const noResults = 'Nenhum gênero com esse nome. Cadastre abaixo.';
   static const alreadyChosen = 'já está aqui';
   static const newTitle = 'Não está na lista?';
-  static const newHint = 'Cadastre aqui e o item já entra no dia.';
+  static const newHint = 'Cadastre aqui e ele já fica marcado.';
   static const newNameLabel = 'Nome do gênero';
   static const newNamePlaceholder = 'Ex.: feijão preto';
   static const newUnitLabel = 'Unidade padrão';
-  static const add = 'Adicionar ao dia';
+  static const create = 'Cadastrar';
+
+  /// O botão do rodapé: diz quantos vão entrar, e sem nenhum marcado fica
+  /// apagado com o texto de sempre.
+  static String add(int count) => switch (count) {
+    0 => 'Adicionar ao dia',
+    1 => 'Adicionar 1 gênero',
+    _ => 'Adicionar $count gêneros',
+  };
 }

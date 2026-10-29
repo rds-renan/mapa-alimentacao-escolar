@@ -322,6 +322,17 @@ DayPayload addFoodItem(DayPayload day, FoodItemList list, FoodItemChoice item) {
   );
 }
 
+/// Põe vários gêneros de uma vez, na ordem em que vieram (issue #173): é o
+/// que a folha 3b entrega quando ela marca vários antes de adicionar. Cada
+/// um segue a regra de [addFoodItem].
+DayPayload addFoodItems(
+  DayPayload day,
+  FoodItemList list,
+  List<FoodItemChoice> items,
+) {
+  return items.fold(day, (day, item) => addFoodItem(day, list, item));
+}
+
 DayPayload setFoodItemQuantity(
   DayPayload day,
   FoodItemList list,
