@@ -318,6 +318,30 @@ Conferida no A52 em 28/10, com o APK da release e a conta de produção: o mês
 abre com os mesmos estados de antes da migração, e um dia preenchido mostra os
 gêneros já juntos no cartão do dia.
 
+## A 0.1.5
+
+| | |
+|---|---|
+| Versão | `0.1.5+6` |
+| Tag | `app-v0.1.5`, criada em 29/10/2026 |
+| Release | [MAE 0.1.5](https://github.com/rds-renan/mapa-alimentacao-escolar/releases/tag/app-v0.1.5), com `mae-0.1.5.apk` (23,0 MB, só `arm64-v8a`) |
+
+Leva o resto das correções do teste com as merendeiras, as que não mudam o
+formato do dia: vários gêneros de uma vez (#173), arrastar para o lado tira o
+gênero (#174), as unidades "kg" e "un" (#175), a quantidade antes do gênero no
+documento (#176), a aceitação na ordem Ruim · Bom · Ótimo (#177) e os avisos da
+nuvem em snackbar (#178).
+
+O mínimo subiu para 6 mesmo sem mudança de contrato: a 0.1.4 ainda oferecia as
+unidades antigas, e um gênero cadastrado por ela depois da migration da #175
+nasceria com "quilo". A ordem foi a de sempre: release publicada, depois o
+`db push` com as unidades e o mínimo 6, nessa ordem, e o deploy da
+`generate-document` para o documento sair com "3 kg — Arroz". Na produção, os
+35 gêneros do catálogo ficaram 12 em "kg" e 23 em "un".
+
+Conferida no A52 em 29/10, com a conta de produção: a 0.1.4 da release abriu
+pedindo a atualização, baixou a 0.1.5 e instalou por cima.
+
 ## O registro de desenvolvedor
 
 Desde 30/09/2026, aparelhos Android certificados no Brasil só instalam e
