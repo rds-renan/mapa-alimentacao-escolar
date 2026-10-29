@@ -19,11 +19,12 @@ import { CATALOG_MESSAGES, duplicateLabel } from './messages'
  * folha por cima só para editar três campos, custariam mais tela e mais gesto
  * para fazer o que este cartão já faz.
  *
- * A unidade é campo de texto com as seis sugestões da E3 acima dele: o caso
- * comum continua sendo um toque, e o incomum — "bandeja", "fardo" — não
- * precisa de porta separada. É o que a decisão 8 da E4 quer dizer com texto
- * livre, e é esta tela que abre esse leque; a folha do registro (3b) fica com
- * as seis, porque lá o teclado no meio de uma refeição é que seria o custo.
+ * A unidade é campo de texto com as sugestões acima dele ("kg" e "un", as da
+ * nota fiscal, desde a issue #175): o caso comum continua sendo um toque, e o
+ * incomum — "bandeja", "fardo" — não precisa de porta separada. É o que a
+ * decisão 8 da E4 quer dizer com texto livre, e é esta tela que abre esse
+ * leque; a folha do registro (3b) fica só com as sugestões, porque lá o
+ * teclado no meio do registro é que seria o custo.
  */
 export function FoodItemForm({
   draft,

@@ -11,7 +11,7 @@ com as regras do formulário e `messages.dart` com os textos).
 
 | Critério | Onde |
 |---|---|
-| Listar, cadastrar, editar, desativar e reativar; unidade em texto, com as pílulas como sugestão | um cartão só cadastra e edita: tocar uma linha carrega o gênero nele, e o botão "Adicionar ao catálogo" dá lugar a "Desativar"/"Reativar" e "Salvar". A unidade é campo de texto com as seis sugestões da folha do registro em pílulas |
+| Listar, cadastrar, editar, desativar e reativar; unidade em texto, com as pílulas como sugestão | um cartão só cadastra e edita: tocar uma linha carrega o gênero nele, e o botão "Adicionar ao catálogo" dá lugar a "Desativar"/"Reativar" e "Salvar". A unidade é campo de texto com as sugestões da folha do registro em pílulas ("kg" e "un" desde a issue #175) |
 | Aviso de que trocar a unidade reescreve os dias já registrados (#64) | aparece no cartão, junto da unidade, só quando a unidade de um gênero que já existe muda (`unitChanged`). Não proíbe: manutenção existe para corrigir cadastro |
 | A lista se lê sem rede; alterar exige rede, e a tela diz isso | a lista vem do catálogo **no aparelho**; sem rede, um aviso no topo diz que dá para ver mas não para alterar, e os botões de gravar ficam apagados |
 

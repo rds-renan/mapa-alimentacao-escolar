@@ -163,7 +163,7 @@ test('a merendeira registra um dia e chega ao documento oficial', async ({
     expect(text).toContain(LUNCH)
     expect(text).toContain(AFTERNOON)
     expect(text).toContain(MEALS_SERVED)
-    expect(text).toContain(`${FOOD_ITEM} — 1 quilo`)
+    expect(text).toContain(`${FOOD_ITEM} — 1 kg`)
     expect(text).toMatch(/\(X\)\s*bom/i)
   })
 

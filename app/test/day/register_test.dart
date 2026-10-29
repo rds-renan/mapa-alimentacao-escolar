@@ -345,9 +345,10 @@ void main() {
       expect(matchesSearch('Arroz', ''), isTrue);
     });
 
-    test('a quantidade resumida no cartão leva o plural simples', () {
-      expect(quantityLabel(1, 'quilo'), '1 quilo');
-      expect(quantityLabel(3, 'bandeja'), '3 bandejas');
+    test('a quantidade resumida no cartão sai sem plural (issue #175)', () {
+      expect(quantityLabel(1, 'kg'), '1 kg');
+      expect(quantityLabel(3, 'un'), '3 un');
+      expect(quantityLabel(3, 'bandeja'), '3 bandeja');
       expect(quantityLabel(2, 'latas'), '2 latas');
       expect(quantityLabel(2, null), '2');
     });

@@ -150,11 +150,12 @@ permite cadastrar sem rede. Quando a fila confirma, a leitura do catálogo é
 invalidada junto com a dos dias, senão o gênero recém-nascido ficaria fora da
 busca até a consulta envelhecer.
 
-A unidade é escolhida entre seis sugestões, sem campo livre. No banco ela é
-texto curto e a lista **não** é fechada ([decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)),
-mas quem abre o leque é a [manutenção do catálogo](catalogo-de-generos.md): no meio de uma refeição
-são seis toques e nenhum teclado, e é isso que faz o pior caso — o gênero não
-existe — caber em poucos gestos.
+A unidade é escolhida entre as sugestões ("kg" e "un" desde a issue #175), sem
+campo livre. No banco ela é texto curto e a lista **não** é fechada
+([decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)), mas quem abre o leque é a
+[manutenção do catálogo](catalogo-de-generos.md): no meio do registro é um toque
+e nenhum teclado, e é isso que faz o pior caso — o gênero não existe — caber em
+poucos gestos.
 
 Sem catálogo (a folha abriu offline, ou a leitura falhou) o cadastro continua de
 pé, com a mensagem dizendo o que aconteceu. Ficar sem poder registrar porque a
@@ -187,10 +188,10 @@ são uma lista, então duas trocas no mesmo dia são um registro só (RN#2).
 Registrada, ela aparece **dentro do cartão dos gêneros do dia**, com os gêneros
 resumidos e o motivo embaixo, tocável para editar. Tem de aparecer porque é o
 que sai impresso: sem isso, a merendeira abriria a tela 3a no escuro para
-lembrar o que registrou. O resumo pluraliza a unidade com um "s" simples
-("3 bandejas de ovo") — as seis unidades sugeridas pluralizam assim, e o
-documento oficial não passa por aqui, porque lá o formato é "N unidade" (CA#3
-da US003).
+lembrar o que registrou. O resumo escreve a unidade como está no catálogo,
+sem plural ("3 kg de arroz", "2 un de ovo"), como a nota fiscal e o documento
+oficial. Até a E7 ele punha um "s" simples ("3 bandejas de ovo"), que com as
+unidades abreviadas da issue #175 daria "3 kgs".
 
 ### Confirmar não é salvar
 

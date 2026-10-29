@@ -250,7 +250,7 @@ $json$::jsonb),
     {
       "food_item_id": "f0000001-0000-4000-8000-000000000001",
       "name": "Arroz",
-      "unit": "quilo",
+      "unit": "kg",
       "quantity": 2
     }
   ],
@@ -602,7 +602,7 @@ select is((select mfi.quantity from public.meal_map_food_item mfi
            where mm.map_date = '2026-09-14'), 5::smallint,
   'Vale a última quantidade enviada');
 select is((select default_unit from public.food_item
-           where school_id = school_a() and name = 'Arroz'), 'quilo',
+           where school_id = school_a() and name = 'Arroz'), 'kg',
   'Quem manda na unidade é o catálogo, não a carga');
 
 select throws_ok(

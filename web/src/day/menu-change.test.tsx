@@ -292,7 +292,7 @@ describe('os gêneros utilizados', () => {
       'Feijão preto'
     )
 
-    fireEvent.click(within(sheet).getByRole('button', { name: 'saco' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'un' }))
     fireEvent.click(within(sheet).getByRole('button', { name: 'Cadastrar' }))
 
     // Cadastrado, ele fica marcado na folha, e o cadastro volta ao começo.
@@ -309,7 +309,7 @@ describe('os gêneros utilizados', () => {
         {
           food_item_id: null,
           name: 'Feijão preto',
-          unit: 'saco',
+          unit: 'un',
           quantity: 1,
         },
       ])
@@ -396,7 +396,7 @@ describe('a alteração do cardápio', () => {
     await dayLoaded()
     openCard('Almoço')
 
-    expect(await screen.findByText('3 bandejas de ovo')).toBeInTheDocument()
+    expect(await screen.findByText('3 bandeja de ovo')).toBeInTheDocument()
     expect(
       screen.getByText('Não veio o frango na entrega da semana.')
     ).toBeInTheDocument()
@@ -463,7 +463,7 @@ describe('a alteração do cardápio', () => {
     await dayLoaded()
     openCard('Almoço')
 
-    fireEvent.click(await screen.findByText('3 bandejas de ovo'))
+    fireEvent.click(await screen.findByText('3 bandeja de ovo'))
     const dialog = await screen.findByRole('dialog')
 
     fireEvent.change(within(dialog).getByLabelText('Motivo'), {
@@ -484,7 +484,7 @@ describe('a alteração do cardápio', () => {
     await dayLoaded()
     openCard('Almoço')
 
-    fireEvent.click(await screen.findByText('3 bandejas de ovo'))
+    fireEvent.click(await screen.findByText('3 bandeja de ovo'))
     const dialog = await screen.findByRole('dialog')
     fireEvent.click(
       within(dialog).getByRole('button', { name: 'Remover a alteração' })

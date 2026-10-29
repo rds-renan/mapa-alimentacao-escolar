@@ -123,7 +123,7 @@ void main() {
 
     // …e o cadastro, completo, não deixa enviar.
     await tester.enterText(nameField, 'Macarrão');
-    await tester.tap(find.widgetWithText(ChoiceChip, 'saco'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'un'));
     await tester.pump();
 
     final add = tester.widget<FilledButton>(find.byType(FilledButton));
@@ -136,13 +136,13 @@ void main() {
     await open(tester);
 
     await tester.enterText(nameField, 'Macarrão');
-    await tester.tap(find.widgetWithText(ChoiceChip, 'saco'));
+    await tester.tap(find.widgetWithText(ChoiceChip, 'un'));
     await tester.pump();
     await tester.tap(find.text('Adicionar ao catálogo'));
     await tester.pumpAndSettle();
 
     expect(catalog.saved.single['name'], 'Macarrão');
-    expect(catalog.saved.single['unit'], 'saco');
+    expect(catalog.saved.single['unit'], 'un');
     expect(catalog.saved.single['schoolId'], 'school-1');
     expect(find.text('Macarrão'), findsOneWidget);
 
