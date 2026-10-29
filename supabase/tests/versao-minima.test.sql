@@ -71,8 +71,8 @@ grant execute on all functions in schema public to authenticated;
 
 select results_eq(
   $$ select minimum_build from public.app_version $$,
-  array[5],
-  'O mínimo é o da última subida por migration (0.1.4+5, issue #179)');
+  array[6],
+  'O mínimo é o da última subida por migration (0.1.5+6, issue #182)');
 
 select throws_ok(
   $$ insert into public.app_version (singleton, minimum_build) values (true, 2) $$,
@@ -89,7 +89,7 @@ select act_as(merendeira_1());
 
 select results_eq(
   $$ select minimum_build from public.app_version $$,
-  array[5],
+  array[6],
   'Quem está logado lê a versão mínima');
 
 select throws_ok(
@@ -111,13 +111,13 @@ reset role;
 -- A recusa pelo cabeçalho
 -- ---------------------------------------------------------------------------
 
--- O mínimo sobe como subiria por migration — depois de o APK 5 estar
+-- O mínimo sobe como subiria por migration — depois de o APK 6 estar
 -- publicado.
-update public.app_version set minimum_build = 6;
+update public.app_version set minimum_build = 7;
 
 select act_as(merendeira_1());
 
-select app_build('5');
+select app_build('6');
 select throws_ok(
   $$ select save_day('2026-03-02') $$,
   'PT426', 'Esta versão do aplicativo está desatualizada.',
@@ -126,11 +126,11 @@ select throws_ok(
 select ok(not day_exists('2026-03-02'),
   'E nada do que ele mandou foi gravado');
 
-select app_build('6');
+select app_build('7');
 select is(save_day('2026-03-02'), 'saved',
   'O aplicativo no mínimo grava');
 
-select app_build('7');
+select app_build('8');
 select is(save_day('2026-03-03'), 'saved',
   'O aplicativo acima do mínimo grava');
 
@@ -157,7 +157,7 @@ select is(save_day('2026-03-05'), 'saved',
 -- A versão vem antes de qualquer outra recusa: um aplicativo velho que
 -- recebesse "só a merendeira registra" acharia que o problema é a conta.
 select act_as(direcao());
-select app_build('5');
+select app_build('6');
 select throws_ok(
   $$ select save_day('2026-03-06') $$,
   'PT426', null,

@@ -1,0 +1,11 @@
+-- O mínimo do aplicativo sobe para 6 (issue #182).
+--
+-- O APK 0.1.5+6 precisa estar publicado em app-v0.1.5 antes desta migration
+-- chegar à produção (docs/06-app/versao-minima.md#como-subir-o-mínimo).
+--
+-- Desta vez a subida não é de contrato: a 0.1.4 continua falando com a
+-- save_meal_map. O que ela ainda tem são as sugestões de unidade antigas
+-- ("quilo", "pote", …), e um gênero cadastrado por ela depois da migration
+-- das unidades (issue #175) nasceria fora do "kg"/"un". A trava leva as duas
+-- merendeiras às correções da E7 de uma vez.
+update public.app_version set minimum_build = 6, updated_at = now();
