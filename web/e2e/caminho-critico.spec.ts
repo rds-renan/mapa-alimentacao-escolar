@@ -85,9 +85,11 @@ test('a merendeira registra um dia e chega ao documento oficial', async ({
 
     const sheet = page.getByRole('dialog')
     await expect(sheet.getByText('Escolher gênero')).toBeVisible()
-    await sheet.getByRole('button', { name: FOOD_ITEM }).click()
+    // O toque marca; o botão do rodapé põe os marcados no dia (issue #173).
+    await sheet.getByRole('checkbox', { name: FOOD_ITEM }).check()
+    await sheet.getByRole('button', { name: 'Adicionar 1 gênero' }).click()
 
-    // Escolhido, ele entra no dia já com a quantidade em 1.
+    // Adicionado, ele entra no dia já com a quantidade em 1.
     await expect(
       page.getByRole('textbox', { name: `Quantidade de ${FOOD_ITEM}` })
     ).toHaveValue('1')
