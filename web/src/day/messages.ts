@@ -52,8 +52,11 @@ export const FOOD_ITEMS_STATE_LABELS: Record<MealState, string> = {
   empty: 'Vazio',
 }
 
-/** Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004). */
-export const ACCEPTANCE_ORDER: AcceptanceLevel[] = ['great', 'good', 'poor']
+/**
+ * Os três botões da aceitação, na ordem em que aparecem (CA#2 da US004): do
+ * pior para o melhor desde a E7, como a Merendeira 1 pediu (issue #177).
+ */
+export const ACCEPTANCE_ORDER: AcceptanceLevel[] = ['poor', 'good', 'great']
 
 export const ACCEPTANCE_LABELS: Record<AcceptanceLevel, string> = {
   great: 'Ótimo',

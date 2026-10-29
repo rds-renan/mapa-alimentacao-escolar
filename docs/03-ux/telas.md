@@ -37,6 +37,8 @@ Os documentos ainda dentro da janela de 7 dias, com o período, quantos mapas co
 As três refeições em cartões expansíveis, com o cardápio previsto e a aceitação em três botões; abaixo delas, o cartão dos gêneros do dia, com stepper de inteiros e a alteração do cardápio — registrada, ela aparece ali com os gêneros da troca e o motivo, porque é isso que sai no documento oficial —; o número único de refeições do dia e a alternância de dia não letivo. Não há botão de salvar: a faixa do topo diz o estado do salvamento. **US001, US002, US003, US004, US005, US009, US010.**
 
 > **Revisto na E7.** Até a E7, os gêneros e a alteração ficavam dentro do cartão de cada refeição, e havia um segundo estado desta tela, com o almoço aberto, para mostrar a alteração no cartão dele. Nos testes com as merendeiras os dois passaram a ser do dia — ver [decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md).
+>
+> Também na E7 os botões da aceitação passaram a ir do pior para o melhor, **Ruim · Bom · Ótimo**, a pedido da Merendeira 1 (issue #177). O painel da direção acompanhou a ordem.
 
 ### 3a · Alteração do cardápio
 
