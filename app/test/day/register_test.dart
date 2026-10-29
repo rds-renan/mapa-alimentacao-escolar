@@ -235,6 +235,30 @@ void main() {
       expect(day.foodItems.single.quantity, 1);
     });
 
+    test('o "Desfazer" devolve ao mesmo lugar, com a mesma quantidade', () {
+      var day = addFoodItems(emptyDay(_date), FoodItemList.used, [rice, egg]);
+      day = setFoodItemQuantity(day, FoodItemList.used, 'arroz', 120);
+      final removed = day.foodItems.first;
+
+      day = removeFoodItem(day, FoodItemList.used, 'arroz');
+      day = restoreFoodItem(day, FoodItemList.used, removed, 0);
+
+      expect(
+        [for (final item in day.foodItems) (item.name, item.quantity)],
+        [('Arroz', 120), ('Ovo', 1)],
+      );
+    });
+
+    test('o "Desfazer" não duplica quem já voltou por outro caminho', () {
+      var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
+      final removed = day.foodItems.single;
+      day = removeFoodItem(day, FoodItemList.used, 'arroz');
+      day = addFoodItem(day, FoodItemList.used, rice);
+
+      day = restoreFoodItem(day, FoodItemList.used, removed, 5);
+      expect(day.foodItems, hasLength(1));
+    });
+
     test('as duas listas não se misturam (decisão 7 da E4)', () {
       var day = addFoodItem(emptyDay(_date), FoodItemList.used, rice);
       day = addFoodItem(day, FoodItemList.menuChange, egg);

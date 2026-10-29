@@ -497,6 +497,55 @@ void main() {
   );
 
   testWidgets(
+    'arrastar para o lado tira o gênero, e o "Desfazer" devolve com a mesma '
+    'quantidade (issue #174)',
+    (tester) async {
+      await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
+        await seedCatalog();
+        await openDay(tester, 1);
+
+        await tester.tap(find.text('Adicionar gênero'));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Arroz'));
+        await tester.tap(find.text('Feijão'));
+        await tester.pump();
+        await tester.tap(find.text('Adicionar 2 gêneros'));
+        await tester.pumpAndSettle();
+
+        await tester.enterText(
+          find.widgetWithText(TextField, '1').first,
+          '120',
+        );
+        await tester.pump();
+
+        Future<List<(String, int)>> stored() async {
+          final draft = await container
+              .read(syncEngineProvider(cook.id))
+              .load('2026-09-01');
+          return [
+            for (final item in draft!.foodItems) (item.name, item.quantity),
+          ];
+        }
+
+        await tester.drag(find.text('Arroz'), const Offset(-600, 0));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Arroz'), findsNothing);
+        expect(find.text('Arroz removido'), findsOneWidget);
+        expect(await stored(), [('Feijão', 1)]);
+
+        await tester.tap(find.text('Desfazer'));
+        await tester.pumpAndSettle();
+
+        expect(find.text('Arroz'), findsOneWidget);
+        expect(await stored(), [('Arroz', 120), ('Feijão', 1)]);
+
+        await dispose(tester);
+      });
+    },
+  );
+
+  testWidgets(
     'o gênero que já está na refeição aparece marcado e não entra de novo',
     (tester) async {
       await withClock(Clock.fixed(DateTime(2026, 9, 9)), () async {
@@ -652,6 +701,16 @@ void main() {
         await tester.tap(find.text('1 bandeja de ovo'));
         await tester.pumpAndSettle();
         expect(find.text('Ovo'), findsOneWidget);
+
+        // Lá dentro, o arrasto também tira o gênero da troca (issue #174).
+        await tester.drag(find.text('Ovo'), const Offset(600, 0));
+        await tester.pumpAndSettle();
+        expect(find.text('Ovo'), findsNothing);
+        expect(find.text('Ovo removido'), findsOneWidget);
+        await tester.tap(find.text('Desfazer'));
+        await tester.pumpAndSettle();
+        expect(find.text('Ovo'), findsOneWidget);
+
         await tester.tap(find.text('Confirmar alteração'));
         await tester.pumpAndSettle();
 
@@ -771,6 +830,12 @@ void main() {
 
       expect(find.text('Arroz'), findsOneWidget);
       expect(find.text('Adicionar gênero'), findsNothing);
+
+      // Trancado, a linha não arrasta (issue #174).
+      expect(find.byType(Dismissible), findsNothing);
+      await tester.drag(find.text('Arroz'), const Offset(-600, 0));
+      await tester.pumpAndSettle();
+      expect(find.text('Arroz'), findsOneWidget);
       expect(
         tester
             .widget<IconButton>(

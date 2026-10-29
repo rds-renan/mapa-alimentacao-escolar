@@ -129,6 +129,11 @@ class DayMessages {
   static String foodItemLess(String name, {required bool last}) =>
       last ? 'Tirar $name da lista' : 'Um a menos de $name';
   static String foodItemMore(String name) => 'Um a mais de $name';
+
+  /// O arrasto para o lado tira o gênero na hora (issue #174); o aviso
+  /// embaixo diz qual saiu e deixa voltar atrás.
+  static String foodItemRemoved(String name) => '$name removido';
+  static const undo = 'Desfazer';
   static String foodItemQuantity(String name, String? unit) =>
       unit == null || unit.isEmpty
       ? 'Quantidade de $name'
