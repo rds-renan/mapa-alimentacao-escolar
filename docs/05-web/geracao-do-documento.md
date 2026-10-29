@@ -128,8 +128,8 @@ empurrado por espaços. Nos dois casos o conteúdo é reescrito de qualquer jeit
 | Dia | `dd/mm` | na primeira linha do bloco; mesclada no dia |
 | Cardápio realizado | descrição da refeição, depois do rótulo | fiel ao cardápio previsto, mesmo com troca |
 | — grau de aceitação | `( )` vira `(X)` só na opção registrada | sem registro, nenhuma marcação |
-| Gêneros utilizados | gêneros do dia, um por linha | o registro já é do dia; a geração só formata |
-| Alterações | gêneros e quantidades da troca do dia | vazia quando não houve troca |
+| Gêneros utilizados | gêneros do dia, um por linha: `3 kg — Arroz` | na ordem alfabética do gênero; o registro já é do dia, a geração só formata |
+| Alterações | gêneros e quantidades da troca do dia, no mesmo formato | vazia quando não houve troca |
 | Número de refeições | o número do dia | vazio quando não registrado; `—` em dia não letivo |
 | Justificativa | o motivo da troca, depois do rótulo | uma por dia |
 
@@ -144,6 +144,11 @@ dia**, que é como a coluna é mesclada.
 > ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)), a soma
 > foi feita uma vez só, na migração, e a geração deixou de juntar o que quer
 > que seja.
+>
+> Também na E7 a linha do gênero inverteu: era `Arroz — 3 quilo` e passou a
+> `3 kg — Arroz`, a quantidade primeiro, como a Merendeira 1 confere na nota
+> fiscal (issue #176). Com as unidades abreviadas da issue #175, acabou também
+> o plural errado ("6 unidade").
 
 **Dia não letivo** ocupa o bloco com "DIA NÃO LETIVO:" e a observação, deixa as
 outras refeições em branco e marca `—` no número de refeições. As linhas vazias
