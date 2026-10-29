@@ -192,11 +192,21 @@ export const FOOD_ITEM_SHEET_MESSAGES = {
   noResults: 'Nenhum gênero com esse nome. Cadastre abaixo.',
   alreadyChosen: 'já está aqui',
   newTitle: 'Não está na lista?',
-  newHint: 'Cadastre aqui e o item já entra no dia.',
+  newHint: 'Cadastre aqui e ele já fica marcado.',
   newNameLabel: 'Nome do gênero',
   newNamePlaceholder: 'Ex.: feijão preto',
   newUnitLabel: 'Unidade padrão',
-  add: 'Adicionar ao dia',
+  create: 'Cadastrar',
+  /*
+   * O botão do rodapé: diz quantos vão entrar, e sem nenhum marcado fica
+   * apagado com o texto de sempre.
+   */
+  add: (count: number) =>
+    count === 0
+      ? 'Adicionar ao dia'
+      : count === 1
+        ? 'Adicionar 1 gênero'
+        : `Adicionar ${count} gêneros`,
 } as const
 
 function capitalize(text: string): string {

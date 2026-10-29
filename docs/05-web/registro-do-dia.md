@@ -136,6 +136,14 @@ padrão. A busca ignora acento e caixa — "feijao" acha "Feijão" —, e o item
 escolhido entra no dia já com a quantidade em 1. O que já está na lista
 aparece marcado e não se escolhe de novo.
 
+Desde a E7 ela **marca vários e adiciona de uma vez** (issue #173): o toque na
+linha marca, e o botão fixo no rodapé ("Adicionar 3 gêneros") põe todos no
+dia, na ordem em que ela marcou, e fecha a folha. O gênero cadastrado ali
+entra marcado, e o cadastro volta ao começo para o próximo. Se o nome
+cadastrado já existe no catálogo, quem fica marcado é o do catálogo. Na
+medição de tempo da E7, repetir a folha para cada item era o maior gargalo do
+registro.
+
 O gênero cadastrado ali **nasce no envio**, não na hora: `save_meal_map` cria no
 catálogo o que ainda não existir, na mesma operação que grava o dia. É isso que
 permite cadastrar sem rede. Quando a fila confirma, a leitura do catálogo é
@@ -146,7 +154,7 @@ A unidade é escolhida entre seis sugestões, sem campo livre. No banco ela é
 texto curto e a lista **não** é fechada ([decisão 8 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)),
 mas quem abre o leque é a [manutenção do catálogo](catalogo-de-generos.md): no meio de uma refeição
 são seis toques e nenhum teclado, e é isso que faz o pior caso — o gênero não
-existe — caber em dois gestos.
+existe — caber em poucos gestos.
 
 Sem catálogo (a folha abriu offline, ou a leitura falhou) o cadastro continua de
 pé, com a mensagem dizendo o que aconteceu. Ficar sem poder registrar porque a

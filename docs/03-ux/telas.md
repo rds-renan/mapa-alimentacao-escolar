@@ -48,7 +48,9 @@ Os gêneros usados na troca, com as suas quantidades, e o motivo em texto livre.
 
 ![Escolher gênero](../assets/e3-3b-escolher-genero.png)
 
-Sheet sobre o registro: busca no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade padrão — o item cadastrado já entra no dia, sem sair do registro. **US009, US003.**
+Sheet sobre o registro: busca no catálogo e, no fim da lista, o cadastro de um gênero novo com a sua unidade padrão, sem sair do registro. Ela marca os gêneros que usou, e o botão fixo no rodapé põe todos no dia de uma vez. O cadastrado entra marcado, junto com os outros. **US009, US003.**
+
+> **Revisto na E7.** Até a E7, um toque na linha já punha o gênero no dia e fechava o sheet: um gênero por vez. Na medição de tempo com a Merendeira 2, repetir "Adicionar gênero → escolher → voltar" para cada item foi o que mais pesou no registro, e ela pediu para marcar vários (issue #173).
 
 ### 4 · Catálogo de gêneros
 

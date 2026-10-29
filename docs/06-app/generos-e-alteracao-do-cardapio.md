@@ -88,9 +88,11 @@ A consulta do mês (`SupabaseMonthGateway`) passou a pedir
 
 Na web as duas são `Sheet` montadas pela própria página. No aplicativo:
 
-- **A folha 3b** é `showModalBottomSheet` e **devolve** o gênero escolhido
-  (ou nulo, se ela fechou) — quem põe na lista é o registro, com o dia mais
-  novo na mão. Ao abrir, pede `CatalogRepository.refresh()` por baixo e
+- **A folha 3b** é `showModalBottomSheet` e **devolve** os gêneros marcados,
+  na ordem em que ela marcou (ou nulo, se ela fechou) — quem põe na lista é o
+  registro, com o dia mais novo na mão, por `addFoodItems`. Até a E7 ela
+  devolvia um gênero só, no primeiro toque; a multisseleção veio da medição de
+  tempo com a Merendeira 2 (issue #173), e o desenho é o mesmo da web. Ao abrir, pede `CatalogRepository.refresh()` por baixo e
   ignora a falha: a lista já aparece com o que o aparelho tem, e sem rede a
   atualização só não acontece. É a primeira tela a acionar esse `refresh`,
   que a #102 tinha deixado sem uso; `catalogRepositoryProvider` nasceu aqui e

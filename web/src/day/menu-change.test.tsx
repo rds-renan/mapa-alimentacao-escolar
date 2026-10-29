@@ -140,13 +140,19 @@ async function storedContent() {
   return (await storedDay())?.day
 }
 
-/** Abre a folha 3b a partir do cartão aberto e escolhe um gênero do catálogo. */
-async function chooseFromCatalog(name: string) {
+/**
+ * Abre a folha 3b a partir do cartão aberto, marca gêneros do catálogo e
+ * adiciona todos.
+ */
+async function chooseFromCatalog(...names: string[]) {
   fireEvent.click(screen.getByRole('button', { name: /Adicionar gênero/ }))
   const sheet = await screen.findByRole('dialog')
-  fireEvent.click(
-    await within(sheet).findByRole('button', { name: new RegExp(name) })
-  )
+  for (const name of names) {
+    fireEvent.click(
+      await within(sheet).findByRole('checkbox', { name: new RegExp(name) })
+    )
+  }
+  fireEvent.click(within(sheet).getByRole('button', { name: /^Adicionar \d/ }))
 }
 
 beforeEach(() => {
@@ -195,6 +201,40 @@ describe('os gêneros utilizados', () => {
           quantity: 1,
         },
       ])
+    })
+  })
+
+  it('entram vários de uma vez, na ordem em que ela marcou (issue #173)', async () => {
+    renderDay()
+    await dayLoaded()
+    await chooseFromCatalog('Arroz')
+
+    fireEvent.click(screen.getByRole('button', { name: /Adicionar gênero/ }))
+    const sheet = await screen.findByRole('dialog')
+    const add = () => within(sheet).getByRole('button', { name: /^Adicionar/ })
+    expect(add()).toHaveTextContent('Adicionar ao dia')
+    expect(add()).toBeDisabled()
+
+    // O que já está no dia vem marcado e não se mexe.
+    const rice = within(sheet).getByRole('checkbox', { name: /Arroz/ })
+    expect(rice).toBeChecked()
+    expect(rice).toBeDisabled()
+
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Leite/ }))
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Feijão/ }))
+    expect(add()).toHaveTextContent('Adicionar 2 gêneros')
+
+    // Tocar de novo desmarca.
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Feijão/ }))
+    expect(add()).toHaveTextContent('Adicionar 1 gênero')
+    fireEvent.click(within(sheet).getByRole('checkbox', { name: /Feijão/ }))
+
+    fireEvent.click(add())
+
+    await waitFor(async () => {
+      expect(
+        (await storedContent())?.food_items.map((item) => item.name)
+      ).toEqual(['Arroz', 'Leite em pó', 'Feijão carioca'])
     })
   })
 
@@ -253,8 +293,15 @@ describe('os gêneros utilizados', () => {
     )
 
     fireEvent.click(within(sheet).getByRole('button', { name: 'saco' }))
+    fireEvent.click(within(sheet).getByRole('button', { name: 'Cadastrar' }))
+
+    // Cadastrado, ele fica marcado na folha, e o cadastro volta ao começo.
+    expect(
+      within(sheet).getByRole('checkbox', { name: /Feijão preto/ })
+    ).toBeChecked()
+    expect(within(sheet).getByLabelText('Nome do gênero')).toHaveValue('')
     fireEvent.click(
-      within(sheet).getByRole('button', { name: 'Adicionar ao dia' })
+      within(sheet).getByRole('button', { name: 'Adicionar 1 gênero' })
     )
 
     await waitFor(async () => {
@@ -282,7 +329,7 @@ describe('os gêneros utilizados', () => {
       await within(sheet).findByText(/Não deu para carregar o catálogo/)
     ).toBeVisible()
     expect(
-      within(sheet).getByRole('button', { name: 'Adicionar ao dia' })
+      within(sheet).getByRole('button', { name: 'Cadastrar' })
     ).toBeInTheDocument()
   })
 
@@ -298,10 +345,10 @@ describe('os gêneros utilizados', () => {
     })
 
     expect(
-      within(sheet).getByRole('button', { name: /Feijão carioca/ })
+      within(sheet).getByRole('checkbox', { name: /Feijão carioca/ })
     ).toBeInTheDocument()
     expect(
-      within(sheet).queryByRole('button', { name: /Arroz/ })
+      within(sheet).queryByRole('checkbox', { name: /Arroz/ })
     ).not.toBeInTheDocument()
   })
 })
@@ -481,6 +528,7 @@ async function chooseFromCatalogInside(dialog: HTMLElement, name: string) {
   const sheets = await screen.findAllByRole('dialog')
   const sheet = sheets[sheets.length - 1]
   fireEvent.click(
-    await within(sheet).findByRole('button', { name: new RegExp(name) })
+    await within(sheet).findByRole('checkbox', { name: new RegExp(name) })
   )
+  fireEvent.click(within(sheet).getByRole('button', { name: /^Adicionar \d/ }))
 }
