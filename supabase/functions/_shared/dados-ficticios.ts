@@ -50,7 +50,7 @@ const CHANGES: Record<number, { reason: string; items: typeof STAPLES }> = {
   9: {
     reason: "o frango não chegou na entrega da semana",
     items: [
-      { name: "Ovo", amount: 120, unit: "unidade" },
+      { name: "Ovo", amount: 120, unit: "un" },
       { name: "Batata", amount: 6, unit: "kg" },
     ],
   },
@@ -123,7 +123,7 @@ function buildMealMap(year: number, month: number, day: number): MealMap {
       { name: "Leite", amount: 12, unit: "L" },
       { name: "Açúcar", amount: 2, unit: "kg" },
       ...STAPLES.map((item) => ({ ...item })),
-      { name: "Pão", amount: 140, unit: "unidade" },
+      { name: "Pão", amount: 140, unit: "un" },
       { name: "Fruta da estação", amount: 10, unit: "kg" },
     ].sort((a, b) => a.name.localeCompare(b.name, "pt-BR")),
     change: change ? { reason: change.reason, foodItems: change.items } : null,

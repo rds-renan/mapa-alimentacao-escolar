@@ -261,20 +261,20 @@ Deno.test("os gêneros do dia saem numa coluna só", () => {
   const rows = rowsOf(fill(documentWith([schoolDay("2026-09-01")])));
   const items = cellText(rows[1], 2);
 
-  assertStringIncludes(items, "Arroz — 10 kg");
-  assertStringIncludes(items, "Leite — 10 L");
+  assertStringIncludes(items, "10 kg — Arroz");
+  assertStringIncludes(items, "10 L — Leite");
 });
 
 Deno.test("a alteração aparece na coluna própria e a justificativa na última linha", () => {
   const day = schoolDay("2026-09-01", {
     change: {
       reason: "o frango não chegou na entrega",
-      foodItems: [{ name: "Ovo", amount: 120, unit: "unidade" }],
+      foodItems: [{ name: "Ovo", amount: 120, unit: "un" }],
     },
   });
 
   const rows = rowsOf(fill(documentWith([day])));
-  assertStringIncludes(cellText(rows[1], 3), "Ovo — 120 unidade");
+  assertStringIncludes(cellText(rows[1], 3), "120 un — Ovo");
   // A alteração é do dia (decisão 14 da E4): sai sem o nome da refeição.
   assertEquals(cellText(rows[1], 3).includes("Almoço:"), false);
   assertStringIncludes(

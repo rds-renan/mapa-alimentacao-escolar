@@ -127,6 +127,11 @@ export function formatAmount(amount: number): string {
   return String(amount).replace(".", ",");
 }
 
+/**
+ * `3 kg — Arroz`: a quantidade antes do gênero, como na nota fiscal, que é por
+ * onde elas conferem (issue #176). A lista continua na ordem alfabética do
+ * gênero, que é quem a ordena.
+ */
 export function formatFoodItem(item: FoodItemAmount): string {
-  return `${item.name} — ${formatAmount(item.amount)} ${item.unit}`;
+  return `${formatAmount(item.amount)} ${item.unit} — ${item.name}`;
 }
