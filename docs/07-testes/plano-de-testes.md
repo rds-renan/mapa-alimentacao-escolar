@@ -163,15 +163,18 @@ regra só: **o que é publicado não identifica ninguém.**
   tarjados. As testadoras são *Merendeira 1*, *Merendeira 2*, *Direção* e
   *Colega* em todo documento público.
 - O nome da escola e da prefeitura não aparecem.
-- **O documento oficial gerado nunca entra no repositório**, nem em captura:
-  ele carrega o símbolo e o nome da prefeitura. O que o laudo mostra dele é a
-  tela do aplicativo que o gerou.
+- **O documento oficial gerado nunca entra inteiro no repositório**: ele
+  carrega o símbolo e o nome da prefeitura. Um recorte só com o que foi
+  registrado, sem símbolo, nome ou assinatura, pode servir de evidência.
 - O cardápio, os gêneros e as quantidades não identificam ninguém e podem
   aparecer como foram registrados.
 
 ## O que sai desta etapa
 
-- O **relato dos testes**, testador por testador, nos campos da faculdade.
-- O **laudo de qualidade**: cada erro encontrado, a correção e a evidência de
-  antes e depois — dos testes com as pessoas, do ensaio e da varredura
-  técnica —, junto do que os testes automatizados garantem a cada mudança.
+- O [**relato dos testes**](relato-dos-testes.md), testador por testador, nos
+  campos da faculdade.
+- O [**laudo de qualidade**](laudo-de-qualidade.md): cada erro encontrado, a
+  correção e a evidência do erro — dos testes com as pessoas, do ensaio e da
+  varredura técnica —, junto do que os testes automatizados garantem a cada
+  mudança. O sistema corrigido aparece funcionando no vídeo da solução
+  atualizada.
