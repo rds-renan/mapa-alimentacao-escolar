@@ -136,6 +136,12 @@ erDiagram
         timestamptz unlocked_at
         text reason
     }
+
+    app_version {
+        boolean singleton PK "uma linha só"
+        integer minimum_build
+        timestamptz updated_at
+    }
 ```
 
 ## Tipos enumerados
@@ -211,6 +217,10 @@ Ligação pura entre a geração e os mapas incluídos, com chave primária comp
 ### `meal_map_unlock`
 
 Somente inserção: nada aqui é editado ou apagado (RNF#1 da US023). `reason` é `not null` (CA#1 da US023). Um mapa "reaberto para correção" é aquele que tem ao menos uma linha aqui e está com `locked = false`.
+
+### `app_version`
+
+Entrou na E6, com o aplicativo: a versão mínima do aplicativo que o banco aceita. Uma linha só, garantida pela chave booleana `singleton`. A gravação do dia recusa o envio de aplicativo abaixo de `minimum_build`, e o próprio aplicativo baixa a versão nova ([versão mínima](../06-app/versao-minima.md)). Não é dado da escola, por isso não tem `school_id`; o número sobe por migration, depois de a release que o satisfaz estar publicada.
 
 ## O que o banco garante e o que fica para a aplicação
 

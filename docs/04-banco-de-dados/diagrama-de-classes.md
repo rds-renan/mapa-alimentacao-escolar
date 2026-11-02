@@ -135,9 +135,9 @@ classDiagram
 
     class Aceitacao {
         <<enumeration>>
-        otimo
-        bom
         ruim
+        bom
+        otimo
     }
 
     class SituacaoDocumento {
