@@ -1,0 +1,64 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&amp;display=swap">
+  <style>
+    body { margin: 0; font-family: Geist, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #397ba1; }
+    a:hover { color: #2c5f7e; }
+    *, *::before, *::after { box-sizing: border-box; }
+    button { font-family: inherit; cursor: pointer; }
+  </style>
+</helmet>
+<div style="width: 390px; min-height: 980px; background: #fafafa; color: #09090b; display: flex; flex-direction: column; padding: 32px 24px 24px;">
+
+  <div style="flex-grow: 1; display: flex; flex-direction: column; justify-content: center; gap: 32px;">
+
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 14px;">
+      <img src="logo.png" style="width: 88px; height: 88px;">
+      <div style="display: flex; flex-direction: column; align-items: center; gap: 4px;">
+        <div style="font-size: 34px; font-weight: 600; letter-spacing: -0.02em;">MAE</div>
+        <div style="font-size: 13.5px; color: #71717a;">Mapa da Alimentação Escolar</div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px;">
+      <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.01em;">Esqueci minha senha</div>
+      <div style="font-size: 14px; color: #52525b; line-height: 1.5;">Chegou um código de 6 dígitos para merendeira@dominio.com.br. Digite-o abaixo com a senha nova.</div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">E-mail</span>
+        <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #f4f4f5; color: #71717a;">merendeira@dominio.com.br</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Código de 6 dígitos</span>
+        <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #ffffff; color: #09090b; letter-spacing: 4px;">482913</div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Senha nova</span>
+        <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #ffffff; color: #09090b; letter-spacing: 3px;">••••••••</div>
+        <span style="font-size: 12px; color: #71717a;">Pelo menos 8 caracteres.</span>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 7px;">
+        <span style="font-size: 12.5px; font-weight: 500; color: #52525b;">Repita a senha nova</span>
+        <div style="min-height: 48px; border: 1px solid #e4e4e7; border-radius: 10px; padding: 13px 14px; font-size: 15px; background: #ffffff; color: #09090b; letter-spacing: 3px;">••••••••</div>
+      </div>
+      <div style="display: flex; gap: 8px; align-items: flex-start; border: 1px solid #dcfce7; background: #f0fdf4; border-radius: 10px; padding: 10px 12px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#15803d" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0; margin-top: 2px;"><circle cx="12" cy="12" r="10"></circle><path d="m9 12 2 2 4-4"></path></svg>
+        <span style="font-size: 13px; color: #15803d; line-height: 1.45;">Se este e-mail tiver acesso ao MAE, o código para criar uma senha nova já está a caminho. Confira também o lixo eletrônico.</span>
+      </div>
+      <button style="min-height: 50px; border: none; border-radius: 10px; background: #397ba1; color: #ffffff; font-size: 15.5px; font-weight: 600; margin-top: 6px;">Trocar a senha</button>
+      <a href="#" style="font-size: 13.5px; font-weight: 500; text-align: center; padding: 12px; text-decoration: none;">Pedir código para outro e-mail</a>
+    </div>
+
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

@@ -30,7 +30,8 @@
   - RN#3 Gêneros usados e quantidades nunca são obrigatórios para concluir o registro de uma refeição.
   - *Revisto na E7:* os gêneros passaram a ser do dia, não da refeição. A refeição continua se concluindo sem eles, mas o **dia** só fica completo com ao menos um gênero; sem gênero, fica pendente e não entra no documento ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
 - **Requisitos não funcionais:**
-  - RNF#1 O registro de um dia comum deve ser concluído em menos de 2 minutos.
+  - RNF#1 O registro de um dia no aplicativo é mais rápido que o registro à mão.
+  - *Revisto na E7:* a versão da E2 dizia "em menos de 2 minutos", uma estimativa feita antes de existir qualquer medição. Medido na E7, um dia inteiro levou 8 min 42 s à mão e 2 min 50 s no aplicativo ([relato dos testes](../07-testes/relato-dos-testes.md#a-medição-de-tempo)).
 - **Prioridade:** A — **Pontos de história:** 5
 
 ### US002 — Alteração de cardápio com justificativa
@@ -41,11 +42,12 @@
 - **Critérios de aceitação:**
   - CA#1 O registro de alteração tem os gêneros usados na troca, cada um com a sua quantidade (US003), e uma justificativa.
   - CA#2 Não é possível concluir uma alteração sem justificativa.
-  - CA#3 A descrição e a aceitação da refeição não mudam ao se registrar uma alteração.
-  - CA#4 A alteração aparece no cartão da refeição e no documento gerado, na coluna reservada a ela.
+  - CA#3 A descrição e a aceitação das refeições não mudam ao se registrar uma alteração.
+  - CA#4 A alteração aparece no cartão de gêneros do dia e no documento gerado, na coluna reservada a ela.
 - **Regras de negócio:**
   - RN#1 Toda divergência em relação ao cardápio oficial exige justificativa.
-  - RN#2 Há no máximo uma alteração por refeição: a justificativa cobre a modificação inteira e os gêneros são uma lista, então duas trocas na mesma refeição são um registro só.
+  - RN#2 Há no máximo uma alteração por dia: a justificativa cobre a modificação inteira e os gêneros são uma lista, então duas trocas no mesmo dia são um registro só.
+  - *Revisto na E7:* a alteração era registrada por refeição e passou a ser do dia, junto com os gêneros utilizados. Origem: a Merendeira 1 lançava tudo numa refeição só, e o documento oficial já reúne o dia numa linha (issue #172, [decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
 - **Requisitos não funcionais:**
   - RNF#1 A justificativa aceita texto livre, com sugestões de motivos frequentes para reduzir digitação.
 - **Prioridade:** A — **Pontos de história:** 3
@@ -58,9 +60,10 @@
 - **Critérios de aceitação:**
   - CA#1 Cada gênero exibe sua unidade padrão ao lado do campo de quantidade.
   - CA#2 O campo aceita apenas números inteiros positivos; frações e texto são impossíveis de inserir.
-  - CA#3 A quantidade registrada aparece no documento no formato "N unidade" (ex.: "2 kg").
+  - CA#3 A quantidade registrada aparece no documento antes do gênero (ex.: "2 kg — Arroz").
 - **Regras de negócio:**
   - RN#1 Quantidades são sempre inteiras, na unidade padrão cadastrada para o gênero.
+  - *Revisto na E7:* as unidades sugeridas passaram a ser só "kg" e "un", como na nota fiscal dos fornecedores, e o documento passou a trazer a quantidade primeiro. Qualquer outra unidade continua podendo ser digitada no catálogo. Origem: pedidos da Merendeira 1 no teste (issues #175 e #176).
 - **Requisitos não funcionais:**
   - RNF#1 Em campos numéricos, o teclado exibido é o numérico do Android.
 - **Prioridade:** A — **Pontos de história:** 3
@@ -68,14 +71,15 @@
 ### US004 — Grau de aceitação em um toque
 
 - **Requerente:** Merendeira
-- **Ação:** Como merendeira, quero registrar o grau de aceitação de cada refeição tocando em um de três botões (ótimo, bom ou ruim), para avaliar a refeição sem digitar nada.
+- **Ação:** Como merendeira, quero registrar o grau de aceitação de cada refeição tocando em um de três botões (ruim, bom ou ótimo), para avaliar a refeição sem digitar nada.
 - **Comentários:** A avaliação é feita por observação de sobras, reação das crianças e repetições — conhecimento que elas já têm; o app só captura.
 - **Critérios de aceitação:**
   - CA#1 Cada uma das três refeições do dia tem seu próprio registro de aceitação.
-  - CA#2 A aceitação é escolhida entre exatamente três opções: ótimo, bom, ruim.
+  - CA#2 A aceitação é escolhida entre exatamente três opções, nesta ordem: ruim, bom, ótimo.
   - CA#3 Não é possível concluir o registro de uma refeição servida sem informar a aceitação.
 - **Regras de negócio:**
   - RN#1 O grau de aceitação é por refeição, não por dia nem por item.
+  - *Revisto na E7:* a ordem era ótimo, bom, ruim; a Merendeira 1 pediu a inversa, que para ela faz mais sentido (issue #177).
 - **Requisitos não funcionais:**
   - RNF#1 A seleção é feita em um único toque, sem listas suspensas ou digitação.
 - **Prioridade:** A — **Pontos de história:** 2
@@ -201,6 +205,7 @@
 - **Requisitos não funcionais:**
   - RNF#1 Persistência local a cada alteração de campo (autosave contínuo).
   - RNF#2 O app deixa claro, sem alarmar, que está operando offline e que os dados estão seguros no aparelho.
+  - *Recorte das E5 e E6:* o CA#1 é cumprido no aplicativo Android; a web garante que nada se perde (CA#2 e CA#3), mas abrir do zero sem rede é do aplicativo ([decisão 2 da E5](../05-web/decisoes-tecnicas.md)). No aplicativo, a manutenção do catálogo (renomear, trocar a unidade, desativar) exige rede; o cadastro de gênero novo durante o registro, não ([decisão 7 da E6](../06-app/decisoes-tecnicas.md)).
 - **Prioridade:** A — **Pontos de história:** 13
 
 ### US011 — Sincronização automática quando houver rede
@@ -216,6 +221,7 @@
   - RN#1 O dado local nunca é descartado antes de confirmado no servidor.
 - **Requisitos não funcionais:**
   - RNF#1 A sincronização ocorre em segundo plano, sem bloquear o uso do app.
+  - *Leitura da E6:* o segundo plano é o da tela: o envio não trava o registro. Ele acontece com o aplicativo aberto; o que ficou na fila sobe na próxima abertura ([decisão 8 da E6](../06-app/decisoes-tecnicas.md)).
 - **Prioridade:** A — **Pontos de história:** 8
 
 ## Documento oficial e envio
@@ -268,6 +274,7 @@
   - RN#1 O app não envia o documento sozinho — o envio é sempre uma ação da merendeira, pelo aplicativo que ela escolher.
 - **Requisitos não funcionais:**
   - RNF#1 Usa a folha de compartilhamento nativa do Android (sem integração direta com API do WhatsApp).
+  - *Recorte da E5:* a folha do Android é do aplicativo; na web, compartilhar é baixar o arquivo, mais o botão de compartilhar quando o navegador oferece ([decisão 9 da E5](../05-web/decisoes-tecnicas.md)).
 - **Prioridade:** A — **Pontos de história:** 2
 
 ### US021 — Documentos gerados acessíveis à merendeira
@@ -284,6 +291,7 @@
   - RN#2 A lista não permite editar mapa nenhum — os registros incluídos continuam bloqueados (US007).
 - **Requisitos não funcionais:**
   - RNF#1 A lista abre offline com o que já foi sincronizado; abrir ou compartilhar o arquivo exige rede.
+  - *Acrescentado na E6:* ao abrir, o aplicativo avisa do documento que ficou pronto e ela ainda não viu, com "Compartilhar". Ocupa o lugar da notificação do sistema desenhada na E3, sem push ([decisão 10 da E6](../06-app/decisoes-tecnicas.md)).
 - **Prioridade:** A — **Pontos de história:** 5
 
 ## Administração
@@ -311,9 +319,11 @@ O administrador é a figura de direção/responsável superior. Ele não partici
 - **Ação:** Como administrador, quero cadastrar as merendeiras e gerenciar seus acessos, para que apenas pessoas autorizadas registrem o mapa da escola.
 - **Comentários:** Não há autocadastro — o cadastro aberto fica desativado no sistema e o app oferece apenas login. O universo de usuárias é conhecido e pequeno; as contas nascem pelo administrador.
 - **Critérios de aceitação:**
-  - CA#1 O administrador cria o acesso de uma merendeira com credenciais iniciais.
+  - CA#1 O administrador cria o acesso de uma merendeira com o nome e o e-mail; ela recebe por e-mail um link (para a web) e um código de 6 dígitos (para o aplicativo) e define a própria senha.
   - CA#2 Um acesso pode ser desativado sem apagar os registros feitos por ele.
   - CA#3 Não existe fluxo de autocadastro no app — apenas login de contas criadas pelo administrador.
+  - CA#4 Quem esqueceu a senha pede uma nova pela tela de entrada e a define com o código recebido, dentro do aplicativo, sem abrir o navegador.
+  - *Acrescentado nas E5 a E7:* a história previa credenciais iniciais. Na codificação da web surgiram o pedido de senha nova (E5, issue #59) e a conta que nasce sem senha, definida pela própria merendeira por esse mesmo caminho (E5, issue #68); no aplicativo a senha passou a se resolver por código, sem navegador ([decisão 9 da E6](../06-app/decisoes-tecnicas.md)). O código do primeiro acesso ganhou o caminho "Já tenho um código" depois do teste da Merendeira 2 (E7, issue #171).
 - **Regras de negócio:**
   - RN#1 Perfis: administrador (gerencial + consulta) e merendeira (todo o fluxo do mapa). O administrador não registra mapas.
   - RN#2 Todos os perfis da escola acessam os mapas dela para consulta.
@@ -328,7 +338,7 @@ O administrador é a figura de direção/responsável superior. Ele não partici
 - **Ação:** Como administrador, quero um painel com o histórico mensal da alimentação — aceitação das refeições, número de refeições servidas e as merendas mais bem aceitas — para acompanhar a escola sem entrar nos mapas.
 - **Comentários:** É a funcionalidade de destaque do perfil administrador, coerente com seu papel: gerencial, fora do fluxo do mapa. Os dados já são capturados no registro diário (US004 e US005) — o painel apenas os agrega em gráficos simples, sem complexidade. Substitui os "relatórios simples" que a E1 havia deixado para o pós-MVP.
 - **Critérios de aceitação:**
-  - CA#1 O painel mostra, por mês, a distribuição de aceitação (ótimo/bom/ruim) por refeição.
+  - CA#1 O painel mostra, por mês, a distribuição de aceitação (ruim/bom/ótimo) por refeição.
   - CA#2 O painel mostra o total de refeições servidas no mês e a média por dia.
   - CA#3 O painel destaca as merendas mais bem aceitas do período (itens com melhor avaliação).
   - CA#4 É possível navegar entre os meses do histórico.
@@ -402,8 +412,9 @@ O administrador é a figura de direção/responsável superior. Ele não partici
   - RN#2 Vale a mesma janela de validade da US012 — expirado o arquivo, não há o que baixar.
 - **Requisitos não funcionais:**
   - RNF#1 A tela é de leitura, em layout de desktop, dentro da área do administrador.
+  - *Reforçado na E7:* o Colega, testando o fluxo da direção, pediu exatamente esta tela (issue #170). Continua pós-MVP: o fluxo fecha sem ela.
 - **Prioridade:** C — **Pontos de história:** 3
 
 ---
 
-**Resumo:** 24 histórias — 18 de prioridade A e 3 B (MVP), 2 C e 1 D (pós-MVP). As cinco últimas (US020–US024) entraram na revisão feita ao fim da E3, quando o desenho das telas revelou requisitos que o levantamento não tinha visto. O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).
+**Resumo:** 24 histórias — 18 de prioridade A e 3 B (MVP), 2 C e 1 D (pós-MVP). As cinco últimas (US020–US024) entraram na revisão feita ao fim da E3, quando o desenho das telas revelou requisitos que o levantamento não tinha visto. Na revisão da E8, as histórias foram reconciliadas com o produto entregue: o que mudou na codificação (E5 e E6) e nos testes com as usuárias (E7) aparece em notas *Revisto*, *Recorte* ou *Acrescentado*, com a origem de cada mudança. O backlog priorizado e organizado por tema está em [backlog.md](backlog.md).

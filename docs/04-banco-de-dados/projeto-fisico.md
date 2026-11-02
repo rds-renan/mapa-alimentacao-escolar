@@ -13,6 +13,21 @@
 | `20260907120200_rls.sql` | Row Level Security ligada nas doze tabelas, com as políticas por perfil |
 | `20260907120300_storage.sql` | Os dois baldes privados e suas políticas |
 
+As migrations seguintes vieram das etapas que usaram o banco, cada uma com o porquê escrito no próprio arquivo:
+
+| Arquivo | Etapa | O que faz |
+|---|---|---|
+| `20260911120000_gravacao_atomica_do_dia.sql` | E5 | `save_meal_map()`: o dia inteiro gravado numa operação só ([a gravação do dia](../05-web/gravacao-do-dia.md)) |
+| `20260916120000_protecao_do_perfil.sql` | E5 | Um perfil não troca o próprio papel nem a própria escola |
+| `20260919120000_geracao_do_documento.sql` | E5 | O lado do banco da geração: o pedido, o bloqueio dos mapas incluídos e o registro do documento |
+| `20260920120000_nome_do_arquivo_publicado.sql` | E5 | O nome com que o arquivo chega a quem recebe |
+| `20260920130000_administracao.sql` | E5 | A gestão da direção: dados da escola, modelo vigente e acessos |
+| `20261001120000_versao_minima_do_app.sql` | E6 | `app_version`: a versão mínima do aplicativo que o banco aceita ([versão mínima](../06-app/versao-minima.md)) |
+| `20261011120000_avisos_do_supabase.sql` | E7 | As correções dos avisos de segurança e desempenho ([varredura técnica](../07-testes/varredura-tecnica.md)) |
+| `20261028120000_generos_do_dia.sql` | E7 | Gêneros e alteração do cardápio passam a ser do dia, juntando os registros que existiam ([decisão 14](decisoes-de-modelagem.md)) |
+| `20261029120000_unidades_kg_e_un.sql` | E7 | Unidades do catálogo em "kg" e "un" |
+| `20261011130000_versao_minima_3.sql` a `20261029130000_versao_minima_6.sql` | E7 | Cada release do aplicativo sobe a versão mínima, depois de publicada |
+
 Migration é imutável depois de aplicada: corrigir é escrever a próxima.
 
 ## O que o banco passou a garantir sozinho
@@ -95,5 +110,5 @@ As migrations foram aplicadas do zero num Supabase local e as regras exercitadas
 ## O que ainda não está aqui
 
 - **A gravação do dia como unidade atômica** ([decisão 9](decisoes-de-modelagem.md)) — a operação única que faz o *upsert* do mapa, substitui os filhos e cria o gênero que ainda não existir. Ficou para a E5, junto com o cliente que a chama, e não aqui: migration é imutável, então escrevê-la antes custaria uma para criá-la e outra para corrigi-la assim que a lógica que a usa existisse. Pior que o retrabalho seria o efeito colateral — um contrato que nasce antes de quem o consome passa a parecer imutável, e a aplicação acaba se moldando a regras que ninguém decidiu. **Feita na E5**: o contrato está em [a gravação do dia](../05-web/gravacao-do-dia.md), e com ela o carimbo de última edição passou a ser a edição no aparelho, não o relógio do servidor.
-- **A geração do documento** — edge function que lê o modelo vigente, monta o arquivo, grava `generated_document` e bloqueia os mapas incluídos. É a US012, da E5.
-- **A expiração dos arquivos** — a rotina que apaga o que passou dos 7 dias e deixa o registro como "fora do ar".
+- **A geração do documento** — edge function que lê o modelo vigente, monta o arquivo, grava `generated_document` e bloqueia os mapas incluídos. É a US012, da E5. **Feita na E5**: a Edge Function `generate-document` ([geração do documento](../05-web/geracao-do-documento.md)).
+- **A expiração dos arquivos** — a rotina que apaga o que passou dos 7 dias e deixa o registro como "fora do ar". **Feita na E5**: a Edge Function `expire-documents` ([geração do documento](../05-web/geracao-do-documento.md)).

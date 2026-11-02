@@ -5,6 +5,8 @@
 > Critério de prioridade: **A** — sem isso o app não substitui o improviso atual (MVP); **B** — dentro do MVP, mas não condiciona a substituição do improviso (conforto do fluxo, valor gerencial); **C/D** — pós-MVP, agrega valor mas o fluxo fecha sem eles.
 >
 > **Revisado ao fim da E3**: o desenho das telas revelou cinco requisitos que o levantamento não tinha visto (US020–US024). Eles entraram aqui antes da modelagem de dados, porque dois deles — os documentos gerados e o desbloqueio de mapa — mudam o que o banco precisa guardar. As histórias que não vieram de uma pessoa entrevistada trazem *Equipe de projeto* no campo Requerente.
+>
+> **Revisado na E8**: as histórias foram reconciliadas com o produto entregue. O que mudou na codificação e nos testes com as usuárias (gêneros e alteração do cardápio do dia, aceitação na ordem ruim, bom, ótimo, unidades "kg" e "un", senha por código) entrou como nota dentro de cada história, sem história nova. Nenhuma prioridade nem estimativa mudou: os totais continuam os mesmos.
 
 
 
@@ -16,7 +18,7 @@
 | US001 | Como merendeira, quero registrar o mapa de qualquer dia de forma rápida e no momento que me for conveniente, para que o preenchimento caiba na minha rotina.                 | 5                    | A          |
 | US002 | Como merendeira, quero registrar os gêneros e as quantidades que usei quando precisei mudar o cardápio, junto com o motivo, para que o mapa documente a alteração no formato exigido. | 3                    | A          |
 | US003 | Como merendeira, quero informar as quantidades dos gêneros em números inteiros na unidade padrão de cada item, para não digitar texto livre nem errar formato.               | 3                    | A          |
-| US004 | Como merendeira, quero registrar o grau de aceitação de cada refeição tocando em um de três botões (ótimo, bom ou ruim), para avaliar sem digitar nada.                      | 2                    | A          |
+| US004 | Como merendeira, quero registrar o grau de aceitação de cada refeição tocando em um de três botões (ruim, bom ou ótimo), para avaliar sem digitar nada.                      | 2                    | A          |
 | US005 | Como merendeira, quero informar o número de refeições servidas no dia em um único campo, para refletir o processo real da escola integral.                                   | 1                    | A          |
 | US006 | Como merendeira, quero marcar um dia como não letivo registrando apenas uma observação, para documentar o dia sem preencher refeições.                                       | 2                    | A          |
 | US007 | Como merendeira, quero editar o registro de qualquer dia enquanto o documento não foi gerado, para entregar o mapa sem erros.                                                | 3                    | A          |

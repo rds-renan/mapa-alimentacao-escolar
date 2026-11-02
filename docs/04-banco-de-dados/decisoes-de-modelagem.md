@@ -48,7 +48,7 @@
 
 **Decisão**: `Refeicao.descricao` é texto livre — a linha que a merendeira transcreve do cardápio previsto ("Arroz, feijão, frango desfiado e salada"). Não há entidade "item do cardápio" nem "prato", e a linha não é reescrita quando houve troca (ver [decisão 7](#7-a-alteração-registra-o-que-entrou-não-o-que-saiu)).
 
-**Por quê**: o cardápio oficial é documento externo no MVP e o mapa é uma transcrição dele (US001, US019); o documento oficial imprime exatamente essa linha por refeição. Estruturar itens obrigaria a merendeira a decompor cada refeição em partes, o oposto do registro em menos de 2 minutos (RNF#1 da US001). O custo cai sobre o painel: "as merendas mais bem aceitas" (CA#3 da US017) agrupam pela descrição normalizada (minúsculas, sem espaços repetidos), então "Arroz com frango" e "arroz c/ frango" contam separado. É limitação aceita para o MVP; a ingestão do cardápio (US019) é o lugar natural para estruturar isso depois.
+**Por quê**: o cardápio oficial é documento externo no MVP e o mapa é uma transcrição dele (US001, US019); o documento oficial imprime exatamente essa linha por refeição. Estruturar itens obrigaria a merendeira a decompor cada refeição em partes, o oposto do registro rápido que a RNF#1 da US001 pede. O custo cai sobre o painel: "as merendas mais bem aceitas" (CA#3 da US017) agrupam pela descrição normalizada (minúsculas, sem espaços repetidos), então "Arroz com frango" e "arroz c/ frango" contam separado. É limitação aceita para o MVP; a ingestão do cardápio (US019) é o lugar natural para estruturar isso depois.
 
 **Histórias**: US001, US002, US017, US019.
 
