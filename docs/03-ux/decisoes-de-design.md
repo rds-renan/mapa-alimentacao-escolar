@@ -60,6 +60,8 @@
 
 **Por quê**: uma tela por refeição triplicaria a navegação de um fluxo que precisa caber na rotina; o cartão recolhido ainda mostra o resumo e o estado de cada refeição. Os três botões avaliam sem digitar nada — rapidez foi critério explícito das usuárias (US004).
 
+**Revisto na E7**: a ordem dos botões passou a ser Ruim / Bom / Ótimo, a pedido da Merendeira 1 (issue #177), e os gêneros e a alteração do cardápio saíram dos cartões das refeições para um cartão próprio do dia ("Gêneros do dia"), depois que ela mostrou que lançava tudo junto ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)). Os três cartões de refeição continuam como decididos aqui.
+
 **Histórias**: US001, US002, US004, US005, US006.
 
 ## 6. Tokens compartilhados entre web e Flutter
@@ -80,6 +82,8 @@
 
 **Consequência no modelo (E4)**: o gênero pode nascer junto com o registro da refeição, então a gravação do mapa precisa criar o item de catálogo que ainda não existir, na mesma operação.
 
+**Revisto na E7**: o gênero entra no cartão de gêneros do dia, não mais na refeição ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)), e o sheet passou a aceitar vários gêneros marcados de uma vez, a pedido da Merendeira 2 (issue #173).
+
 **Histórias**: US009, US003.
 
 ## 8. A alteração registra o que entrou, e aparece no cartão da refeição
@@ -91,6 +95,8 @@
 A alteração precisa aparecer no cartão porque é o que sai impresso (US002); se não aparecesse, a merendeira teria de abrir a tela de alteração no escuro para lembrar o que registrou.
 
 **O que esta decisão desfez**: a primeira versão desta decisão mostrava "item previsto → item servido" no cartão e oferecia um botão "Outra alteração" para trocas sucessivas. As duas coisas vinham de uma leitura errada do formulário, herdada da US002 — corrigida na E4, quando a modelagem de dados foi conferir o documento que o sistema precisa produzir. Como a justificativa cobre a modificação inteira e os gêneros são uma lista, duas trocas na mesma refeição são um registro só, e o segundo botão deixou de ter função.
+
+**Revisto na E7**: a alteração passou a ser do dia, no máximo uma por dia, e aparece no cartão "Gêneros do dia" em vez do cartão da refeição. O raciocínio desta decisão continua de pé, e ficou mais fiel ao formulário: a linha da justificativa já estava sob as três refeições ([decisão 14 da E4](../04-banco-de-dados/decisoes-de-modelagem.md)).
 
 **Histórias**: US002, US003, US007.
 

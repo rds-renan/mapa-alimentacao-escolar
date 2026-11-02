@@ -10,6 +10,24 @@
       "page": "page-merendeira"
     },
     {
+      "file": "EsqueciSenha.dc.html",
+      "x": 0,
+      "y": 2480,
+      "w": 390,
+      "h": 844,
+      "title": "1a · Esqueci minha senha",
+      "page": "page-merendeira"
+    },
+    {
+      "file": "SenhaNova.dc.html",
+      "x": 470,
+      "y": 2480,
+      "w": 390,
+      "h": 980,
+      "title": "1b · Senha nova pelo código",
+      "page": "page-merendeira"
+    },
+    {
       "file": "VisaoDoMes.dc.html",
       "x": 470,
       "y": 0,

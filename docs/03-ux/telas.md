@@ -12,6 +12,20 @@
 
 Única porta de entrada: não há autocadastro, o acesso é criado pela direção. **US016.**
 
+### 1a · Esqueci minha senha
+
+![Pedido do código para a senha nova](../assets/e3-1a-esqueci-minha-senha.png)
+
+Ela informa o e-mail e recebe um código de 6 dígitos para criar a senha nova. Quem já tem o código, como no primeiro acesso, toca em "Já tenho um código" e vai direto para a tela seguinte. **US016.**
+
+### 1b · Senha nova pelo código
+
+![Senha nova com o código de 6 dígitos](../assets/e3-1b-senha-nova-pelo-codigo.png)
+
+O código e a senha nova na mesma tela, sem abrir o navegador. A mensagem de envio é a mesma para e-mail conhecido e desconhecido, para não revelar quem tem acesso. **US016.**
+
+> As telas 1a e 1b não vieram do desenho original da E3: nasceram na codificação (E5, issue #59, e o código no aplicativo na E6) e foram desenhadas na revisão da documentação, na E8, a partir do que o produto já tinha.
+
 ### 2 · Visão do mês
 
 ![Visão do mês](../assets/e3-2-visao-do-mes.png)
